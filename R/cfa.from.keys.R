@@ -23,9 +23,6 @@
 #' @param hash_dir
 #' A subdirectory of `out_dir` where data hashes are saved.
 #' Defaults to 'hashes'.
-#' @param mod_dir
-#' A subdirectory of `out_dir` where model outputs are saved.
-#' If NULL, it will be set as 'name'.
 #'
 #' @return
 #' Returns a list of lists.
@@ -34,9 +31,8 @@
 #' and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
 
 cfa.from.keys <- function(
-    keys, d, name = "cfa", out_dir = "output",
-    std.lv = TRUE, fit_save = TRUE, fit_measures = TRUE, miss = "ML",
-    hash_dir = "hashes", mod_dir = NULL
+    keys, d, name = "cfa", out_dir = "output", std.lv = TRUE,
+    fit_save = TRUE, fit_measures = TRUE, miss = "ML", hash_dir = "hashes"
 ) {
   if (is.null(out_dir)) {
     out_dir <- name
@@ -62,7 +58,6 @@ cfa.from.keys <- function(
     name = name,
     kl_s = keys,
     kl_e = NULL,
-    mod_dir = mod_dir,
     std = FALSE,
     fit_save = fit_save,
     fit_measures = fit_measures,

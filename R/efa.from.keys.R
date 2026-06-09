@@ -24,9 +24,6 @@
 #' @param hash_dir
 #' A subdirectory of `out_dir` where data hashes are saved.
 #' Defaults to 'hashes'.
-#' @param mod_dir
-#' A subdirectory of `out_dir` where model outputs are saved.
-#' If `NULL`, it will be set as 'name'.
 #'
 #' @return
 #' Returns a list of lists.
@@ -49,7 +46,7 @@
 efa.from.keys <- function(
     keys, d, name = "efa", out_dir = "output",
     orthogonal = FALSE, std.lv = TRUE, fit_save = TRUE, fit_measures = TRUE,
-    miss = "ML", hash_dir = "hashes", mod_dir = NULL
+    miss = "ML", hash_dir = "hashes"
 ) {
   target <- sapply(keys, function(y) ifelse(!unlist(keys) %in% y, 0, NA))
   mod <- list(
@@ -68,7 +65,6 @@ efa.from.keys <- function(
     name = name,
     kl_s = NULL,
     kl_e = keys,
-    mod_dir = mod_dir,
     std = FALSE,
     fit_save = fit_save,
     fit_measures = fit_measures,

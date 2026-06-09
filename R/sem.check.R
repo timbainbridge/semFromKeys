@@ -14,12 +14,9 @@
 #' @param name A name for the collection of models to be run.
 #' @param kl_s A named keys list matching the names and length of mod.
 #' @param kl_e A named keys list of the factors in an ESEM to be included.
-#' @param mod_dir
-#' A subdirectory of `out_dir` where model outputs are saved.
-#' If NULL, it will be set as 'name'.
 #' @param std
-#' TRUE to save standardised parameter estimates;
-#' FALSE to save unstandardised parameters estimates.
+#' `TRUE` to save standardised parameter estimates;
+#' `FALSE` to save unstandardised parameters estimates.
 #' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
 #' @param fit_measures
 #' A vector of fit measures to save, or `NULL` to select all fit measures.
@@ -69,7 +66,7 @@
 #' @export
 
 sem.check <- function(
-    mods, dat, name, kl_s, kl_e, mod_dir = NULL, std = TRUE,
+    mods, dat, name, kl_s, kl_e, std = TRUE,
     fit_save = FALSE, fit_measures = NULL, target = FALSE,
     out_dir = "output", hash_dir = "hashes",
     orthogonal = FALSE, miss = "ML", std.lv = FALSE
@@ -79,12 +76,6 @@ sem.check <- function(
   }
   if (!is.character(name)) {
     stop("`name` is not a character string.")
-  }
-  if (is.null(mod_dir)) {
-    mod_dir <- name
-  }
-  if (!is.character(mod_dir)) {
-    stop("`mod_dir` is not a character string.")
   }
   if (!is.character(out_dir)) {
     stop("`out_dir` is not a character string.")
@@ -166,8 +157,8 @@ sem.check <- function(
   # TODO: What options are available for miss in lavaan? Can we simply rely on
   #       lavaan's errors?
   if (!dir.exists(out_dir)) dir.create(out_dir)
-  if (!dir.exists(file.path(out_dir, mod_dir))) {
-    dir.create(file.path(out_dir, mod_dir))
+  if (!dir.exists(file.path(out_dir, name))) {
+    dir.create(file.path(out_dir, name))
   }
   if (!dir.exists(file.path(out_dir, hash_dir))) {
     dir.create(file.path(out_dir, hash_dir))
@@ -176,8 +167,8 @@ sem.check <- function(
   message(paste("Running", name))
   # Load hashes and prior models
   m0 <-
-    if (file.exists(file.path(out_dir, mod_dir, paste0(name, "_m.rds")))) {
-      tmp <- readRDS(file.path(out_dir, mod_dir, paste0(name, "_m.rds")))
+    if (file.exists(file.path(out_dir, name, paste0(name, "_m.rds")))) {
+      tmp <- readRDS(file.path(out_dir, name, paste0(name, "_m.rds")))
       # Remove spaces
       lapply(tmp, function(x) gsub(" ", "", x))
     } else FALSE
@@ -221,29 +212,29 @@ sem.check <- function(
   } else FALSE
   # Load old object if it exists
   fit0 <-
-    if (file.exists(file.path(out_dir, mod_dir, paste0(name, "_fit.rds")))) {
-      readRDS(file.path(out_dir, mod_dir, paste0(name, "_fit.rds")))
+    if (file.exists(file.path(out_dir, name, paste0(name, "_fit.rds")))) {
+      readRDS(file.path(out_dir, name, paste0(name, "_fit.rds")))
     } else FALSE
   if (std == TRUE) {
     par0 <-
       if (file.exists(
-        file.path(out_dir, mod_dir, paste0(name, "_par_std.rds"))
+        file.path(out_dir, name, paste0(name, "_par_std.rds"))
       )) {
-        readRDS(file.path(out_dir, mod_dir, paste0(name, "_par_std.rds")))
+        readRDS(file.path(out_dir, name, paste0(name, "_par_std.rds")))
       } else FALSE
   } else {
     par0 <-
       if (file.exists(
-        file.path(out_dir, mod_dir, paste0(name, "_par.rds"))
+        file.path(out_dir, name, paste0(name, "_par.rds"))
       )) {
-        readRDS(file.path(out_dir, mod_dir, paste0(name, "_par.rds")))
+        readRDS(file.path(out_dir, name, paste0(name, "_par.rds")))
       } else FALSE
   }
   if (fit_save) {
     fit_m0 <- if (file.exists(
-      file.path(out_dir, mod_dir, paste0(name, "_fit_m.rds"))
+      file.path(out_dir, name, paste0(name, "_fit_m.rds"))
     )) {
-      readRDS(file.path(out_dir, mod_dir, paste0(name, "_fit_m.rds")))
+      readRDS(file.path(out_dir, name, paste0(name, "_fit_m.rds")))
     } else FALSE
   }
   # If hashes are correct but the fitted object is moved or deleted, then the
@@ -399,17 +390,17 @@ sem.check <- function(
     )
   }
   # Save models (so they can be read in next time)
-  saveRDS(fit, file.path(out_dir, mod_dir, paste0(name, "_fit.rds")))
+  saveRDS(fit, file.path(out_dir, name, paste0(name, "_fit.rds")))
   if (std) {
-    saveRDS(par, file.path(out_dir, mod_dir, paste0(name, "_par_std.rds")))
+    saveRDS(par, file.path(out_dir, name, paste0(name, "_par_std.rds")))
   } else {
-    saveRDS(par, file.path(out_dir, mod_dir, paste0(name, "_par.rds")))
+    saveRDS(par, file.path(out_dir, name, paste0(name, "_par.rds")))
   }
   if (fit_save) {
-    saveRDS(fit_m1, file.path(out_dir, mod_dir, paste0(name, "_fit_m.rds")))
+    saveRDS(fit_m1, file.path(out_dir, name, paste0(name, "_fit_m.rds")))
   }
   # Save mod + hash
-  saveRDS(mods, file.path(out_dir, mod_dir, paste0(name, "_m.rds")))
+  saveRDS(mods, file.path(out_dir, name, paste0(name, "_m.rds")))
   saveRDS(hash_d, file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds")))
   # Return
   if (std) {

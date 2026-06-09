@@ -29,9 +29,6 @@
 #' @param hash_dir
 #' A subdirectory of `out_dir` where data hashes are saved.
 #' Defaults to 'hashes'.
-#' @param mod_dir
-#' A subdirectory of `out_dir` where model outputs are saved.
-#' If `NULL`, it will be set as 'name'.
 #'
 #' @return
 #' Returns a list of lists.
@@ -63,7 +60,7 @@ esem.from.mods <- function(
     efa_name, cfa_name = NULL, bif_name = NULL, efa_keys, cfa_keys = NULL,
     bif_keys_g = NULL, bif_keys_b = NULL, bif_keys = NULL,
     d, name = "esem", out_dir = "output", fit_save = FALSE, fit_measures = NULL,
-    miss = "ML", hash_dir = "hashes", mod_dir = NULL
+    miss = "ML", hash_dir = "hashes"
 ) {
   if (
     !file.exists(file.path(out_dir, cfa_name, paste0(cfa_name, "_par.rds")))
@@ -186,7 +183,6 @@ esem.from.mods <- function(
     name = name,
     kl_s = cfa_keys,
     kl_e = efa_keys,
-    mod_dir = mod_dir,
     std = TRUE,
     fit_save = fit_save,
     fit_measures = fit_measures,
