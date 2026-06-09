@@ -10,7 +10,10 @@
 #' vectors of items that should be targeted to load on the factor.
 #' @param d
 #' The data. This must include all observed variables used in the models.
-#' @param name A name for the collection of models. Defaults to 'efa'.
+#' @param name
+#' A name for the collection of models. Defaults to 'efa'.
+#' The name should be unique for each time any function is called from the
+#' package or outputs from other calls will be overwritten.
 #' @param out_dir
 #' The directory where all function outputs will be saved. Defaults to 'output'.
 #' @param orthogonal

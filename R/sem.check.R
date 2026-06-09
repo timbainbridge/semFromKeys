@@ -11,7 +11,10 @@
 #' @param mods Named list of lavaan models to run.
 #' @param dat
 #' The data. This must include all observed variables used in any of the models.
-#' @param name A name for the collection of models to be run.
+#' @param name
+#' A name for the collection of models to be run.
+#' The name should be unique for each time any function is called from the
+#' package or outputs from other calls will be overwritten.
 #' @param kl_s A named keys list matching the names and length of mod.
 #' @param kl_e A named keys list of the factors in an ESEM to be included.
 #' @param std

@@ -18,7 +18,10 @@
 #' Elements must include group factors across all bifactor models.
 #' @param d
 #' The data. This must include all observed variables used in any of the models.
-#' @param name A name for the collection of models. Defaults to "bifactor".
+#' @param name
+#' A name for the collection of models. Defaults to 'bifactor'.
+#' The name should be unique for each time any function is called from the
+#' package or outputs from other calls will be overwritten.
 #' @param out_dir
 #' The directory where all function outputs will be saved. Defaults to 'output'.
 #' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `TRUE`.
