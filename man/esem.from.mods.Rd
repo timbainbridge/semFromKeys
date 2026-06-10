@@ -28,9 +28,21 @@ esem.from.mods(
 
 \item{cfa_name}{Must match `name` used in a previously run `cfa.from.keys` function call.}
 
+\item{bif_name}{Must match `name` used in a previously run `bifactor.from.keys` function
+call.}
+
 \item{efa_keys}{Must match `keys` used in a previously run `efa.from.keys` function call.}
 
 \item{cfa_keys}{Must match `keys` used in a previously run `cfa.from.keys` function call.}
+
+\item{bif_keys_g}{Must match `keys_g` used in a previously run `bifactor.from.keys` function
+call.}
+
+\item{bif_keys_b}{Must match `keys_b` used in a previously run `bifactor.from.keys` function
+call.}
+
+\item{bif_keys}{Must match `keys` used in a previously run `bifactor.from.keys` function
+call.}
 
 \item{d}{The data. This must include all observed variables used in any of the models.}
 
@@ -75,8 +87,7 @@ interpretational confounding. The function is designed to reproduce the
 analyses of Bainbridge, Ludeke, and Smillie (2022).
 
 Although the function will take any lavaan models that have successfully
-produced standard lavaan outputs (i.e., fitted objects with non-NA parameter
-estimates),
+produced standard lavaan outputs,
 it will not complain if these have poor fit or other undesirable
 characteristics.
 If this matters to you, it would be worth checking the outputs of upstream

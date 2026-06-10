@@ -13,10 +13,22 @@
 #' Must match `name` used in a previously run `efa.from.keys` function call.
 #' @param cfa_name
 #' Must match `name` used in a previously run `cfa.from.keys` function call.
+#' @param bif_name
+#' Must match `name` used in a previously run `bifactor.from.keys` function
+#' call.
 #' @param efa_keys
 #' Must match `keys` used in a previously run `efa.from.keys` function call.
 #' @param cfa_keys
 #' Must match `keys` used in a previously run `cfa.from.keys` function call.
+#' @param bif_keys_g
+#' Must match `keys_g` used in a previously run `bifactor.from.keys` function
+#' call.
+#' @param bif_keys_b
+#' Must match `keys_b` used in a previously run `bifactor.from.keys` function
+#' call.
+#' @param bif_keys
+#' Must match `keys` used in a previously run `bifactor.from.keys` function
+#' call.
 #' @param d
 #' The data. This must include all observed variables used in any of the models.
 #' @param name
@@ -50,8 +62,7 @@
 #' analyses of Bainbridge, Ludeke, and Smillie (2022).
 #'
 #' Although the function will take any lavaan models that have successfully
-#' produced standard lavaan outputs (i.e., fitted objects with non-NA parameter
-#' estimates),
+#' produced standard lavaan outputs,
 #' it will not complain if these have poor fit or other undesirable
 #' characteristics.
 #' If this matters to you, it would be worth checking the outputs of upstream
@@ -75,6 +86,7 @@
 #' Sociological Methods & Research, 5(1), 3-52.
 
 # TODO: Add bifactor model functionality.
+# TODO: Add option for stand-alone items (in place of CFA or bifactor factors).
 
 esem.from.mods <- function(
     efa_name, cfa_name = NULL, bif_name = NULL, efa_keys, cfa_keys = NULL,
@@ -82,35 +94,42 @@ esem.from.mods <- function(
     d, name = NULL, out_dir = "output", fit_save = FALSE, fit_measures = NULL,
     miss = "ML", hash_dir = "hashes"
 ) {
-  if (
-    !file.exists(file.path(out_dir, cfa_name, paste0(cfa_name, "_par.rds")))
-  ) {
-    stop(
-      paste0(
-        cfa_name, "_par.rds", " not found at ",
-        file.path(out_dir, cfa_name, paste0(cfa_name, "_par.rds")),
-        ". You will need to run at least one CFA model using",
-        "`cfa.from.keys()` for this object to be saved.",
-        "If you have done that, ensure that `cfa_name` here matches the one",
-        "you used to run the CFA models originally."
+  if (is.null(cfa_name) & is.null(bif_name)) {
+    stop("At least one of `cfa_name` and `bif_name` must be specified.")
+  }
+  if (!is.null(cfa_name)) {
+    if (
+      !file.exists(file.path(out_dir, cfa_name, paste0(cfa_name, "_par.rds")))
+    ) {
+      stop(
+        paste0(
+          cfa_name, "_par.rds", " not found at ",
+          file.path(out_dir, cfa_name, paste0(cfa_name, "_par.rds")),
+          ". You will need to run at least one CFA model using",
+          "`cfa.from.keys()` for this object to be saved.",
+          "If you have done that, ensure that `cfa_name` here matches the one",
+          "you used to run the CFA models originally."
+        )
       )
-    )
+    }
   }
   cfa_par <-
     readRDS(file.path(out_dir, cfa_name, paste0(cfa_name, "_par.rds")))
-  if (
-    !file.exists(file.path(out_dir, efa_name, paste0(efa_name, "_par.rds")))
-  ) {
-    stop(
-      paste0(
-        efa_name, "_par.rds", " not found at ",
-        file.path(out_dir, efa_name, paste0(efa_name, "_par.rds")),
-        ". You will need to run an EFA model using",
-        "`efa.from.keys()` for this object to be saved.",
-        "If you have done that, ensure that `efa_name` here matches the one",
-        "you used to run the efa model originally."
+  if (!is.null(bif_name)) {
+    if (
+      !file.exists(file.path(out_dir, efa_name, paste0(efa_name, "_par.rds")))
+    ) {
+      stop(
+        paste0(
+          efa_name, "_par.rds", " not found at ",
+          file.path(out_dir, efa_name, paste0(efa_name, "_par.rds")),
+          ". You will need to run an EFA model using",
+          "`efa.from.keys()` for this object to be saved.",
+          "If you have done that, ensure that `efa_name` here matches the one",
+          "you used to run the efa model originally."
+        )
       )
-    )
+    }
   }
   efa_par <-
     readRDS(file.path(out_dir, efa_name, paste0(efa_name, "_par.rds")))
