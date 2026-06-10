@@ -82,8 +82,8 @@
 #' @export
 
 sem.check <- function(
-    mods, dat, name, kl_s, kl_e, std = TRUE,
-    fit_save = FALSE, fit_measures = NULL, target = FALSE,
+    mods, dat, name, kl_s = NULL, kl_e = NULL, std = TRUE,
+    fit_save = FALSE, fit_measures = NULL, target = NULL,
     out_dir = "output", hash_dir = "hashes",
     orthogonal = FALSE, miss = "ML", std.lv = FALSE,
     check = TRUE, save_out = FALSE
@@ -94,37 +94,40 @@ sem.check <- function(
   if (!is.character(name)) {
     stop("`name` is not a character string.")
   }
-  if (!is.character(out_dir)) {
-    stop("`out_dir` is not a character string.")
-  }
-  if (!is.character(hash_dir)) {
-    stop("`hash_dir` is not a character string.")
-  }
-  if (!is.logical(std)) {
-    stop("`std` is not logical. It should be `TRUE` or `FALSE`.")
-  }
-  if (!is.logical(target)) {
-    stop("`target` is not logical. It should be `TRUE` or `FALSE`.")
-  }
-  if (!is.logical(orthogonal)) {
-    stop("`orthogonal` is not logical. It should be `TRUE` or `FALSE`.")
-  }
-  if (!is.logical(std.lv)) {
-    stop("`std.lv` is not logical. It should be `TRUE` or `FALSE`.")
-  }
   if (!is.logical(check)) {
     stop("`check` is not logical. It should be `TRUE` or `FALSE`.")
   }
   if (!is.logical(save_out)) {
     stop("`save` is not logical. It should be `TRUE` or `FALSE`.")
   }
-  if (!is.list(mod)) {
+  if (save_out | check) {
+    if (!is.character(out_dir)) {
+      stop("`out_dir` is not a character string.")
+    }
+    if (!is.character(hash_dir)) {
+      stop("`hash_dir` is not a character string.")
+    }
+  }
+  if (!is.logical(std)) {
+    stop("`std` is not logical. It should be `TRUE` or `FALSE`.")
+  }
+  # if (!is.logical(target)) {
+  #   stop("`target` is not logical. It should be `TRUE` or `FALSE`.")
+  # }
+  # TODO: Fix target check.
+  if (!is.logical(orthogonal)) {
+    stop("`orthogonal` is not logical. It should be `TRUE` or `FALSE`.")
+  }
+  if (!is.logical(std.lv)) {
+    stop("`std.lv` is not logical. It should be `TRUE` or `FALSE`.")
+  }
+  if (!is.list(mods)) {
     stop(
       paste(
         "`mod` is not a list.",
         "If you are trying to run a single model, you will have to make a",
         "length 1 list",
-        "(e.g., mod = `list(mod_name = mod)`)"
+        "(e.g., `mods = list(mod_name = mod)`)"
       )
     )
   }
@@ -137,7 +140,10 @@ sem.check <- function(
       )
     )
   }
-  if (!is.list(kl_s)) {
+  if (is.null(kl_s) & is.null(kl_e)) {
+    stop("At least one of `kl_s` or `kl_e` must be specified.")
+  }
+  if (!is.list(kl_s) & !is.null(kl_s)) {
     stop(
       paste(
         "`kl_s` is not a list. Please ensure that kl_s is specified correctly.",
@@ -145,7 +151,7 @@ sem.check <- function(
       )
     )
   }
-  if (!is.list(kl_e)) {
+  if (!is.list(kl_e) & !is.null(kl_e)) {
     stop(
       paste(
         "`kl_e` is not a list. Please ensure that kl_s is specified correctly.",
@@ -153,13 +159,31 @@ sem.check <- function(
       )
     )
   }
+  if (!is.null(kl_e)) {
+    if (sum(sapply(kl_e, function(x) length(x) < 2)) > 0) {
+      short_factors <-
+        names(kl_e)[sapply(kl_e, function(x) length(x) < 2)]
+      warning(
+        paste(
+          paste0("    ", short_factors, collapse = "    \n"),
+          "\nThe above factors have 1 (or fewer) items.",
+          "This is not necessarily a problem",
+          "(assuming no more serious errors have occured)",
+          "but it is unusual for EFAs and may not be what you intended to do."
+        )
+      )
+    }
+  }
   if (sum(!(unlist(kl_s)) %in% colnames(dat)) > 0) {
     una_items <- unlist(kl_s)[!(unlist(kl_s)) %in% colnames(dat)]
-    message(paste0("  ", una_items, collapse = "  \n"))
     stop(
-      paste(
-        "The above items are in `kl_s` but they are not in `dat`.",
-        "Ensure that dat column names and keys list item names match."
+      paste0(
+        paste0("    ", una_items, collapse = "    \n"),
+        paste(
+          "The above items are in `kl_s` but they are not in `dat`.",
+          "Ensure that dat is a data frame (or coercible into a data frame)",
+          "and that column names of `dat` and keys list item names match."
+        )
       )
     )
   }
@@ -169,16 +193,11 @@ sem.check <- function(
     stop(
       paste(
         "The above items are in `kl_e` but they are not in `dat`.",
-        "Ensure that dat column names and keys list item names match."
+        "Ensure that dat is a data frame (or coercible into a data frame)",
+        "and that column names of `dat` and keys list item names match."
       )
     )
   }
-  # TODO: Add check for fit_measures, and miss.
-  # TODO: For fit_measures, what error does lavaan spit out when confronted with
-  #       A string that is not a fit measure? Can we simply rely on lavaan's
-  #       errors?
-  # TODO: What options are available for miss in lavaan? Can we simply rely on
-  #       lavaan's errors?
   if (save_out) {
     if (!dir.exists(out_dir)) dir.create(out_dir)
     if (!dir.exists(file.path(out_dir, name))) {
@@ -189,7 +208,6 @@ sem.check <- function(
     }
   }
   # Tell user which model set is running
-  message(paste("Running", name))
   if (check) {
     # Load hashes and prior models
     m0 <-
@@ -242,39 +260,39 @@ sem.check <- function(
         readRDS(file.path(out_dir, name, paste0(name, "_fit.rds")))
       } else FALSE
     if (std == TRUE) {
-      par0 <-
-        if (file.exists(
-          file.path(out_dir, name, paste0(name, "_par_std.rds"))
-        )) {
-          readRDS(file.path(out_dir, name, paste0(name, "_par_std.rds")))
-        } else FALSE
+      if (file.exists(file.path(out_dir, name, paste0(name, "_par_std.rds")))) {
+        par0 <- readRDS(file.path(out_dir, name, paste0(name, "_par_std.rds")))
+      } else {
+        par0 <- FALSE
+      }
     } else {
-      par0 <-
-        if (file.exists(
-          file.path(out_dir, name, paste0(name, "_par.rds"))
-        )) {
-          readRDS(file.path(out_dir, name, paste0(name, "_par.rds")))
-        } else FALSE
+      if (file.exists(file.path(out_dir, name, paste0(name, "_par.rds")))) {
+        par0 <- readRDS(file.path(out_dir, name, paste0(name, "_par.rds")))
+      } else {
+        par0 <- FALSE
+      }
     }
-    if (fit_save) {
-      fit_m0 <- if (file.exists(
-        file.path(out_dir, name, paste0(name, "_fit_m.rds"))
-      )) {
-        readRDS(file.path(out_dir, name, paste0(name, "_fit_m.rds")))
-      } else FALSE
+    if (file.exists(file.path(out_dir, name, paste0(name, "_fit_m.rds")))) {
+      fit_m0 <- readRDS(file.path(out_dir, name, paste0(name, "_fit_m.rds")))
+    } else {
+      fit_m0 <- FALSE
     }
     # If hashes are correct but the fitted object is moved or deleted, then the
     # fit0 object will be FALSE. To ensure this doesn't break everything, check
     # that the fit0 object is a lavaan object. If not, run again.
     fit_type <- sapply(
       names(mods),
-      function(x) ifelse(x %in% names(fit0), class(fit0[[x]]) == "lavaan", FALSE)
+      function(x) {
+        ifelse(x %in% names(fit0), class(fit0[[x]]) == "lavaan", FALSE)
+      }
     )
     par_type <- sapply(
       names(mods),
       function(x) {
         ifelse(
-          x %in% names(par0), (class(par0[[x]]) == "lavaan.data.frame")[1], FALSE
+          x %in% names(par0),
+          (class(par0[[x]]) == "lavaan.data.frame")[1],
+          FALSE
         )
       }
     )
@@ -282,9 +300,12 @@ sem.check <- function(
     m_test <- FALSE
     hash_d_test <- FALSE
     fit_type <- FALSE
+    par_type <- FALSE
+    fit_m0 <- FALSE
   }
   # Run
   # tmp <- list()
+  message("Fitting models")
   fit <- mapply(
     function(m1, hash_d1, n_mod, mods1, ft, n) {
       if (hash_d1 & m1 & ft) {
@@ -292,11 +313,11 @@ sem.check <- function(
       } else {
         if (length(mods) <= 1000) {
           # Print progress for every model
-          message(paste0(n, " / ", length(mods), " Run ", name, ": ", n_mod))
+          message(paste0(n, " / ", length(mods), "  ", n_mod))
         } else {
           # Print progress for every 10th model (starting from 1)
           if (n %in% round((0:(length(mods)/10)*10) + 1, 0)) {
-            message(paste0(n, " / ", length(mods), " Run ", name, ": ", n_mod))
+            message(paste0(n, " / ", length(mods), "  ", n_mod))
           }
         }
         if (!target |> is.matrix()) {
@@ -331,6 +352,7 @@ sem.check <- function(
     n = seq_along(mods),
     SIMPLIFY = FALSE
   )
+  message("Generating parameter estimates")
   par <- mapply(
     function(m1, hash_d1, n_mod, fit1, pt, n) {
       if (hash_d1 & m1 & pt) {
@@ -338,11 +360,11 @@ sem.check <- function(
       } else {
         if (length(fit) <= 1000) {
           # Print progress for every model
-          message(paste0(n, " / ", length(fit), " Par ", name, ": ", n_mod))
+          message(paste0(n, " / ", length(fit), "  ", n_mod))
         } else {
           # Print progress for every 10th model (starting from 1)
           if (n %in% round((0:(length(fit)/10)*10) + 1, 0)) {
-            message(paste0(n, " / ", length(fit), " Par ", name, ": ", n_mod))
+            message(paste0(n, " / ", length(fit), "  ", n_mod))
           }
         }
         if (std) {
@@ -361,6 +383,7 @@ sem.check <- function(
     SIMPLIFY = FALSE
   )
   if (fit_save) {
+    message("Generating model fit statistics")
     fit_m1 <- mapply(
       function(m1, hash_d1, n_mod, fit1, n) {
         # If the model's the same and fit measures exist...
@@ -372,12 +395,8 @@ sem.check <- function(
               # Return existing
               fit_m0[[n_mod]]
             } else {
-              # Else, recalulate
-              message(
-                paste0(
-                  n, " / ", length(fit), " Fit Measures ", name, ": ", n_mod
-                )
-              )
+              # Else, recalculate
+              message(paste0(n, " / ", length(fit), "  ", n_mod))
               fitMeasures(fit1)
             }
           } else {
@@ -390,21 +409,13 @@ sem.check <- function(
               fit_m0[[n_mod]][fit_measures]
             } else {
               # Else, recalculate with required fit measures
-              message(
-                paste0(
-                  n, " / ", length(fit), " Fit Measures ", name, ": ", n_mod
-                )
-              )
+              message(paste0(n, " / ", length(fit), "  ", n_mod))
               fitMeasures(fit1, fit.measures = fit_measures)
             }
           }
         } else {
           # If the model has changed, recalculate with required fit measures
-          message(
-            paste0(
-              n, " / ", length(fit), " Fit Measures ", name, ": ", n_mod
-            )
-          )
+          message(paste0(n, " / ", length(fit), "  ", n_mod))
           if (is.null(fit_measures)) {
             fitMeasures(fit1)
           } else {
@@ -419,6 +430,26 @@ sem.check <- function(
       n = seq_along(fit),
       SIMPLIFY = FALSE
     )
+    if (length(unlist(fit_m1)) == 0) {
+      warning(
+        "All the fit measures you have specified are not recognised by lavaan."
+      )
+    } else {
+      fit_m1 <- do.call(rbind, args = fit_m1)
+      if (ncol(fit_m1) != length(fit_measures) & !is.null(fit_measures)) {
+        warning(
+          paste(
+            "The following fit measures that you specified are not recognised",
+            "by lavaan:\n     ",
+            paste(
+              fit_measures[!fit_measures %in% colnames(fit_m1)],
+              collapse = "\n      "
+            ),
+            collapse = ""
+          )
+        )
+      }
+    }
   }
   # Save models (so they can be read in next time)
   if (save_out) {
@@ -446,7 +477,7 @@ sem.check <- function(
     }
   } else {
     if (fit_save) {
-      return(list(fit = fit, par = par, fit_measures = do.call(rbind, fit_m1)))
+      return(list(fit = fit, par = par, fit_measures = fit_m1))
     } else {
       return(list(fit = fit, par = par))
     }
