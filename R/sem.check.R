@@ -179,12 +179,14 @@ sem.check <- function(
   #       errors?
   # TODO: What options are available for miss in lavaan? Can we simply rely on
   #       lavaan's errors?
-  if (!dir.exists(out_dir)) dir.create(out_dir)
-  if (!dir.exists(file.path(out_dir, name))) {
-    dir.create(file.path(out_dir, name))
-  }
-  if (!dir.exists(file.path(out_dir, hash_dir))) {
-    dir.create(file.path(out_dir, hash_dir))
+  if (save_out) {
+    if (!dir.exists(out_dir)) dir.create(out_dir)
+    if (!dir.exists(file.path(out_dir, name))) {
+      dir.create(file.path(out_dir, name))
+    }
+    if (!dir.exists(file.path(out_dir, hash_dir))) {
+      dir.create(file.path(out_dir, hash_dir))
+    }
   }
   # Tell user which model set is running
   message(paste("Running", name))
