@@ -2,35 +2,41 @@
 % Please edit documentation in R/esem.from.mods.R
 \name{esem.from.mods}
 \alias{esem.from.mods}
-\title{Runs ESEM models based on CFA and EFA model outputs and keys.}
+\title{Runs Exploratory Structural Equation Models based on Confirmatory and
+Exploratory Factor Analyses model outputs and keys.}
 \usage{
 esem.from.mods(
-  cfa_name,
   efa_name,
-  cfa_keys,
+  cfa_name = NULL,
+  bif_name = NULL,
   efa_keys,
+  cfa_keys = NULL,
+  bif_keys_g = NULL,
+  bif_keys_b = NULL,
+  bif_keys = NULL,
   d,
-  name = "esem",
+  name = NULL,
   out_dir = "output",
   fit_save = FALSE,
   fit_measures = NULL,
   miss = "ML",
-  hash_dir = "hashes",
-  mod_dir = NULL
+  hash_dir = "hashes"
 )
 }
 \arguments{
-\item{cfa_name}{Must match `name` used in a previously run `cfa.from.keys` function call.}
-
 \item{efa_name}{Must match `name` used in a previously run `efa.from.keys` function call.}
 
-\item{cfa_keys}{Must match `keys` used in a previously run `cfa.from.keys` function call.}
+\item{cfa_name}{Must match `name` used in a previously run `cfa.from.keys` function call.}
 
 \item{efa_keys}{Must match `keys` used in a previously run `efa.from.keys` function call.}
 
+\item{cfa_keys}{Must match `keys` used in a previously run `cfa.from.keys` function call.}
+
 \item{d}{The data. This must include all observed variables used in any of the models.}
 
-\item{name}{A name for the collection of models. Defaults to 'esem'.}
+\item{name}{A name for the collection of models. Defaults to 'esem'.
+The name should be unique for each time any function is called from the
+package or outputs from other calls will be overwritten.}
 
 \item{out_dir}{The directory where all function outputs will be saved. Defaults to 'output'.}
 
@@ -43,22 +49,23 @@ Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.}
 
 \item{hash_dir}{A subdirectory of `out_dir` where data hashes are saved.
 Defaults to 'hashes'.}
-
-\item{mod_dir}{A subdirectory of `out_dir` where model outputs are saved.
-If `NULL`, it will be set as 'name'.}
 }
 \value{
-Returns a list of lists.
-The elements are a list of lavaan bifactor model output objects;
-a list of parameter estimates from the models (standardized if `std = TRUE`);
+Returns a length 2 or 3 list of lists.
+The first elements of the list is a list of fitted lavaan esem model output
+objects of the same length as either `cfa_keys` or `bif_keys_g` (depending
+on which is used).
+The second element of a list of parameter estimates from the models (standardized if `std = TRUE`);
 and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
 }
 \description{
-esem.from.keys runs a exploratory structural equation model (ESEM) in lavaan
-where the explorator factor analysis (EFA) factors predict CFA factors in
-separate models for each CFA factor.
-The function uses outputs from `cfa.from.keys()` and `efa.from.keys()` and
-the same keys as those used in the functions.
+esem.from.keys runs an exploratory structural equation model (ESEM) in lavaan
+where the exploratory factor analysis (EFA) factors predict either
+confirmatory factor analysis (CFA) factors in separate models for each CFA
+factor OR bifactor factors in separate models for each bifactor model.
+The function uses outputs from `efa.from.keys()` and either `cfa.from.keys()`
+or `bifactor.from.keys` so it cannot be run without first running the
+relevant upstream functions.
 }
 \details{
 The function was designed to streamline running exploratory structural
@@ -66,6 +73,20 @@ equation models (ESEM) where EFA factors predict a series of latent variables
 in separate models using Burt's (1976) 2-stage procedure to prevent
 interpretational confounding. The function is designed to reproduce the
 analyses of Bainbridge, Ludeke, and Smillie (2022).
+
+Although the function will take any lavaan models that have successfully
+produced standard lavaan outputs (i.e., fitted objects with non-NA parameter
+estimates),
+it will not complain if these have poor fit or other undesirable
+characteristics.
+If this matters to you, it would be worth checking the outputs of upstream
+functions prior to running `esem.from.mods()`.
+
+The 2-stage procedure employed mitigates some of the problems of poor fitting
+measurement models but, depending on your purpose and research
+question(s), it could nevertheless be important to update models to ensure
+good fit prior to running this function. There is currently no capability to
+add modifications to CFA or bifactor models beyond removing items, however.
 }
 \references{
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).

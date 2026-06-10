@@ -10,10 +10,9 @@ sem.check(
   name,
   kl_s,
   kl_e,
-  mod_dir = NULL,
   std = TRUE,
   fit_save = FALSE,
-  fit_measures = TRUE,
+  fit_measures = NULL,
   target = FALSE,
   out_dir = "output",
   hash_dir = "hashes",
@@ -27,17 +26,16 @@ sem.check(
 
 \item{dat}{The data. This must include all observed variables used in any of the models.}
 
-\item{name}{A name for the collection of models to be run.}
+\item{name}{A name for the collection of models to be run.
+The name should be unique for each time any function is called from the
+package or outputs from other calls will be overwritten.}
 
 \item{kl_s}{A named keys list matching the names and length of mod.}
 
 \item{kl_e}{A named keys list of the factors in an ESEM to be included.}
 
-\item{mod_dir}{A subdirectory of `out_dir` where model outputs are saved.
-If NULL, it will be set as 'name'.}
-
-\item{std}{TRUE to save standardised parameter estimates;
-FALSE to save unstandardised parameters estimates.}
+\item{std}{`TRUE` to save standardised parameter estimates;
+`FALSE` to save unstandardised parameters estimates.}
 
 \item{fit_save}{`TRUE` to save model fit measures. `FALSE` otherwise.}
 
@@ -70,7 +68,7 @@ the code checks for previously saved model code and a hash of data and,
 if they exist and match values for current code and data, the model is not
 run, the previous output is loaded instead.
 If either the code has changed, the hash of the data has changed,
-or either one does not exist, then the model is run as normal.
+or either one does not exist, then the models are run as normal.
 }
 \details{
 The function is largely intended to be used as a helper function to upstream

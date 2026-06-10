@@ -13,17 +13,9 @@ Description: Specifying lavaan models manually can be time consuming when
     multiple similar models are required. The semFromKeys package aims to
     streamline the process of running lavaan models by generating model code
     from simple keys lists instead of writing out model code manually.
-    - cfa.from.keys() runs a separate confirmatory factor analysis (CFA) for
-    each list item.
-    - bifactor.from.keys() runs a separate bifactor model for each item from a
-    list of general factors.
-    - efa.from.keys() runs a exploratory factor analyis (EFA) model with a
-    rotation targeted based on a keys list.
-    - esem.from.keys() runs exploratory structural equation models (ESEM)
-    where an item or latent variable is regressed on a set of EFA factors.
-    
-    The package is early in its development so if something breaks or does not
-    work as intended, please let me know on the github page.
+    The package also checks that identical models have not been run on the same
+    data, which saves time when code needs to be run again or when some upstream
+    changes may have changed model code or data.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true

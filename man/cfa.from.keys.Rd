@@ -13,8 +13,7 @@ cfa.from.keys(
   fit_save = TRUE,
   fit_measures = TRUE,
   miss = "ML",
-  hash_dir = "hashes",
-  mod_dir = NULL
+  hash_dir = "hashes"
 )
 }
 \arguments{
@@ -23,7 +22,9 @@ items included in each scale.}
 
 \item{d}{The data. This must include all observed variables used in any of the models.}
 
-\item{name}{A name for the collection of models. Defaults to 'cfa'.}
+\item{name}{A name for the collection of models. Defaults to 'cfa'.
+The name should be unique for each time any function is called from the
+package or outputs from other calls will be overwritten.}
 
 \item{out_dir}{The directory where all function outputs will be saved. Defaults to 'output'.}
 
@@ -38,9 +39,6 @@ Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.}
 
 \item{hash_dir}{A subdirectory of `out_dir` where data hashes are saved.
 Defaults to 'hashes'.}
-
-\item{mod_dir}{A subdirectory of `out_dir` where model outputs are saved.
-If NULL, it will be set as 'name'.}
 }
 \value{
 Returns a list of lists.
