@@ -101,6 +101,14 @@
 # TODO: Check bifactor model functionality.
 # TODO: Add option for stand-alone items (in place of CFA or bifactor factors).
 
+# This function is somewhat malformed. It should be able to be run
+# independently, not relying on upstream functions already been run.
+# That is, it probably should be esem.from.keys(), and call those earlier
+# functions directly OR take fitted objects as inputs.
+
+# TODO: Change to accept fitted object lists or parameter estimate lists instead
+# of names.
+
 esem.from.mods <- function(
     efa_name, cfa_name = NULL, bif_name = NULL, efa_keys, cfa_keys = NULL,
     bif_keys_g = NULL, bif_keys_b = NULL, bif_keys = NULL,
