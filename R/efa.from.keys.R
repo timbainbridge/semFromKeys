@@ -62,7 +62,7 @@
 efa.from.keys <- function(
     keys, d, name = "efa", out_dir = "output",
     orthogonal = FALSE, std.lv = TRUE, fit_save = TRUE, fit_measures = TRUE,
-    miss = "ML", hash_dir = "hashes", check = TRUE, save_out = TRUE
+    miss = "ML", hash_dir = "hashes", check = TRUE, save_out = FALSE
 ) {
   target <- sapply(keys, function(y) ifelse(!unlist(keys) %in% y, 0, NA))
   mod <- list(

@@ -107,7 +107,7 @@ esem.from.mods <- function(
     efa_fit, cfa_fit = NULL, bif_fit = NULL, efa_keys, cfa_keys = NULL,
     bif_keys = NULL,
     d, name = "esem", out_dir = "output", fit_save = FALSE, fit_measures = NULL,
-    miss = "ML", hash_dir = "hashes", check = TRUE, save_out = TRUE
+    miss = "ML", hash_dir = "hashes", check = TRUE, save_out = FALSE
 ) {
   if (is.null(cfa_fit) & is.null(bif_fit)) {
     stop("At least one of `cfa_fit` and `bif_fit` must be specified.")

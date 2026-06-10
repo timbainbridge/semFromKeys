@@ -56,7 +56,7 @@
 bifactor.from.keys <- function(
   keys_g, keys_b, keys, d, name = "bifactor", out_dir = "output",
   std.lv = TRUE, fit_save = TRUE, fit_measures = TRUE, miss = "ML",
-  hash_dir = "hashes", check = TRUE, save_out = TRUE
+  hash_dir = "hashes", check = TRUE, save_out = FALSE
 ) {
   if (is.null(out_dir)) {
     out_dir <- name
