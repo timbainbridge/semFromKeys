@@ -36,6 +36,19 @@
 #' Sets the `orthogonal` param, as per lavaan. Defaults to `FALSE`.
 #' @param miss Sets the `missing` param, as per lavaan. Defaults to 'ML'.
 #' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `FALSE`.
+#' @param check
+#' Should the code check to see if previous outputs have been saved?
+#' If `TRUE`, the model will not run if model code and a data hash have not
+#' changed and output is of class lavaan.
+#' If `FALSE`, the model will run regardless of the existence of previous
+#' outputs.
+#' @param save_out
+#' Should outputs be saved to enable checking next time?
+#' If `TRUE` model code, a hash of the data, and output will be saved and will
+#' be checked against for changes next time the code is run.
+#' If `FALSE`, nothing will be saved, the output will simply be returned as per
+#' normal R functioning. Next time the code is run, models will be re-estimated
+#' regardless of changes to code or data.
 #'
 #' @return
 #' Returns a list of lists.
@@ -72,7 +85,8 @@ sem.check <- function(
     mods, dat, name, kl_s, kl_e, std = TRUE,
     fit_save = FALSE, fit_measures = NULL, target = FALSE,
     out_dir = "output", hash_dir = "hashes",
-    orthogonal = FALSE, miss = "ML", std.lv = FALSE
+    orthogonal = FALSE, miss = "ML", std.lv = FALSE,
+    check = TRUE, save_out = TRUE
 ) {
   if (!is.logical(fit_save)) {
     stop("`fit_save` is not logical. It should be `TRUE` or `FALSE`.")
@@ -97,6 +111,12 @@ sem.check <- function(
   }
   if (!is.logical(std.lv)) {
     stop("`std.lv` is not logical. It should be `TRUE` or `FALSE`.")
+  }
+  if (!is.logical(check)) {
+    stop("`check` is not logical. It should be `TRUE` or `FALSE`.")
+  }
+  if (!is.logical(save_out)) {
+    stop("`save` is not logical. It should be `TRUE` or `FALSE`.")
   }
   if (!is.list(mod)) {
     stop(
@@ -168,93 +188,99 @@ sem.check <- function(
   }
   # Tell user which model set is running
   message(paste("Running", name))
-  # Load hashes and prior models
-  m0 <-
-    if (file.exists(file.path(out_dir, name, paste0(name, "_m.rds")))) {
-      tmp <- readRDS(file.path(out_dir, name, paste0(name, "_m.rds")))
-      # Remove spaces
-      lapply(tmp, function(x) gsub(" ", "", x))
-    } else FALSE
-  hash_d0 <-
-    if (file.exists(
-      file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds"))
-    )) {
-      readRDS(file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds")))
-    } else FALSE
-  # Create hashes
-  hash_d <- sapply(
-    names(mods),
-    function(x) md5(paste(dat[c(kl_s[[x]], unlist(kl_e))], collapse = ""))
-  )
-  # Compare to previous hashes
-  hash_d_test <- if (length(hash_d0) != 1 | hash_d0[[1]] != FALSE) {
-    sapply(
+  if (check) {
+    # Load hashes and prior models
+    m0 <-
+      if (file.exists(file.path(out_dir, name, paste0(name, "_m.rds")))) {
+        tmp <- readRDS(file.path(out_dir, name, paste0(name, "_m.rds")))
+        # Remove spaces
+        lapply(tmp, function(x) gsub(" ", "", x))
+      } else FALSE
+    hash_d0 <-
+      if (file.exists(
+        file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds"))
+      )) {
+        readRDS(file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds")))
+      } else FALSE
+    # Create hashes
+    hash_d <- sapply(
       names(mods),
-      function(x) {
-        if (x %in% names(hash_d0)) hash_d[[x]] == hash_d0[[x]] else FALSE
-      }
+      function(x) md5(paste(dat[c(kl_s[[x]], unlist(kl_e))], collapse = ""))
     )
-  } else FALSE
-  # Remove spaces for comparison
-  mods0 <- lapply(mods, function(x) gsub(" ", "", x))
-  m_test <- if (length(m0) != 1 | m0[[1]] != FALSE) {
-    sapply(
-      names(mods0),
-      function(x) {
-        if (x %in% names(m0)) {
-          # Only check to 4-decimal places.
-          gsubfn("([0-9]\\.[0-9]+)",
-                 ~format(round(as.numeric(x), 4), nsmall = 4),
-                 mods0[[x]]) ==
+    # Compare to previous hashes
+    hash_d_test <- if (length(hash_d0) != 1 | hash_d0[[1]] != FALSE) {
+      sapply(
+        names(mods),
+        function(x) {
+          if (x %in% names(hash_d0)) hash_d[[x]] == hash_d0[[x]] else FALSE
+        }
+      )
+    } else FALSE
+    # Remove spaces for comparison
+    mods0 <- lapply(mods, function(x) gsub(" ", "", x))
+    m_test <- if (length(m0) != 1 | m0[[1]] != FALSE) {
+      sapply(
+        names(mods0),
+        function(x) {
+          if (x %in% names(m0)) {
+            # Only check to 4-decimal places.
             gsubfn("([0-9]\\.[0-9]+)",
                    ~format(round(as.numeric(x), 4), nsmall = 4),
-                   m0[[x]])
+                   mods0[[x]]) ==
+              gsubfn("([0-9]\\.[0-9]+)",
+                     ~format(round(as.numeric(x), 4), nsmall = 4),
+                     m0[[x]])
+          } else FALSE
+        }
+      )
+    } else FALSE
+    # Load old object if it exists
+    fit0 <-
+      if (file.exists(file.path(out_dir, name, paste0(name, "_fit.rds")))) {
+        readRDS(file.path(out_dir, name, paste0(name, "_fit.rds")))
+      } else FALSE
+    if (std == TRUE) {
+      par0 <-
+        if (file.exists(
+          file.path(out_dir, name, paste0(name, "_par_std.rds"))
+        )) {
+          readRDS(file.path(out_dir, name, paste0(name, "_par_std.rds")))
         } else FALSE
+    } else {
+      par0 <-
+        if (file.exists(
+          file.path(out_dir, name, paste0(name, "_par.rds"))
+        )) {
+          readRDS(file.path(out_dir, name, paste0(name, "_par.rds")))
+        } else FALSE
+    }
+    if (fit_save) {
+      fit_m0 <- if (file.exists(
+        file.path(out_dir, name, paste0(name, "_fit_m.rds"))
+      )) {
+        readRDS(file.path(out_dir, name, paste0(name, "_fit_m.rds")))
+      } else FALSE
+    }
+    # If hashes are correct but the fitted object is moved or deleted, then the
+    # fit0 object will be FALSE. To ensure this doesn't break everything, check
+    # that the fit0 object is a lavaan object. If not, run again.
+    fit_type <- sapply(
+      names(mods),
+      function(x) ifelse(x %in% names(fit0), class(fit0[[x]]) == "lavaan", FALSE)
+    )
+    par_type <- sapply(
+      names(mods),
+      function(x) {
+        ifelse(
+          x %in% names(par0), (class(par0[[x]]) == "lavaan.data.frame")[1], FALSE
+        )
       }
     )
-  } else FALSE
-  # Load old object if it exists
-  fit0 <-
-    if (file.exists(file.path(out_dir, name, paste0(name, "_fit.rds")))) {
-      readRDS(file.path(out_dir, name, paste0(name, "_fit.rds")))
-    } else FALSE
-  if (std == TRUE) {
-    par0 <-
-      if (file.exists(
-        file.path(out_dir, name, paste0(name, "_par_std.rds"))
-      )) {
-        readRDS(file.path(out_dir, name, paste0(name, "_par_std.rds")))
-      } else FALSE
   } else {
-    par0 <-
-      if (file.exists(
-        file.path(out_dir, name, paste0(name, "_par.rds"))
-      )) {
-        readRDS(file.path(out_dir, name, paste0(name, "_par.rds")))
-      } else FALSE
+    m_test <- FALSE
+    hash_d_test <- FALSE
+    fit_type <- FALSE
   }
-  if (fit_save) {
-    fit_m0 <- if (file.exists(
-      file.path(out_dir, name, paste0(name, "_fit_m.rds"))
-    )) {
-      readRDS(file.path(out_dir, name, paste0(name, "_fit_m.rds")))
-    } else FALSE
-  }
-  # If hashes are correct but the fitted object is moved or deleted, then the
-  # fit0 object will be FALSE. To ensure this doesn't break everything, check
-  # that the fit0 object is a lavaan object. If not, run again.
-  fit_type <- sapply(
-    names(mods),
-    function(x) ifelse(x %in% names(fit0), class(fit0[[x]]) == "lavaan", FALSE)
-  )
-  par_type <- sapply(
-    names(mods),
-    function(x) {
-      ifelse(
-        x %in% names(par0), (class(par0[[x]]) == "lavaan.data.frame")[1], FALSE
-      )
-    }
-  )
   # Run
   # tmp <- list()
   fit <- mapply(
@@ -393,18 +419,22 @@ sem.check <- function(
     )
   }
   # Save models (so they can be read in next time)
-  saveRDS(fit, file.path(out_dir, name, paste0(name, "_fit.rds")))
-  if (std) {
-    saveRDS(par, file.path(out_dir, name, paste0(name, "_par_std.rds")))
-  } else {
-    saveRDS(par, file.path(out_dir, name, paste0(name, "_par.rds")))
+  if (save_out) {
+    saveRDS(fit, file.path(out_dir, name, paste0(name, "_fit.rds")))
+    if (std) {
+      saveRDS(par, file.path(out_dir, name, paste0(name, "_par_std.rds")))
+    } else {
+      saveRDS(par, file.path(out_dir, name, paste0(name, "_par.rds")))
+    }
+    if (fit_save) {
+      saveRDS(fit_m1, file.path(out_dir, name, paste0(name, "_fit_m.rds")))
+    }
+    # Save mod + hash
+    saveRDS(mods, file.path(out_dir, name, paste0(name, "_m.rds")))
+    saveRDS(
+      hash_d, file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds"))
+    )
   }
-  if (fit_save) {
-    saveRDS(fit_m1, file.path(out_dir, name, paste0(name, "_fit_m.rds")))
-  }
-  # Save mod + hash
-  saveRDS(mods, file.path(out_dir, name, paste0(name, "_m.rds")))
-  saveRDS(hash_d, file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds")))
   # Return
   if (std) {
     if (fit_save) {

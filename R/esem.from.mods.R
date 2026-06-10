@@ -45,6 +45,19 @@
 #' @param hash_dir
 #' A subdirectory of `out_dir` where data hashes are saved.
 #' Defaults to 'hashes'.
+#' @param check
+#' Should the code check to see if previous outputs have been saved?
+#' If `TRUE`, the model will not run if model code and a data hash have not
+#' changed and output is of class lavaan.
+#' If `FALSE`, the model will run regardless of the existence of previous
+#' outputs.
+#' @param save_out
+#' Should outputs be saved to enable checking next time?
+#' If `TRUE` model code, a hash of the data, and output will be saved and will
+#' be checked against for changes next time the code is run.
+#' If `FALSE`, nothing will be saved, the output will simply be returned as per
+#' normal R functioning. Next time the code is run, models will be re-estimated
+#' regardless of changes to code or data.
 #'
 #' @return
 #' Returns a length 2 or 3 list of lists.
@@ -85,14 +98,14 @@
 #' Models.
 #' Sociological Methods & Research, 5(1), 3-52.
 
-# TODO: Add bifactor model functionality.
+# TODO: Check bifactor model functionality.
 # TODO: Add option for stand-alone items (in place of CFA or bifactor factors).
 
 esem.from.mods <- function(
     efa_name, cfa_name = NULL, bif_name = NULL, efa_keys, cfa_keys = NULL,
     bif_keys_g = NULL, bif_keys_b = NULL, bif_keys = NULL,
     d, name = NULL, out_dir = "output", fit_save = FALSE, fit_measures = NULL,
-    miss = "ML", hash_dir = "hashes"
+    miss = "ML", hash_dir = "hashes", check = TRUE, save_out = TRUE
 ) {
   if (is.null(cfa_name) & is.null(bif_name)) {
     stop("At least one of `cfa_name` and `bif_name` must be specified.")
@@ -227,7 +240,9 @@ esem.from.mods <- function(
     fit_measures = fit_measures,
     hash_dir = hash_dir,
     miss = miss,
-    std.lv = FALSE  # Params are set from measurement models.
+    std.lv = FALSE,  # Params are set from measurement models.
+    check = check,
+    save_out = save_out
   )
   r2 <- mapply(
     function(x, xn) {
