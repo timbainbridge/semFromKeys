@@ -11,9 +11,11 @@ cfa.from.keys(
   out_dir = "output",
   std.lv = TRUE,
   fit_save = TRUE,
-  fit_measures = TRUE,
+  fit_measures = NULL,
   miss = "ML",
-  hash_dir = "hashes"
+  hash_dir = "hashes",
+  check = TRUE,
+  save_out = FALSE
 )
 }
 \arguments{
@@ -39,6 +41,19 @@ Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.}
 
 \item{hash_dir}{A subdirectory of `out_dir` where data hashes are saved.
 Defaults to 'hashes'.}
+
+\item{check}{Should the code check to see if previous outputs have been saved?
+If `TRUE`, the model will not run if model code and a data hash have not
+changed and output is of class lavaan.
+If `FALSE`, the model will run regardless of the existence of previous
+outputs.}
+
+\item{save_out}{Should outputs be saved to enable checking next time?
+If `TRUE` model code, a hash of the data, and output will be saved and will
+be checked against for changes next time the code is run.
+If `FALSE`, nothing will be saved, the output will simply be returned as per
+normal R functioning. Next time the code is run, models will be re-estimated
+regardless of changes to code or data.}
 }
 \value{
 Returns a list of lists.

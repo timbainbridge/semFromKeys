@@ -8,17 +8,19 @@ sem.check(
   mods,
   dat,
   name,
-  kl_s,
-  kl_e,
+  kl_s = NULL,
+  kl_e = NULL,
   std = TRUE,
   fit_save = FALSE,
   fit_measures = NULL,
-  target = FALSE,
+  target = NULL,
   out_dir = "output",
   hash_dir = "hashes",
   orthogonal = FALSE,
   miss = "ML",
-  std.lv = FALSE
+  std.lv = FALSE,
+  check = TRUE,
+  save_out = FALSE
 )
 }
 \arguments{
@@ -55,6 +57,19 @@ Defaults to 'hashes'.}
 \item{miss}{Sets the `missing` param, as per lavaan. Defaults to 'ML'.}
 
 \item{std.lv}{Sets the `std.lv` param, as per lavaan. Defaults to `FALSE`.}
+
+\item{check}{Should the code check to see if previous outputs have been saved?
+If `TRUE`, the model will not run if model code and a data hash have not
+changed and output is of class lavaan.
+If `FALSE`, the model will run regardless of the existence of previous
+outputs.}
+
+\item{save_out}{Should outputs be saved to enable checking next time?
+If `TRUE` model code, a hash of the data, and output will be saved and will
+be checked against for changes next time the code is run.
+If `FALSE`, nothing will be saved, the output will simply be returned as per
+normal R functioning. Next time the code is run, models will be re-estimated
+regardless of changes to code or data.}
 }
 \value{
 Returns a list of lists.

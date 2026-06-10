@@ -48,7 +48,7 @@
 
 cfa.from.keys <- function(
     keys, d, name = "cfa", out_dir = "output", std.lv = TRUE,
-    fit_save = TRUE, fit_measures = TRUE, miss = "ML", hash_dir = "hashes",
+    fit_save = TRUE, fit_measures = NULL, miss = "ML", hash_dir = "hashes",
     check = TRUE, save_out = FALSE
 ) {
   if (is.null(out_dir)) {
