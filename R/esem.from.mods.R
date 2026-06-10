@@ -9,23 +9,22 @@
 #' or `bifactor.from.keys` so it cannot be run without first running the
 #' relevant upstream functions.
 #'
-#' @param efa_name
-#' Must match `name` used in a previously run `efa.from.keys` function call.
-#' @param cfa_name
-#' Must match `name` used in a previously run `cfa.from.keys` function call.
-#' @param bif_name
-#' Must match `name` used in a previously run `bifactor.from.keys` function
-#' call.
+#' @param efa_fit A fitted lavaan object of an EFA model.
+#' @param cfa_fit
+#' A named list of fitted lavaan objects of CFA models.
+#' Can be `NULL` if `bif_fit` is not `NULL`.
+#' @param bif_fit
+#' A list of fitted lavaan objects of bifactor models.
+#' Can be `NULL` if `cfa_fit` is not `NULL`.
 #' @param efa_keys
-#' Must match `keys` used in a previously run `efa.from.keys` function call.
+#' A named list of keys. Names should be factor names, elements should be
+#' vectors of items that comprised the factors in the EFA of `efa_fit`.
+#' All items in the `efa_fit` object must be included an none excluded.
 #' @param cfa_keys
-#' Must match `keys` used in a previously run `cfa.from.keys` function call.
-#' @param bif_keys_g
-#' Must match `keys_g` used in a previously run `bifactor.from.keys` function
-#' call.
-#' @param bif_keys_b
-#' Must match `keys_b` used in a previously run `bifactor.from.keys` function
-#' call.
+#' A named list of keys. Names should be scale names, elements should a list of
+#' items included in each scale.
+#' `length(cfa_keys)` should equal `length(cfa_fit)`.
+#' Can be `NULL` if `bif_keys` is not `NULL`.
 #' @param bif_keys
 #' Must match `keys` used in a previously run `bifactor.from.keys` function
 #' call.
@@ -33,7 +32,7 @@
 #' The data. This must include all observed variables used in any of the models.
 #' @param name
 #' A name for the collection of models. Defaults to 'esem'.
-#' The name should be unique for each time any function is called from the
+#' The name should be unique for each different function call from the
 #' package or outputs from other calls will be overwritten.
 #' @param out_dir
 #' The directory where all function outputs will be saved. Defaults to 'output'.
@@ -62,10 +61,12 @@
 #' @return
 #' Returns a length 2 or 3 list of lists.
 #' The first elements of the list is a list of fitted lavaan esem model output
-#' objects of the same length as either `cfa_keys` or `bif_keys_g` (depending
+#' objects of the same length as either `cfa_keys` or `bif_keys` (depending
 #' on which is used).
-#' The second element of a list of parameter estimates from the models (standardized if `std = TRUE`);
-#' and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
+#' The second element of the list is a list of parameter estimates from the
+#' models (standardized if `std = TRUE`).
+#' If `fit_save = TRUE`, then the list will have a third element, which will be
+#' a matrix of fit measures for each model.
 #'
 #' @details
 #' The function was designed to streamline running exploratory structural
@@ -98,83 +99,57 @@
 #' Models.
 #' Sociological Methods & Research, 5(1), 3-52.
 
+# TODO: check @return in case of adding cfa and bifactor models together.
 # TODO: Check bifactor model functionality.
 # TODO: Add option for stand-alone items (in place of CFA or bifactor factors).
 
-# This function is somewhat malformed. It should be able to be run
-# independently, not relying on upstream functions already been run.
-# That is, it probably should be esem.from.keys(), and call those earlier
-# functions directly OR take fitted objects as inputs.
-
-# TODO: Change to accept fitted object lists or parameter estimate lists instead
-# of names.
-
 esem.from.mods <- function(
-    efa_name, cfa_name = NULL, bif_name = NULL, efa_keys, cfa_keys = NULL,
-    bif_keys_g = NULL, bif_keys_b = NULL, bif_keys = NULL,
-    d, name = NULL, out_dir = "output", fit_save = FALSE, fit_measures = NULL,
+    efa_fit, cfa_fit = NULL, bif_fit = NULL, efa_keys, cfa_keys = NULL,
+    bif_keys = NULL,
+    d, name = "esem", out_dir = "output", fit_save = FALSE, fit_measures = NULL,
     miss = "ML", hash_dir = "hashes", check = TRUE, save_out = TRUE
 ) {
-  if (is.null(cfa_name) & is.null(bif_name)) {
-    stop("At least one of `cfa_name` and `bif_name` must be specified.")
+  if (is.null(cfa_fit) & is.null(bif_fit)) {
+    stop("At least one of `cfa_fit` and `bif_fit` must be specified.")
   }
-  if (!is.null(cfa_name)) {
-    if (
-      !file.exists(file.path(out_dir, cfa_name, paste0(cfa_name, "_par.rds")))
-    ) {
-      stop(
-        paste0(
-          cfa_name, "_par.rds", " not found at ",
-          file.path(out_dir, cfa_name, paste0(cfa_name, "_par.rds")),
-          ". You will need to run at least one CFA model using",
-          "`cfa.from.keys()` for this object to be saved.",
-          "If you have done that, ensure that `cfa_name` here matches the one",
-          "you used to run the CFA models originally."
-        )
-      )
-    }
-  }
-  cfa_par <-
-    readRDS(file.path(out_dir, cfa_name, paste0(cfa_name, "_par.rds")))
-  if (!is.null(bif_name)) {
-    if (
-      !file.exists(file.path(out_dir, efa_name, paste0(efa_name, "_par.rds")))
-    ) {
-      stop(
-        paste0(
-          efa_name, "_par.rds", " not found at ",
-          file.path(out_dir, efa_name, paste0(efa_name, "_par.rds")),
-          ". You will need to run an EFA model using",
-          "`efa.from.keys()` for this object to be saved.",
-          "If you have done that, ensure that `efa_name` here matches the one",
-          "you used to run the efa model originally."
-        )
-      )
-    }
-  }
-  efa_par <-
-    readRDS(file.path(out_dir, efa_name, paste0(efa_name, "_par.rds")))
-  if (
-    !file.exists(file.path(out_dir, bif_name, paste0(bif_name, "_par.rds")))
-  ) {
+  if (sum(sapply(names(cfa_fit), function(x) x == "")) > 0) {
     stop(
-      paste0(
-        bif_name, "_par.rds", " not found at ",
-        file.path(out_dir, bif_name, paste0(bif_name, "_par.rds")),
-        ". You will need to run at least one bifactor model using",
-        "`bifactor.from.keys()` for this object to be saved.",
-        "If you have done that, ensure that `bif_name` here matches the one",
-        "you used to run the bifactor models originally."
-      )
+      "At least one element of `cfa_fit` is unnamed. All elements must be named"
     )
   }
-  bif_par <-
-    readRDS(file.path(out_dir, bif_name, paste0(bif_name, "_par.rds")))
-  # TODO: Check that the _par.rds files matches expectations.
-  if (is.null(cfa_name) & is.null(bif_name)) {
-    stop("Either ")
+  if (sum(sapply(names(bif_fit), function(x) x == "")) > 0) {
+    stop(
+      "At least one element of `bif_fit` is unnamed. All elements must be named"
+    )
   }
-  if (!is.null(cfa_name)) {
+  if (sum(sapply(names(efa_fit), function(x) x == "")) > 0) {
+    stop(
+      "At least one element of `efa_fit` is unnamed. All elements must be named"
+    )
+  }
+  if (sum(sapply(cfa_fit, function(x) class(x) != "lavaan")) > 0) {
+    paste0(
+      names(cfa_fit)[sapply(cfa_fit, function(x) class(x) != "lavaan")],
+      stop("The above elements of `cfa_fit` are not objects of type lavaan.")
+    )
+  }
+  if (sum(sapply(bif_fit, function(x) class(x) != "lavaan")) > 0) {
+    paste0(
+      names(bif_fit)[sapply(bif_fit, function(x) class(x) != "lavaan")],
+      stop("The above elements of `bif_fit` are not objects of type lavaan.")
+    )
+  }
+  if (class(efa_fit) != "lavaan") {
+    stop("`efa_fit` is not an object of type lavaan.")
+  }
+  if (!is.null(cfa_fit)) {
+    cfa_par <- sapply(cfa_fit, parameterEstimates, simplify = FALSE)
+  }
+  if (!is.null(bif_fit)) {
+    bif_par <- sapply(bif_fit, parameterEstimates, simplify = FALSE)
+  }
+  efa_par <- parameterEstimates(efa_fit)
+  if (!is.null(cfa_fit)) {
     mods_cfa <- mapply(
       function(x, sn) {
         if (length(x) > 1) {
@@ -206,36 +181,38 @@ esem.from.mods <- function(
       x = cfa_keys, sn = names(cfa_keys), SIMPLIFY = FALSE
     )
   }
-  mods_bif <- mapply(
-    function(x, sn) {
-      if (length(x) > 1) {
-        x0 <- bif_par[[sn]]
-        tmp0 <- x0[x0$op %in% c("=~", "~~"), c("lhs", "op", "rhs", "est")]
-        tmp1 <- tmp0[!(sn == tmp0$lhs & sn == tmp0$rhs), ]
-        tmp <- paste0(
-          paste(tmp1$lhs, tmp1$op, tmp1$est, "*", tmp1$rhs, collapse = "\n")
+  if (!is.null(bif_fit)) {
+    mods_bif <- mapply(
+      function(x, sn) {
+        if (length(x) > 1) {
+          x0 <- bif_par[[sn]]
+          tmp0 <- x0[x0$op %in% c("=~", "~~"), c("lhs", "op", "rhs", "est")]
+          tmp1 <- tmp0[!(sn == tmp0$lhs & sn == tmp0$rhs), ]
+          tmp <- paste0(
+            paste(tmp1$lhs, tmp1$op, tmp1$est, "*", tmp1$rhs, collapse = "\n")
+          )
+        } else {
+          tmp <- NULL
+        }
+        tmpe0 <- efa_par[[efa_name]]
+        tmpe <- tmpe0[tmpe0$op %in% c("=~", "~~"), c("lhs", "op", "rhs", "est")]
+        paste0(
+          c(
+            # EFA as CFA
+            paste(tmpe$lhs, tmpe$op, tmpe$est, "*", tmpe$rhs, collapse = "\n"),
+            # Scale CFA or Latent variable correlations (if only 1 item)
+            if (length(x) != 1) tmp else {
+              paste0(sn, " ~~ ", paste0(names(efa_keys), collapse = " + "))
+            },
+            # Regression
+            paste(sn, "~", paste0(names(efa_keys), collapse = " + "))
+          ),
+          collapse = "\n"
         )
-      } else {
-        tmp <- NULL
-      }
-      tmpe0 <- efa_par[[efa_name]]
-      tmpe <- tmpe0[tmpe0$op %in% c("=~", "~~"), c("lhs", "op", "rhs", "est")]
-      paste0(
-        c(
-          # EFA as CFA
-          paste(tmpe$lhs, tmpe$op, tmpe$est, "*", tmpe$rhs, collapse = "\n"),
-          # Scale CFA or Latent variable correlations (if only 1 item)
-          if (length(x) != 1) tmp else {
-            paste0(sn, " ~~ ", paste0(names(efa_keys), collapse = " + "))
-          },
-          # Regression
-          paste(sn, "~", paste0(names(efa_keys), collapse = " + "))
-        ),
-        collapse = "\n"
-      )
-    },
-    x = bif_keys, sn = names(bif_keys), SIMPLIFY = FALSE
-  )
+      },
+      x = bif_keys, sn = names(bif_keys), SIMPLIFY = FALSE
+    )
+  }
   mods <- c(mods_cfa, mods_bif)
   mod_out <- sem.check(
     mods,
