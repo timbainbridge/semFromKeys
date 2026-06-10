@@ -6,40 +6,40 @@
 Exploratory Factor Analyses model outputs and keys.}
 \usage{
 esem.from.mods(
-  efa_name,
-  cfa_name = NULL,
-  bif_name = NULL,
+  efa_fit,
+  cfa_fit = NULL,
+  bif_fit = NULL,
   efa_keys,
   cfa_keys = NULL,
-  bif_keys_g = NULL,
-  bif_keys_b = NULL,
   bif_keys = NULL,
   d,
-  name = NULL,
+  name = "esem",
   out_dir = "output",
   fit_save = FALSE,
   fit_measures = NULL,
   miss = "ML",
-  hash_dir = "hashes"
+  hash_dir = "hashes",
+  check = TRUE,
+  save_out = FALSE
 )
 }
 \arguments{
-\item{efa_name}{Must match `name` used in a previously run `efa.from.keys` function call.}
+\item{efa_fit}{A fitted lavaan object of an EFA model.}
 
-\item{cfa_name}{Must match `name` used in a previously run `cfa.from.keys` function call.}
+\item{cfa_fit}{A named list of fitted lavaan objects of CFA models.
+Can be `NULL` if `bif_fit` is not `NULL`.}
 
-\item{bif_name}{Must match `name` used in a previously run `bifactor.from.keys` function
-call.}
+\item{bif_fit}{A list of fitted lavaan objects of bifactor models.
+Can be `NULL` if `cfa_fit` is not `NULL`.}
 
-\item{efa_keys}{Must match `keys` used in a previously run `efa.from.keys` function call.}
+\item{efa_keys}{A named list of keys. Names should be factor names, elements should be
+vectors of items that comprised the factors in the EFA of `efa_fit`.
+All items in the `efa_fit` object must be included an none excluded.}
 
-\item{cfa_keys}{Must match `keys` used in a previously run `cfa.from.keys` function call.}
-
-\item{bif_keys_g}{Must match `keys_g` used in a previously run `bifactor.from.keys` function
-call.}
-
-\item{bif_keys_b}{Must match `keys_b` used in a previously run `bifactor.from.keys` function
-call.}
+\item{cfa_keys}{A named list of keys. Names should be scale names, elements should a list of
+items included in each scale.
+`length(cfa_keys)` should equal `length(cfa_fit)`.
+Can be `NULL` if `bif_keys` is not `NULL`.}
 
 \item{bif_keys}{Must match `keys` used in a previously run `bifactor.from.keys` function
 call.}
@@ -47,7 +47,7 @@ call.}
 \item{d}{The data. This must include all observed variables used in any of the models.}
 
 \item{name}{A name for the collection of models. Defaults to 'esem'.
-The name should be unique for each time any function is called from the
+The name should be unique for each different function call from the
 package or outputs from other calls will be overwritten.}
 
 \item{out_dir}{The directory where all function outputs will be saved. Defaults to 'output'.}
@@ -61,14 +61,29 @@ Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.}
 
 \item{hash_dir}{A subdirectory of `out_dir` where data hashes are saved.
 Defaults to 'hashes'.}
+
+\item{check}{Should the code check to see if previous outputs have been saved?
+If `TRUE`, the model will not run if model code and a data hash have not
+changed and output is of class lavaan.
+If `FALSE`, the model will run regardless of the existence of previous
+outputs.}
+
+\item{save_out}{Should outputs be saved to enable checking next time?
+If `TRUE` model code, a hash of the data, and output will be saved and will
+be checked against for changes next time the code is run.
+If `FALSE`, nothing will be saved, the output will simply be returned as per
+normal R functioning. Next time the code is run, models will be re-estimated
+regardless of changes to code or data.}
 }
 \value{
 Returns a length 2 or 3 list of lists.
 The first elements of the list is a list of fitted lavaan esem model output
-objects of the same length as either `cfa_keys` or `bif_keys_g` (depending
+objects of the same length as either `cfa_keys` or `bif_keys` (depending
 on which is used).
-The second element of a list of parameter estimates from the models (standardized if `std = TRUE`);
-and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
+The second element of the list is a list of parameter estimates from the
+models (standardized if `std = TRUE`).
+If `fit_save = TRUE`, then the list will have a third element, which will be
+a matrix of fit measures for each model.
 }
 \description{
 esem.from.keys runs an exploratory structural equation model (ESEM) in lavaan
