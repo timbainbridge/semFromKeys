@@ -13,7 +13,7 @@ bifactor.from.keys(
   out_dir = "output",
   std.lv = TRUE,
   fit_save = TRUE,
-  fit_measures = TRUE,
+  fit_measures = NULL,
   miss = "ML",
   hash_dir = "hashes",
   check = TRUE,
@@ -80,11 +80,39 @@ input model outputs into downstream functions.
 \details{
 Please be careful with bifactor models.
 In simulation studies, they can fit better than the models that generated the
-data and produce negative residual variances not infrequently
-(Murray & Johnson, 2013).
-Best pra
+data in the presence of unspecified complexity (which is frequently, if not
+usually, the case; Murray & Johnson, 2013).
+They can also produce negative residual variances.
+lavaan will warn you of this and you should deal with it before proceeding.
+Items can also load in atheoretical ways on group factors.
+This could be some items loading negatively instead of positively or
+vice versa or one or more items having insignificant loadings on a factor
+that they should theoretically load on.
+
+These problems can often be solved by omitting a factor.
+When items from one group factor dominate the general factor,
+the best solution might be to remove the general factor and treat the group
+factors as separate constructs.
+Perhaps more frequently, it might be solved by omitting one (or more) group
+factors (i.e., an S-1 model; Eid et al., 2017).
+This can either be done a priori
+(perhaps based on which one should theoretically be most 'central' to the
+general factor)
+or after examining the fully specified bifactor model and dropping the worst
+performing factor.
+The worst performing factor will be one that has items loading in the 'wrong'
+direction or insignificantly or 1-2 items that load much more strongly than
+other items.
+When more than one group factor is poor, I am not aware of any specific
+advice on which to remove, so use your judgment if previous research has not
+got any advice for your case.
 }
 \references{
+Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
+Anomalous results in G-factor models: Explanations and alternatives.
+Psychological Methods, 22(3), 541-562.
+https://doi.apa.org/doi/10.1037/met0000083.
+
 Murray, A. L. & Johnson, W. (2013).
 The limitations of model fit in comparing the bi-factor versus higher-order
 models of human cognitive ability structure. Intelligence, 41(5), 407-422.
