@@ -71,7 +71,8 @@
 #' @references
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
-#' Models. Sociological Methods & Research, 5(1): 3-52.
+#' Models. Sociological Methods & Research, 5(1), 3-52.
+#' http://journals.sagepub.com/doi/10.1177/004912417600500101.
 #'
 #' @importFrom gsubfn gsubfn
 #' @importFrom lavaan sem
@@ -320,7 +321,7 @@ sem.check <- function(
             message(paste0(n, " / ", length(mods), "  ", n_mod))
           }
         }
-        if (!target |> is.matrix()) {
+        if (is.null(target)) {
           sem(
             model   = mods1,
             data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
@@ -334,11 +335,10 @@ sem.check <- function(
             data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
             missing = miss,
             std.lv  = std.lv,
-            orthogonal = orthogonal,
             rotation = "target",
             rotation.args = list(
               rstarts = 30, row.weights = "none", algorithm = "gpa",
-              std.ov = TRUE, target = target
+              std.ov = TRUE, target = target, orthogonal = orthogonal
             )
           )
         }

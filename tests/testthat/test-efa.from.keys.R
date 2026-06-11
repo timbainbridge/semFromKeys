@@ -23,12 +23,28 @@ expect_equal(length(efa_fit$fit), 1)
 expect_equal(length(efa_fit$par), 1)
 expect_equal(sum(sapply(efa_fit$fit, function(x) class(x) != "lavaan")), 0)
 
+# Orthogonal TRUE
 efa_fit <-
   efa.from.keys(keys, d, check = FALSE, fit_save = fit_save, orthogonal = TRUE)
 expect_equal(length(efa_fit), 2)
 expect_equal(length(efa_fit$fit), 1)
 expect_equal(length(efa_fit$par), 1)
 expect_equal(sum(sapply(efa_fit$fit, function(x) class(x) != "lavaan")), 0)
+# Check orthogonal
+expect_equal(
+  sum(
+    abs(
+      efa_fit$par$efa$est[
+        grepl(
+          paste0("^", names(keys), "$", collapse = "|"), efa_fit$par$efa$lhs
+        ) &
+          efa_fit$par$efa$op == "~~" &
+          efa_fit$par$efa$lhs != efa_fit$par$efa$rhs
+      ] > 10e-10
+    )
+  ),
+  0
+)
 
 fit_save <- TRUE
 efa_fit <- efa.from.keys(keys, d, check = FALSE, fit_save = fit_save)
