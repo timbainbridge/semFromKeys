@@ -47,11 +47,24 @@
 #' normal R functioning. Next time the code is run, models will be re-estimated
 #' regardless of changes to code or data.
 #'
+#' @details
+#' Please be careful with bifactor models.
+#' In simulation studies, they can fit better than the models that generated the
+#' data and produce negative residual variances not infrequently
+#' (Murray & Johnson, 2013).
+#' Best pra
+#'
 #' @return
 #' Returns a list of lists.
 #' The elements are a list of lavaan bifactor model output objects;
 #' a list of parameter estimates from the models (standardized if `std = TRUE`);
 #' and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
+#'
+#' @references
+#' Murray, A. L. & Johnson, W. (2013).
+#' The limitations of model fit in comparing the bi-factor versus higher-order
+#' models of human cognitive ability structure. Intelligence, 41(5), 407-422.
+#' http://dx.doi.org/10.1016/j.intell.2013.06.004.
 
 bifactor.from.keys <- function(
   keys_g, keys_b, keys, d, name = "bifactor", out_dir = "output",

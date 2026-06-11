@@ -12,7 +12,7 @@ efa.from.keys(
   orthogonal = FALSE,
   std.lv = TRUE,
   fit_save = TRUE,
-  fit_measures = TRUE,
+  fit_measures = NULL,
   miss = "ML",
   hash_dir = "hashes",
   check = TRUE,

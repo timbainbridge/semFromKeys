@@ -4,10 +4,11 @@
 #' esem.from.keys runs an exploratory structural equation model (ESEM) in lavaan
 #' where the exploratory factor analysis (EFA) factors predict either
 #' confirmatory factor analysis (CFA) factors in separate models for each CFA
-#' factor OR bifactor factors in separate models for each bifactor model.
-#' The function uses outputs from `efa.from.keys()` and either `cfa.from.keys()`
-#' or `bifactor.from.keys` so it cannot be run without first running the
-#' relevant upstream functions.
+#' factor OR bifactor factors in separate models for each model.
+#' The function takes a fitted lavaan object from an EFA and lists of fitted
+#' CFA or bifactor lavaan model objects as inputs so will typically
+#' use outputs from `efa.from.keys()` and `cfa.from.keys()` or
+#' `bifactor.from.keys`.
 #'
 #' @param efa_fit A fitted lavaan object of an EFA model.
 #' @param cfa_fit
@@ -93,11 +94,12 @@
 #' Evaluating the Big Five as an organizing framework for commonly used
 #' psychological trait scales.
 #' Journal of Personality and Social Psychology, 122(4), 749-777.
+#' http://doi.apa.org/getdoi.cfm?doi=10.1037/pspp0000395.
 #'
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
-#' Models.
-#' Sociological Methods & Research, 5(1), 3-52.
+#' Models. Sociological Methods & Research, 5(1), 3-52.
+#' http://journals.sagepub.com/doi/10.1177/004912417600500101.
 
 # TODO: check @return in case of adding cfa and bifactor models together.
 # TODO: Check bifactor model functionality.

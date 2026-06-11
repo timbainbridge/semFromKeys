@@ -100,5 +100,6 @@ the function accounts for interpretational confounding using Burt's (1976)
 \references{
 Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation
-Models. Sociological Methods & Research, 5(1): 3-52.
+Models. Sociological Methods & Research, 5(1), 3-52.
+http://journals.sagepub.com/doi/10.1177/004912417600500101.
 }

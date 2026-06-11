@@ -77,3 +77,16 @@ each element is an item from the corresponding scale. The function is
 designed to steamline running CFA models for all scales in a sample and to
 input model outputs into downstream functions.
 }
+\details{
+Please be careful with bifactor models.
+In simulation studies, they can fit better than the models that generated the
+data and produce negative residual variances not infrequently
+(Murray & Johnson, 2013).
+Best pra
+}
+\references{
+Murray, A. L. & Johnson, W. (2013).
+The limitations of model fit in comparing the bi-factor versus higher-order
+models of human cognitive ability structure. Intelligence, 41(5), 407-422.
+http://dx.doi.org/10.1016/j.intell.2013.06.004.
+}

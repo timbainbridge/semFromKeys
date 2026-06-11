@@ -2,13 +2,8 @@
 d <- BFIGritHopeImp
 
 # Create keys
-keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")#, "imp_a", "imp_m", "imp_np")
-keys <- sapply(
-  keys0,
-  function(x) {
-    names(d)[grep(x, names(d))]
-  }
-)
+keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
+keys <- sapply(keys0, function(x) names(d)[grep(x, names(d))])
 
 # Test normal behaviour
 fit_save <- FALSE
@@ -65,9 +60,7 @@ fit_save <- FALSE
 keys_mistake <- keys
 keys_mistake$grit_c[1] <- "mistake"
 expect_error(
-  cfa.from.keys(
-    keys_mistake, d, check = FALSE, fit_save = fit_save
-  ),
+  cfa.from.keys(keys_mistake, d, check = FALSE, fit_save = fit_save),
   "items are in `kl_s` but they are not in `dat`"
 )
 
