@@ -99,8 +99,13 @@ bifactor.from.keys <- function(
   std.lv = TRUE, fit_save = TRUE, fit_measures = NULL, miss = "ML",
   hash_dir = "hashes", check = TRUE, save_out = FALSE
 ) {
-  if (is.null(out_dir)) {
-    out_dir <- name
+  if (length(keys_g) != length(keys_b)) {
+    stop(
+      paste(
+        "`keys_g` is not the same length as `keys_b`.",
+        "Check that you have not mixed up `keys` with `keys_g` or `keys_b`."
+      )
+    )
   }
   mods <- mapply(
     function(x, y, z) {
@@ -131,7 +136,7 @@ bifactor.from.keys <- function(
     kl_e = NULL,
     std = FALSE,
     fit_save = fit_save,
-    fit_measures = TRUE,
+    fit_measures = fit_measures,
     std.lv = std.lv,
     out_dir = out_dir,
     hash_dir = hash_dir,

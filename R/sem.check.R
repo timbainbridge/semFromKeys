@@ -68,6 +68,11 @@
 #' the function accounts for interpretational confounding using Burt's (1976)
 #' 2-stage procedure.
 #'
+#' The function temporarily changes the warning option to print warnings
+#' immediately rather than buffering them (i.e., `options(warn = 1)`).
+#' This enables easy matching of lavvan warnings to the model they occurred for.
+#' The original option value is saved and reset after the models have run.
+#'
 #' @references
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
@@ -92,9 +97,6 @@ sem.check <- function(
   if (!is.logical(fit_save)) {
     stop("`fit_save` is not logical. It should be `TRUE` or `FALSE`.")
   }
-  if (!is.character(name)) {
-    stop("`name` is not a character string.")
-  }
   if (!is.logical(check)) {
     stop("`check` is not logical. It should be `TRUE` or `FALSE`.")
   }
@@ -102,6 +104,9 @@ sem.check <- function(
     stop("`save` is not logical. It should be `TRUE` or `FALSE`.")
   }
   if (save_out | check) {
+    if (!is.character(name)) {
+      stop("`name` is not a character string.")
+    }
     if (!is.character(out_dir)) {
       stop("`out_dir` is not a character string.")
     }
@@ -152,6 +157,16 @@ sem.check <- function(
       )
     )
   }
+  if (!is.null(kl_s)) {
+    if (sum(table(names(kl_s)) > 1) > 0) {
+      stop(
+        paste(
+          "At least two elements of `kl_s` share the same name.",
+          "Please ensure that all model names are unique."
+        )
+      )
+    }
+  }
   if (!is.list(kl_e) & !is.null(kl_e)) {
     stop(
       paste(
@@ -161,13 +176,21 @@ sem.check <- function(
     )
   }
   if (!is.null(kl_e)) {
+    if (sum(table(names(kl_e)) > 1) > 0) {
+      stop(
+        paste(
+          "At least two elements of `kl_e` share the same name.",
+          "Please ensure that all model names are unique."
+        )
+      )
+    }
     if (sum(sapply(kl_e, function(x) length(x) < 2)) > 0) {
       short_factors <-
-        names(kl_e)[sapply(kl_e, function(x) length(x) < 2)]
+        names(kl_e)[sapply(kl_e, function(x) length(x) == 1)]
       warning(
         paste(
           paste0("    ", short_factors, collapse = "    \n"),
-          "\nThe above factors have 1 (or fewer) items.",
+          "\n\nThe above factors have only 1 item.",
           "This is not necessarily a problem",
           "(assuming no more serious errors have occured)",
           "but it is unusual for EFAs and may not be what you intended to do."
@@ -179,11 +202,15 @@ sem.check <- function(
     una_items <- unlist(kl_s)[!(unlist(kl_s)) %in% colnames(dat)]
     stop(
       paste0(
-        paste0("    ", una_items, collapse = "    \n"),
+        "  ",
+        paste0(una_items, collapse = "\n    "),
         paste(
-          "The above items are in `kl_s` but they are not in `dat`.",
+          "\n\nThe above items are in `kl_s` but they are not in `dat`.",
           "Ensure that dat is a data frame (or coercible into a data frame)",
-          "and that column names of `dat` and keys list item names match."
+          "and that column names of `dat` and keys list item names match.",
+          "If using bifactor.from.keys, ensure that you have not swapped keys",
+          "inadvertently",
+          "(e.g., keys_g for keys_b)."
         )
       )
     )
@@ -305,8 +332,10 @@ sem.check <- function(
     fit_m0 <- FALSE
   }
   # Run
-  # tmp <- list()
   message("Fitting models")
+  # Don't mess with people's warnings
+  og_warn <- getOption("warn")
+  options(warn = 1)
   fit <- mapply(
     function(m1, hash_d1, n_mod, mods1, ft, n) {
       if (hash_d1 & m1 & ft) {
@@ -352,11 +381,12 @@ sem.check <- function(
     n = seq_along(mods),
     SIMPLIFY = FALSE
   )
+  options(warn = og_warn)
   message("Generating parameter estimates")
   par <- mapply(
     function(m1, hash_d1, n_mod, fit1, pt, n) {
       if (hash_d1 & m1 & pt) {
-        par0[[n_mod]]
+        out <- par0[[n_mod]]
       } else {
         if (length(fit) <= 1000) {
           # Print progress for every model
