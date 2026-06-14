@@ -311,7 +311,7 @@ sem.check <- function(
     fit_type <- sapply(
       names(mods),
       function(x) {
-        ifelse(x %in% names(fit0), class(fit0[[x]]) == "lavaan", FALSE)
+        ifelse(x %in% names(fit0), inherits(fit0[[x]], "lavaan"), FALSE)
       }
     )
     par_type <- sapply(
@@ -319,7 +319,7 @@ sem.check <- function(
       function(x) {
         ifelse(
           x %in% names(par0),
-          (class(par0[[x]]) == "lavaan.data.frame")[1],
+          inherits(par0[[x]], "lavaan.data.frame")[1],
           FALSE
         )
       }

@@ -133,7 +133,7 @@ cfa2_mod <- paste0(
   ),
   collapse = "\n"
 )
-cfa2_fit <- list(grit = cfa(cfa2_mod, d))
+cfa2_fit <- list(grit = lavaan::cfa(cfa2_mod, d))
 expect_error(
   esem.from.mods(efa_fit, cfa2_fit, d = d, fit_save = fit_save, check = FALSE),
   "CFA containing more than one latent variable has been found"

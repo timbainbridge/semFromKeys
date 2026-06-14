@@ -133,9 +133,9 @@ esem.from.mods <- function(
     stop("At least one of `cfa_fit` and `bif_fit` must be specified.")
   }
   if (!is.null(cfa_fit)) {
-    if (sum(sapply(cfa_fit, function(x) class(x) != "lavaan")) > 0) {
+    if (sum(sapply(cfa_fit, function(x) !inherits(x, "lavaan"))) > 0) {
       paste0(
-        names(cfa_fit)[sapply(cfa_fit, function(x) class(x) != "lavaan")],
+        names(cfa_fit)[sapply(cfa_fit, function(x) !inherits(x, "lavaan"))],
         stop("The above elements of `cfa_fit` are not objects of type lavaan.")
       )
     }
@@ -143,7 +143,7 @@ esem.from.mods <- function(
   if (!is.null(bif_fit)) {
     if (sum(sapply(bif_fit, function(x) class(x) != "lavaan")) > 0) {
       paste0(
-        names(bif_fit)[sapply(bif_fit, function(x) class(x) != "lavaan")],
+        names(bif_fit)[sapply(bif_fit, function(x) !inherits(x, "lavaan"))],
         stop("The above elements of `bif_fit` are not objects of type lavaan.")
       )
     }
@@ -156,7 +156,7 @@ esem.from.mods <- function(
       )
     )
   }
-  if (class(efa_fit) != "lavaan") {
+  if (!inherits(efa_fit, "lavaan")) {
     stop("`efa_fit` is not an object of type lavaan.")
   }
   if (!is.null(cfa_fit)) {
@@ -165,7 +165,7 @@ esem.from.mods <- function(
     cfa_names <- sapply(
       cfa_par,
       function(x) {
-        x1 <- x$lhs[x$op == "=~"] |> unique()
+        x1 <- unique(x$lhs[x$op == "=~"])
         if (length(x1) > 1) {
           stop(
             paste(
@@ -357,19 +357,21 @@ esem.from.mods <- function(
     check = check,
     save_out = save_out
   )
-  r2 <- mapply(
-    function(x, xn) {
-      tmp <- x[x$op == "~~" & x$lhs == xn & x$rhs == xn, ]
-      c(
-        R2 = 1 - tmp$est.std,
-        se = tmp$se,
-        ci.lower = 1 - tmp$ci.upper,
-        ci.upper = 1 - tmp$ci.lower
-      )
-    },
-    x = mod_out$par_std, xn = names(mod_out$par_std), SIMPLIFY = FALSE
-  ) |>
-    do.call(rbind, args = _)
+  r2 <- do.call(
+    rbind,
+    mapply(
+      function(x, xn) {
+        tmp <- x[x$op == "~~" & x$lhs == xn & x$rhs == xn, ]
+        c(
+          R2 = 1 - tmp$est.std,
+          se = tmp$se,
+          ci.lower = 1 - tmp$ci.upper,
+          ci.upper = 1 - tmp$ci.lower
+        )
+      },
+      x = mod_out$par_std, xn = names(mod_out$par_std), SIMPLIFY = FALSE
+    )
+  )
   b <- lapply(
     mod_out$par_std,
     function(x, xn) {
