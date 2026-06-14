@@ -1,5 +1,5 @@
 # Load data
-d <- BFIGritHopeImp
+d <- BFIGritHope
 
 # Create keys
 keys0 <- c("grit_c", "grit_p", "hope_p")

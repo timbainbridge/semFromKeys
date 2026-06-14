@@ -1,5 +1,5 @@
 # Load data
-d <- BFIGritHopeImp
+d <- BFIGritHope
 
 # Create keys
 # CFAs

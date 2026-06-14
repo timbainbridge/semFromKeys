@@ -2,7 +2,7 @@
 # cfa.from.keys, so only a few additional ones are required here.
 
 # Load data
-d <- BFIGritHopeImp
+d <- BFIGritHope
 
 # Create keys
 # Using only 3 factors to save time on checks

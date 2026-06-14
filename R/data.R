@@ -87,21 +87,6 @@
 #'   \item{hope_p_2}{Hope Pathways, Item 2}
 #'   \item{hope_p_3}{Hope Pathways, Item 3}
 #'   \item{hope_p_4}{Hope Pathways, Item 4}
-#'   \item{imp_a_1}{Impulsivity Attention, Item 1}
-#'   \item{imp_a_2}{Impulsivity Attention, Item 2}
-#'   \item{imp_a_3}{Impulsivity Attention, Item 3}
-#'   \item{imp_a_4}{Impulsivity Attention, Item 4}
-#'   \item{imp_a_5}{Impulsivity Attention, Item 5}
-#'   \item{imp_m_1}{Impulsivity Motor, Item 1}
-#'   \item{imp_m_2}{Impulsivity Motor, Item 2}
-#'   \item{imp_m_3}{Impulsivity Motor, Item 3}
-#'   \item{imp_m_4}{Impulsivity Motor, Item 4}
-#'   \item{imp_m_5}{Impulsivity Motor, Item 5}
-#'   \item{imp_np_1}{Impulsivity Non-Planning, Item 1}
-#'   \item{imp_np_2}{Impulsivity Non-Planning, Item 2}
-#'   \item{imp_np_3}{Impulsivity Non-Planning, Item 3}
-#'   \item{imp_np_4}{Impulsivity Non-Planning, Item 4}
-#'   \item{imp_np_5}{Impulsivity Non-Planning, Item 5}
 #' }
 #' @source <https://osf.io/f9hmg/files/eu8p9>
-"BFIGritHopeImp"
+"BFIGritHope"
