@@ -2,11 +2,11 @@
 d <- BFIGritHopeImp
 
 # Create keys
-keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p", "imp_a", "imp_m", "imp_np")
+keys0 <- c("grit_c", "grit_p", "hope_p")
 keys <- sapply(keys0, function(x) names(d)[grep(x, names(d))])
-keys_g0 <- c("grit", "hope", "imp")
+keys_g0 <- c("grit", "hope")
 keys_g <- sapply(keys_g0, function(x) names(d)[grep(x, names(d))])
-keys_b <- sapply(keys_g0, function(x) keys0[grep(x, keys0)])
+keys_b <- sapply(keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE)
 
 # Test normal behaviour
 fit_save <- FALSE
@@ -50,7 +50,7 @@ expect_error(
   bifactor.from.keys(
     keys_g, d, check = FALSE, fit_save = fit_save
   ),
-  'argument "keys" is missing'
+  '`keys_g` is not the same length as `keys_b`'
 )
 
 # Mix up keys
@@ -68,4 +68,14 @@ expect_error(
     keys, keys_b, keys_g, d, check = FALSE, fit_save = fit_save
   ),
   '`keys_g` is not the same length as `keys_b`'
+)
+
+# Item in a group factor but not in the general factor
+keys_g2 <- keys_g
+keys_g2$grit <- keys_g2$grit[-1]
+expect_warning(
+  bifactor.from.keys(
+    keys_g2, keys_b, keys, d, check = FALSE, fit_save = fit_save
+  ),
+  "item\\(s\\) are in a group factor but not in the general factor"
 )

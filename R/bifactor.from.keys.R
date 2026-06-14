@@ -103,10 +103,40 @@ bifactor.from.keys <- function(
     stop(
       paste(
         "`keys_g` is not the same length as `keys_b`.",
-        "Check that you have not mixed up `keys` with `keys_g` or `keys_b`."
+        "Check that you have not mixed up `keys` with `keys_g` or `keys_b`,",
+        "or otherwise misspecified one of these keys lists."
       )
     )
   }
+  if (sum(names(keys_g) != names(keys_b)) > 0) {
+    stop(
+      paste(
+        "Names of `keys_g` do not match names of `keys_b`.",
+        "Check keys are correctly specified and that they have not been mixed",
+        "up with `keys`."
+      )
+    )
+  }
+  og_warn <- getOption("warn")
+  options(warn = 1)
+  items <- mapply(
+    function(x, y) {
+      if (sum(!unlist(keys[y]) %in% x) > 0) {
+        warning(
+          paste(
+            "The following item(s) are in a group factor but not in the",
+            "general factor:\n   ",
+            paste(unlist(keys[y])[!unlist(keys[y]) %in% x], collapse = "\n    ")
+          )
+        )
+        c(x, unlist(keys[y])[!unlist(keys[y]) %in% x])
+      } else {
+        x
+      }
+    },
+    x = keys_g, y = keys_b
+  )
+  options(warn = og_warn)
   mods <- mapply(
     function(x, y, z) {
       tmp <- paste(z, "=~", paste(x, collapse = " + "))
@@ -132,7 +162,7 @@ bifactor.from.keys <- function(
     mods,
     d,
     name = name,
-    kl_s = keys_g,
+    kl_s = items,
     kl_e = NULL,
     std = FALSE,
     fit_save = fit_save,
