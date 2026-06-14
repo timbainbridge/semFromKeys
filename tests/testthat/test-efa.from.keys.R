@@ -77,7 +77,7 @@ keys_l1 <- keys
 keys_l1$bfi_e <- keys$bfi_e[1]
 expect_warning(
   efa.from.keys(keys_l1, d, check = FALSE, fit_save = fit_save),
-  "The above factors have 1"
+  "factors have only 1 item"
 )
 
 # I am not going to stop people from including differently named scales in the
