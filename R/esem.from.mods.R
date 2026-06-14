@@ -17,18 +17,6 @@
 #' @param bif_fit
 #' A list of fitted lavaan objects of bifactor models.
 #' Can be `NULL` if `cfa_fit` is not `NULL`.
-#' @param efa_keys
-#' A named list of keys. Names should be factor names, elements should be
-#' vectors of items that comprised the factors in the EFA of `efa_fit`.
-#' All items in the `efa_fit` object must be included an none excluded.
-#' @param cfa_keys
-#' A named list of keys. Names should be scale names, elements should a list of
-#' items included in each scale.
-#' `length(cfa_keys)` should equal `length(cfa_fit)`.
-#' Can be `NULL` if `bif_keys` is not `NULL`.
-#' @param bif_keys
-#' Must match `keys` used in a previously run `bifactor.from.keys` function
-#' call.
 #' @param d
 #' The data. This must include all observed variables used in any of the models.
 #' @param name
@@ -211,10 +199,8 @@ esem.from.mods <- function(
         options(warn = og_warn)
       }
     }
-    cfa_keys <- setNames(
-      sapply(cfa_par, function(x) x$rhs[x$op == "=~"]),
-      cfa_names
-    )
+    cfa_keys <- sapply(cfa_par, function(x) x$rhs[x$op == "=~"])
+    names(cfa_keys) <- cfa_names
     if (sum(table(names(cfa_keys)) > 1) > 0) {
       stop(
         paste(
