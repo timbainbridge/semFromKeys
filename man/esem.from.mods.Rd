@@ -59,18 +59,6 @@ be checked against for changes next time the code is run.
 If `FALSE`, nothing will be saved, the output will simply be returned as per
 normal R functioning. Next time the code is run, models will be re-estimated
 regardless of changes to code or data.}
-
-\item{efa_keys}{A named list of keys. Names should be factor names, elements should be
-vectors of items that comprised the factors in the EFA of `efa_fit`.
-All items in the `efa_fit` object must be included an none excluded.}
-
-\item{cfa_keys}{A named list of keys. Names should be scale names, elements should a list of
-items included in each scale.
-`length(cfa_keys)` should equal `length(cfa_fit)`.
-Can be `NULL` if `bif_keys` is not `NULL`.}
-
-\item{bif_keys}{Must match `keys` used in a previously run `bifactor.from.keys` function
-call.}
 }
 \value{
 Returns a length 2 or 3 list of lists.
