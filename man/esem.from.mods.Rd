@@ -9,9 +9,6 @@ esem.from.mods(
   efa_fit,
   cfa_fit = NULL,
   bif_fit = NULL,
-  efa_keys,
-  cfa_keys = NULL,
-  bif_keys = NULL,
   d,
   name = "esem",
   out_dir = "output",
@@ -31,18 +28,6 @@ Can be `NULL` if `bif_fit` is not `NULL`.}
 
 \item{bif_fit}{A list of fitted lavaan objects of bifactor models.
 Can be `NULL` if `cfa_fit` is not `NULL`.}
-
-\item{efa_keys}{A named list of keys. Names should be factor names, elements should be
-vectors of items that comprised the factors in the EFA of `efa_fit`.
-All items in the `efa_fit` object must be included an none excluded.}
-
-\item{cfa_keys}{A named list of keys. Names should be scale names, elements should a list of
-items included in each scale.
-`length(cfa_keys)` should equal `length(cfa_fit)`.
-Can be `NULL` if `bif_keys` is not `NULL`.}
-
-\item{bif_keys}{Must match `keys` used in a previously run `bifactor.from.keys` function
-call.}
 
 \item{d}{The data. This must include all observed variables used in any of the models.}
 
@@ -74,46 +59,91 @@ be checked against for changes next time the code is run.
 If `FALSE`, nothing will be saved, the output will simply be returned as per
 normal R functioning. Next time the code is run, models will be re-estimated
 regardless of changes to code or data.}
+
+\item{efa_keys}{A named list of keys. Names should be factor names, elements should be
+vectors of items that comprised the factors in the EFA of `efa_fit`.
+All items in the `efa_fit` object must be included an none excluded.}
+
+\item{cfa_keys}{A named list of keys. Names should be scale names, elements should a list of
+items included in each scale.
+`length(cfa_keys)` should equal `length(cfa_fit)`.
+Can be `NULL` if `bif_keys` is not `NULL`.}
+
+\item{bif_keys}{Must match `keys` used in a previously run `bifactor.from.keys` function
+call.}
 }
 \value{
 Returns a length 2 or 3 list of lists.
 The first elements of the list is a list of fitted lavaan esem model output
-objects of the same length as either `cfa_keys` or `bif_keys` (depending
-on which is used).
+objects.
 The second element of the list is a list of parameter estimates from the
 models (standardized if `std = TRUE`).
 If `fit_save = TRUE`, then the list will have a third element, which will be
 a matrix of fit measures for each model.
+All elements are the length of `cfa_keys` plus the length of `bif_keys`.
 }
 \description{
 esem.from.keys runs an exploratory structural equation model (ESEM) in lavaan
 where the exploratory factor analysis (EFA) factors predict either
 confirmatory factor analysis (CFA) factors in separate models for each CFA
-factor OR bifactor factors in separate models for each model.
+factor OR bifactor factors in separate models for each bifactor model.
 The function takes a fitted lavaan object from an EFA and lists of fitted
 CFA or bifactor lavaan model objects as inputs so will typically
 use outputs from `efa.from.keys()` and `cfa.from.keys()` or
-`bifactor.from.keys`.
+`bifactor.from.keys()`.
 }
 \details{
 The function was designed to streamline running exploratory structural
 equation models (ESEM) where EFA factors predict a series of latent variables
 in separate models using Burt's (1976) 2-stage procedure to prevent
-interpretational confounding. The function is designed to reproduce the
-analyses of Bainbridge, Ludeke, and Smillie (2022).
+interpretational confounding. The function is designed to run analyses
+equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
+
+The function requires both fitted lavaan objects and keys lists as inputs.
+If `efa.from.keys` and `cfa.from.keys` or `bifactor.from.keys` have been used
+to create the fitted objects, then this should not be onerous.
+The requirement is so that if `check = TRUE` and `save_out = TRUE`,
+then changes to the data for a single variable will not require rerunning all
+models.
 
 Although the function will take any lavaan models that have successfully
 produced standard lavaan outputs,
 it will not complain if these have poor fit or other undesirable
-characteristics.
+characteristics (beyond warnings and errors produced by lavaan).
 If this matters to you, it would be worth checking the outputs of upstream
 functions prior to running `esem.from.mods()`.
 
 The 2-stage procedure employed mitigates some of the problems of poor fitting
 measurement models but, depending on your purpose and research
 question(s), it could nevertheless be important to update models to ensure
-good fit prior to running this function. There is currently no capability to
-add modifications to CFA or bifactor models beyond removing items, however.
+good fit prior to running this function. There is currently no capability
+within `semFromKeys` to add modifications to CFA or bifactor models beyond
+removing items (which is done by removing them from the keys).
+
+For bifactor models predicted by ESEM factors, a complication is that fixing
+orthogonal relationships between general and group factors is not possible
+if any of the factors are regressed on any others.
+This is because, in SEM, fixing correlations with a factor that is an outcome
+fixes residual correlations,
+which is, of course, not the requirement of a bifactor model.
+
+There are three solutions to this problem.
+First, avoid using bifactor models.
+This may be possible sometimes, but it frequently is not.
+Second, avoid using regressions in models with bifactor models and compute
+regressions based on latent variable correlations.
+This method produces accurate point estimates in the regressions,
+but standard errors are biased as the method cannot account for uncertainty
+in the correlations.
+This is an adequate solution if p-values and confidence intervals are not
+required.
+Finally, if the 2-stage procedure is employed, then there is little room for
+measurement models to change to allow factor correlations to change.
+Therefore, the parameter can be relaxed and implied correlations between the
+group and general factors ought to remain close to zero (although this cannot
+be easily confirmed because the total variance of a factor is not part of the
+model once it is an outcome).
+This is the method employed by esem.from.mods.
 }
 \references{
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).

@@ -96,6 +96,11 @@ single model, transform inputs into lists as appropriate.
 Note that when the model includes at least one structural element,
 the function accounts for interpretational confounding using Burt's (1976)
 2-stage procedure.
+
+The function temporarily changes the warning option to print warnings
+immediately rather than buffering them (i.e., `options(warn = 1)`).
+This enables easy matching of lavvan warnings to the model they occurred for.
+The original option value is saved and reset after the models have run.
 }
 \references{
 Burt, R. S. (1976).
