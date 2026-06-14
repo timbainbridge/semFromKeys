@@ -94,17 +94,29 @@ expect_error(
 )
 
 # Strange name specifications (only a few ways to stuff this up I think)
-# This can stand in for all similar tests that are pretty straight forward as
-# they're tested at the top of the sem.check function.
-name <- 42
 expect_error(
-  cfa.from.keys(keys, d, check = FALSE, fit_save = fit_save, name = name),
+  cfa.from.keys(
+    keys, d, check = TRUE, save_out = TRUE, fit_save = fit_save, name = 42
+  ),
   "`name` is not a character"
 )
-name <- NULL
 expect_error(
-  cfa.from.keys(keys, d, check = FALSE, fit_save = fit_save, name = name),
+  cfa.from.keys(
+    keys, d, check = TRUE, save_out = TRUE, fit_save = fit_save, name = NULL
+  ),
   "`name` is not a character"
+)
+expect_error(
+  cfa.from.keys(
+    keys, d, out_dir = 42, check = TRUE, save_out = TRUE, fit_save = fit_save
+  ),
+  "`out_dir` is not a character"
+)
+expect_error(
+  cfa.from.keys(
+    keys, d, hash_dir = 42, check = TRUE, save_out = TRUE, fit_save = fit_save
+  ),
+  "`hash_dir` is not a character"
 )
 
 # Data is a 0 row data.frame

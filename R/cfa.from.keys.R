@@ -54,6 +54,9 @@ cfa.from.keys <- function(
   if (is.null(out_dir)) {
     out_dir <- name
   }
+  if (is.null(hash_dir)) {
+    hash_dir <- "hashes"
+  }
   mods <- mapply(
     function(y, z) {
       if (length(z) > 2) {
