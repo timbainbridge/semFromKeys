@@ -56,8 +56,8 @@
 #' @details
 #' Please be careful with bifactor models.
 #' In simulation studies, they can fit better than the models that generated the
-#' data in the presence of unspecified complexity (which is frequently, if not
-#' usually, the case; Murray & Johnson, 2013).
+#' data in the presence of unspecified complexity
+#' (which is usually the case; Murray & Johnson, 2013).
 #' They can also produce negative residual variances.
 #' lavaan will warn you of this and you should deal with it before proceeding.
 #' Items can also load in atheoretical ways on group factors.
@@ -76,9 +76,6 @@
 #' general factor)
 #' or after examining the fully specified bifactor model and dropping the worst
 #' performing factor.
-#' The worst performing factor will be one that has items loading in the 'wrong'
-#' direction or insignificantly or 1-2 items that load much more strongly than
-#' other items.
 #' When more than one group factor is poor, I am not aware of any specific
 #' advice on which to remove, so use your judgment if previous research has not
 #' got any advice for your case.
@@ -99,6 +96,15 @@ bifactor.from.keys <- function(
   std.lv = TRUE, fit_save = TRUE, fit_measures = NULL, miss = "ML",
   hash_dir = "hashes", check = TRUE, save_out = FALSE
 ) {
+  if (!is.list(keys_g)) {
+    stop("`keys_g` is not a list.")
+  }
+  if (!is.list(keys_b)) {
+    stop("`keys_b` is not a list.")
+  }
+  if (!is.list(keys)) {
+    stop("`keys` is not a list.")
+  }
   if (length(keys_g) != length(keys_b)) {
     stop(
       paste(
@@ -117,10 +123,44 @@ bifactor.from.keys <- function(
       )
     )
   }
+  sapply(
+    keys_b,
+    function(x) {
+      if (sum(!x %in% names(keys)) > 0) {
+        grps <- x[!x %in% names(keys)]
+        stop(
+          paste0(
+            "The following group factor(s) in `keys_b` are not in `keys`:",
+            "\n    ",
+            paste(grps, collapse = "\n    "),
+            "\n\n(If these are items, not group factors, ",
+            "and you are using bifactor.from.keys, ",
+            "check that keys_b only contains group factor names.)"
+          )
+        )
+      }
+    }
+  )
   og_warn <- getOption("warn")
   options(warn = 1)
   items <- mapply(
-    function(x, y) {
+    function(x, xn, y) {
+      sapply(
+        y,
+        function(z) {
+          if (sum(!keys[[z]] %in% x) == length(keys[[z]])) {
+            stop(
+              paste0(
+                "All the items in the `",
+                z,
+                "` group factor are not in the `",
+                xn,
+                "` general factor."
+              )
+            )
+          }
+        }
+      )
       if (sum(!unlist(keys[y]) %in% x) > 0) {
         warning(
           paste(
@@ -134,7 +174,7 @@ bifactor.from.keys <- function(
         x
       }
     },
-    x = keys_g, y = keys_b
+    x = keys_g, xn = names(keys_g), y = keys_b
   )
   options(warn = og_warn)
   mods <- mapply(

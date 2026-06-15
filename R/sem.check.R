@@ -202,15 +202,14 @@ sem.check <- function(
     una_items <- unlist(kl_s)[!(unlist(kl_s)) %in% colnames(dat)]
     stop(
       paste0(
-        "  ",
-        paste0(una_items, collapse = "\n    "),
-        paste(
-          "\n\nThe above items are in `kl_s` but they are not in `dat`.",
-          "Ensure that dat is a data frame (or coercible into a data frame)",
-          "and that column names of `dat` and keys list item names match.",
-          "If using bifactor.from.keys, ensure that you have not swapped keys",
-          "inadvertently",
-          "(e.g., keys_g for keys_b)."
+        "The following items are in `kl_s` but they are not in `dat`:\n      ",
+        paste0(una_items, collapse = "\n      "),
+        paste0(
+          "\n\nEnsure that the column names of `dat` and keys list item names ",
+          "match and that `dat` is a dataframe or coercible into a dataframe.",
+          "\n",
+          "If using bifactor.from.keys, ensure that you have not swapped keys ",
+          "inadvertently (e.g., keys_g for keys_b)."
         )
       )
     )
