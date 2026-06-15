@@ -80,8 +80,8 @@ input model outputs into downstream functions.
 \details{
 Please be careful with bifactor models.
 In simulation studies, they can fit better than the models that generated the
-data in the presence of unspecified complexity (which is frequently, if not
-usually, the case; Murray & Johnson, 2013).
+data in the presence of unspecified complexity
+(which is usually the case; Murray & Johnson, 2013).
 They can also produce negative residual variances.
 lavaan will warn you of this and you should deal with it before proceeding.
 Items can also load in atheoretical ways on group factors.
@@ -100,9 +100,6 @@ This can either be done a priori
 general factor)
 or after examining the fully specified bifactor model and dropping the worst
 performing factor.
-The worst performing factor will be one that has items loading in the 'wrong'
-direction or insignificantly or 1-2 items that load much more strongly than
-other items.
 When more than one group factor is poor, I am not aware of any specific
 advice on which to remove, so use your judgment if previous research has not
 got any advice for your case.
