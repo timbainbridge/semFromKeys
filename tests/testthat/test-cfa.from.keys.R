@@ -1,9 +1,3 @@
-# Create keys
-keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
-keys <- sapply(
-  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
-)
-
 test_that(
   "Test normal behaviour with fit_save = FALSE",
   {

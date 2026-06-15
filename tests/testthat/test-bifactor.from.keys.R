@@ -1,14 +1,3 @@
-# Create keys
-keys0 <- c("grit_c", "grit_p", "hope_p")
-keys <- sapply(
-  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
-)
-keys_g0 <- c("grit", "hope")
-keys_g <- sapply(
-  keys_g0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
-)
-keys_b <- sapply(keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE)
-
 test_that(
   "Test normal behaviour with fit_save = FALSE",
   {
@@ -98,16 +87,20 @@ test_that(
     keys_b_mistake <- keys_b
     keys_b_mistake$grit[1] <- "mistake"
     expect_error(
-      bifactor.from.keys(
-        keys_g, keys_b, keys_mistake, BFIGritHope,
-        check = FALSE, fit_save = FALSE
+      suppressWarnings(  # The warning is checked elsewhere.
+        bifactor.from.keys(
+          keys_g, keys_b, keys_mistake, BFIGritHope,
+          check = FALSE, fit_save = FALSE
+        )
       ),
       "items are in `kl_s` but they are not in `dat`"
     )
     expect_error(
-      bifactor.from.keys(
-        keys_g_mistake, keys_b, keys, BFIGritHope,
-        check = FALSE, fit_save = FALSE
+      suppressWarnings(
+        bifactor.from.keys(
+          keys_g_mistake, keys_b, keys, BFIGritHope,
+          check = FALSE, fit_save = FALSE
+        )
       ),
       "items are in `kl_s` but they are not in `dat`"
     )

@@ -1,20 +1,7 @@
-# Create keys
-# Using only 3 factors to save time on checks
-keys0 <- paste0("bfi_", c("e", "a", "c"))
-
-# Using less than all items to save time on checks
-keys <- sapply(
-  keys0,
-  function(x) {
-    names(BFIGritHope)[grep(paste0(x, "\\d_[1-2]"), names(BFIGritHope))]
-  },
-  simplify = FALSE
-)
-
 test_that(
   "Test normal behaviour when fit_save = FALSE",
   {
-    efa_fit <- efa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
+    efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = FALSE)
     expect_equal(length(efa_fit), 2)
     expect_equal(length(efa_fit$fit), 1)
     expect_equal(length(efa_fit$par), 1)
@@ -25,7 +12,7 @@ test_that(
   "Test normal behaviour when orthogonal = TRUE",
   {
     efa_fit <- efa.from.keys(
-      keys, BFIGritHope, check = FALSE, fit_save = FALSE, orthogonal = TRUE
+      keys_e, BFIGritHope, check = FALSE, fit_save = FALSE, orthogonal = TRUE
     )
     expect_equal(length(efa_fit), 2)
     expect_equal(length(efa_fit$fit), 1)
@@ -37,7 +24,7 @@ test_that(
         abs(
           efa_fit$par$efa$est[
             grepl(
-              paste0("^", names(keys), "$", collapse = "|"), efa_fit$par$efa$lhs
+              paste0("^", names(keys_e), "$", collapse = "|"), efa_fit$par$efa$lhs
             ) &
               efa_fit$par$efa$op == "~~" &
               efa_fit$par$efa$lhs != efa_fit$par$efa$rhs
@@ -51,7 +38,7 @@ test_that(
 test_that(
   "Test normal behaviour when fit_save = TRUE",
   {
-    efa_fit <- efa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
+    efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = TRUE)
     expect_equal(length(efa_fit), 3)
     expect_equal(length(efa_fit$fit), 1)
     expect_equal(length(efa_fit$par), 1)
@@ -59,18 +46,18 @@ test_that(
   }
 )
 
-# keys goes to kl_e in sem.check, not kl_s, so needs to be tested
+# keys_e goes to kl_e in sem.check, not kl_s, so needs to be tested
 test_that(
   "Misspecified keys",
   {
-    keys_mistake <- keys
+    keys_mistake <- keys_e
     keys_mistake$bfi_e[1] <- "mistake"
     expect_error(
       efa.from.keys(keys_mistake, BFIGritHope, check = FALSE, fit_save = FALSE),
       "items are in `kl_e` but they are not in `dat`"
     )
     expect_error(
-      efa.from.keys(keys$bfi_e, BFIGritHope, check = FALSE, fit_save = FALSE),
+      efa.from.keys(keys_e$bfi_e, BFIGritHope, check = FALSE, fit_save = FALSE),
       "`kl_e` is not a list"
     )
   }
@@ -78,8 +65,8 @@ test_that(
 test_that(
   "Key of length 1 warning",
   {
-    keys_l1 <- keys
-    keys_l1$bfi_e <- keys$bfi_e[1]
+    keys_l1 <- keys_e
+    keys_l1$bfi_e <- keys_e$bfi_e[1]
     expect_warning(
       efa.from.keys(keys_l1, BFIGritHope, check = FALSE, fit_save = FALSE),
       "factors have only 1 item"
