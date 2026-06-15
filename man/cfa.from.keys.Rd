@@ -30,36 +30,36 @@ package or outputs from other calls will be overwritten.}
 
 \item{out_dir}{The directory where all function outputs will be saved. Defaults to 'output'.}
 
-\item{std.lv}{Sets the `std.lv` param, as per lavaan. Defaults to `TRUE`.}
+\item{std.lv}{Sets the \code{std.lv} param, as per lavaan. Defaults to \code{TRUE}.}
 
-\item{fit_save}{`TRUE` to save model fit measures. `FALSE` otherwise.}
+\item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
 
-\item{fit_measures}{A vector of fit measures to save, or `NULL` to select all fit measures.
-Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.}
+\item{fit_measures}{A vector of fit measures to save, or \code{NULL} to select all fit measures.
+Defaults to \code{NULL}. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{miss}{Sets the `missing` param, as per lavaan. Defaults to 'ML'.}
+\item{miss}{Sets the \code{missing} param, as per lavaan. Defaults to 'ML'.}
 
-\item{hash_dir}{A subdirectory of `out_dir` where data hashes are saved.
+\item{hash_dir}{A subdirectory of \code{out_dir} where data hashes are saved.
 Defaults to 'hashes'.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
-If `TRUE`, the model will not run if model code and a data hash have not
+If \code{TRUE}, the model will not run if model code and a data hash have not
 changed and output is of class lavaan.
-If `FALSE`, the model will run regardless of the existence of previous
+If \code{FALSE}, the model will run regardless of the existence of previous
 outputs.}
 
 \item{save_out}{Should outputs be saved to enable checking next time?
-If `TRUE` model code, a hash of the data, and output will be saved and will
+If \code{TRUE} model code, a hash of the data, and output will be saved and will
 be checked against for changes next time the code is run.
-If `FALSE`, nothing will be saved, the output will simply be returned as per
+If \code{FALSE}, nothing will be saved, the output will simply be returned as per
 normal R functioning. Next time the code is run, models will be re-estimated
 regardless of changes to code or data.}
 }
 \value{
 Returns a list of lists.
 The elements are a list of lavaan CFA model output objects;
-a list of parameter estimates from the models (standardized if `std = TRUE`);
-and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
+a list of parameter estimates from the models (standardized if \code{std = TRUE});
+and, if \code{fit_measures} is not FALSE, a matrix of fit measures for each model.
 }
 \description{
 cfa.from.keys runs a confirmatory factor analysis (CFA) model for each

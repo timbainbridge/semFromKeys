@@ -36,46 +36,46 @@ package or outputs from other calls will be overwritten.}
 
 \item{kl_e}{A named keys list of the factors in an ESEM to be included.}
 
-\item{std}{`TRUE` to save standardised parameter estimates;
-`FALSE` to save unstandardised parameters estimates.}
+\item{std}{\code{TRUE} to save standardised parameter estimates;
+\code{FALSE} to save unstandardised parameters estimates.}
 
-\item{fit_save}{`TRUE` to save model fit measures. `FALSE` otherwise.}
+\item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
 
-\item{fit_measures}{A vector of fit measures to save, or `NULL` to select all fit measures.
-Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.}
+\item{fit_measures}{A vector of fit measures to save, or \code{NULL} to select all fit measures.
+Defaults to \code{NULL}. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{target}{Set to `TRUE` if the model is an ESEM with a target rotation.
-Set to `FALSE` otherwise.}
+\item{target}{Set to \code{TRUE} if the model is an ESEM with a target rotation.
+Set to \code{FALSE} otherwise.}
 
 \item{out_dir}{The directory where all function outputs will be saved. Defaults to 'output'.}
 
-\item{hash_dir}{A subdirectory of `out_dir` where data hashes are saved.
+\item{hash_dir}{A subdirectory of \code{out_dir} where data hashes are saved.
 Defaults to 'hashes'.}
 
-\item{orthogonal}{Sets the `orthogonal` param, as per lavaan. Defaults to `FALSE`.}
+\item{orthogonal}{Sets the \code{orthogonal} param, as per lavaan. Defaults to \code{FALSE}.}
 
-\item{miss}{Sets the `missing` param, as per lavaan. Defaults to 'ML'.}
+\item{miss}{Sets the \code{missing} param, as per lavaan. Defaults to 'ML'.}
 
-\item{std.lv}{Sets the `std.lv` param, as per lavaan. Defaults to `FALSE`.}
+\item{std.lv}{Sets the \code{std.lv} param, as per lavaan. Defaults to \code{FALSE}.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
-If `TRUE`, the model will not run if model code and a data hash have not
+If \code{TRUE}, the model will not run if model code and a data hash have not
 changed and output is of class lavaan.
-If `FALSE`, the model will run regardless of the existence of previous
+If \code{FALSE}, the model will run regardless of the existence of previous
 outputs.}
 
 \item{save_out}{Should outputs be saved to enable checking next time?
-If `TRUE` model code, a hash of the data, and output will be saved and will
+If \code{TRUE} model code, a hash of the data, and output will be saved and will
 be checked against for changes next time the code is run.
-If `FALSE`, nothing will be saved, the output will simply be returned as per
+If \code{FALSE}, nothing will be saved, the output will simply be returned as per
 normal R functioning. Next time the code is run, models will be re-estimated
 regardless of changes to code or data.}
 }
 \value{
 Returns a list of lists.
 The elements are a list of lavaan model output objects;
-a list of parameter estimates from the models (standardized if `std = TRUE`);
-and, if `fit_save` is not FALSE, a matrix of fit measures for each model.
+a list of parameter estimates from the models (standardized if \code{std = TRUE});
+and, if \code{fit_save} is not FALSE, a matrix of fit measures for each model.
 }
 \description{
 sem.check produces outputs from a series of lavaan models. For each model,
@@ -98,7 +98,7 @@ the function accounts for interpretational confounding using Burt's (1976)
 2-stage procedure.
 
 The function temporarily changes the warning option to print warnings
-immediately rather than buffering them (i.e., `options(warn = 1)`).
+immediately rather than buffering them (i.e., \code{options(warn = 1)}).
 This enables easy matching of lavvan warnings to the model they occurred for.
 The original option value is saved and reset after the models have run.
 }

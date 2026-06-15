@@ -24,10 +24,10 @@ esem.from.mods(
 \item{efa_fit}{A fitted lavaan object of an EFA model.}
 
 \item{cfa_fit}{A named list of fitted lavaan objects of CFA models.
-Can be `NULL` if `bif_fit` is not `NULL`.}
+Can be \code{NULL} if \code{bif_fit} is not \code{NULL}.}
 
 \item{bif_fit}{A list of fitted lavaan objects of bifactor models.
-Can be `NULL` if `cfa_fit` is not `NULL`.}
+Can be \code{NULL} if \code{cfa_fit} is not \code{NULL}.}
 
 \item{d}{The data. This must include all observed variables used in any of the models.}
 
@@ -37,26 +37,26 @@ package or outputs from other calls will be overwritten.}
 
 \item{out_dir}{The directory where all function outputs will be saved. Defaults to 'output'.}
 
-\item{fit_save}{`TRUE` to save model fit measures. `FALSE` otherwise.}
+\item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
 
-\item{fit_measures}{A vector of fit measures to save, or `NULL` to select all fit measures.
-Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.}
+\item{fit_measures}{A vector of fit measures to save, or \code{NULL} to select all fit measures.
+Defaults to \code{NULL}. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{miss}{Sets the `missing` param, as per lavaan. Defaults to 'ML'.}
+\item{miss}{Sets the \code{missing} param, as per lavaan. Defaults to 'ML'.}
 
-\item{hash_dir}{A subdirectory of `out_dir` where data hashes are saved.
+\item{hash_dir}{A subdirectory of \code{out_dir} where data hashes are saved.
 Defaults to 'hashes'.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
-If `TRUE`, the model will not run if model code and a data hash have not
+If \code{TRUE}, the model will not run if model code and a data hash have not
 changed and output is of class lavaan.
-If `FALSE`, the model will run regardless of the existence of previous
+If \code{FALSE}, the model will run regardless of the existence of previous
 outputs.}
 
 \item{save_out}{Should outputs be saved to enable checking next time?
-If `TRUE` model code, a hash of the data, and output will be saved and will
+If \code{TRUE} model code, a hash of the data, and output will be saved and will
 be checked against for changes next time the code is run.
-If `FALSE`, nothing will be saved, the output will simply be returned as per
+If \code{FALSE}, nothing will be saved, the output will simply be returned as per
 normal R functioning. Next time the code is run, models will be re-estimated
 regardless of changes to code or data.}
 }
@@ -65,10 +65,10 @@ Returns a length 2 or 3 list of lists.
 The first elements of the list is a list of fitted lavaan esem model output
 objects.
 The second element of the list is a list of parameter estimates from the
-models (standardized if `std = TRUE`).
-If `fit_save = TRUE`, then the list will have a third element, which will be
+models (standardized if \code{std = TRUE}).
+If \code{fit_save = TRUE}, then the list will have a third element, which will be
 a matrix of fit measures for each model.
-All elements are the length of `cfa_keys` plus the length of `bif_keys`.
+All elements are the length of \code{cfa_keys} plus the length of \code{bif_keys}.
 }
 \description{
 esem.from.keys runs an exploratory structural equation model (ESEM) in lavaan
@@ -77,8 +77,8 @@ confirmatory factor analysis (CFA) factors in separate models for each CFA
 factor OR bifactor factors in separate models for each bifactor model.
 The function takes a fitted lavaan object from an EFA and lists of fitted
 CFA or bifactor lavaan model objects as inputs so will typically
-use outputs from `efa.from.keys()` and `cfa.from.keys()` or
-`bifactor.from.keys()`.
+use outputs from \code{\link[=efa.from.keys]{efa.from.keys()}}, and \code{\link[=cfa.from.keys]{cfa.from.keys()}} or
+\code{\link[=bifactor.from.keys]{bifactor.from.keys()}}.
 }
 \details{
 The function was designed to streamline running exploratory structural
@@ -87,25 +87,23 @@ in separate models using Burt's (1976) 2-stage procedure to prevent
 interpretational confounding. The function is designed to run analyses
 equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 
-The function requires both fitted lavaan objects and keys lists as inputs.
-If `efa.from.keys` and `cfa.from.keys` or `bifactor.from.keys` have been used
-to create the fitted objects, then this should not be onerous.
-The requirement is so that if `check = TRUE` and `save_out = TRUE`,
-then changes to the data for a single variable will not require rerunning all
-models.
+The function requires fitted lavaan objects as inputs in order to properly
+employ the 2-stage procedure.
+Using \code{\link[=efa.from.keys]{efa.from.keys()}}, \code{\link[=cfa.from.keys]{cfa.from.keys()}}, and/or \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}
+should make this relatively straight-forward.
 
 Although the function will take any lavaan models that have successfully
 produced standard lavaan outputs,
 it will not complain if these have poor fit or other undesirable
 characteristics (beyond warnings and errors produced by lavaan).
 If this matters to you, it would be worth checking the outputs of upstream
-functions prior to running `esem.from.mods()`.
+functions prior to running \code{esem.from.mods()}.
 
 The 2-stage procedure employed mitigates some of the problems of poor fitting
 measurement models but, depending on your purpose and research
 question(s), it could nevertheless be important to update models to ensure
 good fit prior to running this function. There is currently no capability
-within `semFromKeys` to add modifications to CFA or bifactor models beyond
+within \code{semFromKeys} to add modifications to CFA or bifactor models beyond
 removing items (which is done by removing them from the keys).
 
 For bifactor models predicted by ESEM factors, a complication is that fixing
@@ -131,7 +129,7 @@ Therefore, the parameter can be relaxed and implied correlations between the
 group and general factors ought to remain close to zero (although this cannot
 be easily confirmed because the total variance of a factor is not part of the
 model once it is an outcome).
-This is the method employed by esem.from.mods.
+This is the method employed by \code{esem.from.mods()}.
 }
 \references{
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).

@@ -7,8 +7,8 @@
 #' factor OR bifactor factors in separate models for each bifactor model.
 #' The function takes a fitted lavaan object from an EFA and lists of fitted
 #' CFA or bifactor lavaan model objects as inputs so will typically
-#' use outputs from `efa.from.keys()` and `cfa.from.keys()` or
-#' `bifactor.from.keys()`.
+#' use outputs from [efa.from.keys()], and [cfa.from.keys()] or
+#' [bifactor.from.keys()].
 #'
 #' @param efa_fit A fitted lavaan object of an EFA model.
 #' @param cfa_fit
@@ -64,12 +64,10 @@
 #' interpretational confounding. The function is designed to run analyses
 #' equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 #'
-#' The function requires both fitted lavaan objects and keys lists as inputs.
-#' If `efa.from.keys` and `cfa.from.keys` or `bifactor.from.keys` have been used
-#' to create the fitted objects, then this should not be onerous.
-#' The requirement is so that if `check = TRUE` and `save_out = TRUE`,
-#' then changes to the data for a single variable will not require rerunning all
-#' models.
+#' The function requires fitted lavaan objects as inputs in order to properly
+#' employ the 2-stage procedure.
+#' Using [efa.from.keys()], [cfa.from.keys()], and/or [bifactor.from.keys()]
+#' should make this relatively straight-forward.
 #'
 #' Although the function will take any lavaan models that have successfully
 #' produced standard lavaan outputs,
@@ -108,7 +106,7 @@
 #' group and general factors ought to remain close to zero (although this cannot
 #' be easily confirmed because the total variance of a factor is not part of the
 #' model once it is an outcome).
-#' This is the method employed by esem.from.mods.
+#' This is the method employed by `esem.from.mods()`.
 #'
 #' @references
 #' Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).
