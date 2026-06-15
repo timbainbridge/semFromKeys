@@ -182,3 +182,127 @@ test_that(
     )
   }
 )
+test_that(
+  "Test `save_out = TRUE` file creation and `check = TRUE` correctly loading",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    name <- "cfa"
+    hash_dir <- "hashes"
+    check_fit <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      name = name, out_dir = out_dir, hash_dir = hash_dir
+    )
+    expect_all_true(
+      c(
+        file.exists(file.path(out_dir, name, paste0(name, "_fit.rds"))),
+        file.exists(file.path(out_dir, name, paste0(name, "_par.rds"))),
+        file.exists(file.path(out_dir, name, paste0(name, "_fit_m.rds"))),
+        file.exists(file.path(out_dir, name, paste0(name, "_mod.rds"))),
+        file.exists(file.path(out_dir, hash_dir, paste0(name, "_hash.rds")))
+      )
+    )
+    expect_no_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        name = name, out_dir = out_dir, hash_dir = hash_dir
+      ),
+      message = "\\d / \\d"
+    )
+    check_fit2 <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+      name = name, out_dir = out_dir, hash_dir = hash_dir
+    )
+    expect_identical(check_fit, check_fit2)
+  }
+)
+test_that(
+  "Test partial running on `check = TRUE` after changes to a model",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    name <- "cfa"
+    hash_dir <- "hashes"
+    check_fit <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      name = name, out_dir = out_dir, hash_dir = hash_dir
+    )
+    # Change a model
+    cfa_mod <- readRDS(file.path(out_dir, name, paste0(name, "_mod.rds")))
+    cfa_mod[3] <- sub(" \\+ hope_a_4", "", cfa_mod[3])
+    saveRDS(cfa_mod, file.path(out_dir, name, paste0(name, "_mod.rds")))
+    expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        name = name, out_dir = out_dir, hash_dir = hash_dir
+      ),
+      "3 / \\d"
+    )
+    saveRDS(cfa_mod, file.path(out_dir, name, paste0(name, "_mod.rds")))
+    expect_no_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        name = name, out_dir = out_dir, hash_dir = hash_dir
+      ),
+      message = "([1-2]|4) / \\d"
+    )
+  }
+)
+test_that(
+  "Test partial running on `check = TRUE` after changes to fit measures",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    name <- "cfa"
+    hash_dir <- "hashes"
+    check_fit <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      name = name, out_dir = out_dir, hash_dir = hash_dir
+    )
+    # Weird messages here. The 1 / 4 message is being picked up by
+    # expect_message and is not printed. All is correct if others are printed.
+    expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+        name = name, out_dir = out_dir, hash_dir = hash_dir,
+        fit_measures = "cfi"
+      ),
+      "1 / \\d"
+    )
+    expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        name = name, out_dir = out_dir, hash_dir = hash_dir
+      ),
+      "1 / \\d"
+    )
+  }
+)
+test_that(
+  "Test partial running on `check = TRUE` after changes to a data hash",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    name <- "cfa"
+    hash_dir <- "hashes"
+    check_fit <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      name = name, out_dir = out_dir, hash_dir = hash_dir
+    )
+    # Change a model
+    cfa_hash <- readRDS(file.path(out_dir, hash_dir, paste0(name, "_hash.rds")))
+    cfa_hash[3] <- "helloworld123"
+    saveRDS(cfa_hash, file.path(out_dir, hash_dir, paste0(name, "_hash.rds")))
+    expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        name = name, out_dir = out_dir, hash_dir = hash_dir
+      ),
+      "3 / \\d"
+    )
+    saveRDS(cfa_hash, file.path(out_dir, hash_dir, paste0(name, "_hash.rds")))
+    expect_no_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        name = name, out_dir = out_dir, hash_dir = hash_dir
+      ),
+      message = "([1-2]|4) / \\d"
+    )
+  }
+)

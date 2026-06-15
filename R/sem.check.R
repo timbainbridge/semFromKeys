@@ -238,16 +238,16 @@ sem.check <- function(
   if (check) {
     # Load hashes and prior models
     m0 <-
-      if (file.exists(file.path(out_dir, name, paste0(name, "_m.rds")))) {
-        tmp <- readRDS(file.path(out_dir, name, paste0(name, "_m.rds")))
+      if (file.exists(file.path(out_dir, name, paste0(name, "_mod.rds")))) {
+        tmp <- readRDS(file.path(out_dir, name, paste0(name, "_mod.rds")))
         # Remove spaces
         lapply(tmp, function(x) gsub(" ", "", x))
       } else FALSE
     hash_d0 <-
       if (file.exists(
-        file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds"))
+        file.path(out_dir, hash_dir, paste0(name, "_hash.rds"))
       )) {
-        readRDS(file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds")))
+        readRDS(file.path(out_dir, hash_dir, paste0(name, "_hash.rds")))
       } else FALSE
     # Create hashes
     hash_d <- sapply(
@@ -331,10 +331,13 @@ sem.check <- function(
     fit_m0 <- FALSE
   }
   # Run
-  message("Fitting models")
-  # Don't mess with people's warnings
+  # Warnings required to be printed immediately so people know which model
+  # caused the issue.
+  # But don't mess with people's warnings so
+  # save original, change, then change back to original.
   og_warn <- getOption("warn")
   options(warn = 1)
+  message("Fitting models")
   fit <- mapply(
     function(m1, hash_d1, n_mod, mods1, ft, n) {
       if (hash_d1 & m1 & ft) {
@@ -413,51 +416,53 @@ sem.check <- function(
   )
   if (fit_save) {
     message("Generating model fit statistics")
-    fit_m1 <- mapply(
-      function(m1, hash_d1, n_mod, fit1, n) {
-        # If the model's the same and fit measures exist...
-        if (hash_d1 & m1 & (n_mod %in% names(fit_m0))) {
-          # If fit_measures == NULL
-          if (is.null(fit_measures)) {
-            # If existing fit_m0 includes all fit stats...
-            if (length(fit_m0[[n_mod]]) >= 55) {
-              # Return existing
-              fit_m0[[n_mod]]
+    fit_m1 <- data.frame(
+      mapply(
+        function(m1, hash_d1, n_mod, fit1, n) {
+          # If the model's the same and fit measures exist...
+          if (hash_d1 & m1 & (n_mod %in% rownames(fit_m0))) {
+            # If fit_measures == NULL
+            if (is.null(fit_measures)) {
+              # If existing fit_m0 includes all fit stats...
+              if (length(fit_m0[n_mod, ]) >= 55) {
+                # Return existing
+                fit_m0[n_mod, ]
+              } else {
+                # Else, recalculate
+                message(paste0(n, " / ", length(fit), "  ", n_mod))
+                fitMeasures(fit1)
+              }
             } else {
-              # Else, recalculate
-              message(paste0(n, " / ", length(fit), "  ", n_mod))
-              fitMeasures(fit1)
+              # If fit_m0 includes all required fit measures
+              if (
+                sum(fit_measures %in% names(fit_m0[n_mod, ])) ==
+                length(fit_measures)
+              ) {
+                # Return existing (with only required fit measures)
+                fit_m0[n_mod, fit_measures]
+              } else {
+                # Else, recalculate with required fit measures
+                message(paste0(n, " / ", length(fit), "  ", n_mod))
+                fitMeasures(fit1, fit.measures = fit_measures)
+              }
             }
           } else {
-            # If fit_m0 includes all required fit measures
-            if (
-              sum(fit_measures %in% names(fit_m0[[n_mod]])) ==
-              length(fit_measures)
-            ) {
-              # Return existing (with only required fit measures)
-              fit_m0[[n_mod]][fit_measures]
+            # If the model has changed, recalculate with required fit measures
+            message(paste0(n, " / ", length(fit), "  ", n_mod))
+            if (is.null(fit_measures)) {
+              fitMeasures(fit1)
             } else {
-              # Else, recalculate with required fit measures
-              message(paste0(n, " / ", length(fit), "  ", n_mod))
               fitMeasures(fit1, fit.measures = fit_measures)
             }
           }
-        } else {
-          # If the model has changed, recalculate with required fit measures
-          message(paste0(n, " / ", length(fit), "  ", n_mod))
-          if (is.null(fit_measures)) {
-            fitMeasures(fit1)
-          } else {
-            fitMeasures(fit1, fit.measures = fit_measures)
-          }
-        }
-      },
-      fit1 = fit,
-      m1 = m_test,
-      hash_d1 = hash_d_test,
-      n_mod = names(fit),
-      n = seq_along(fit),
-      SIMPLIFY = FALSE
+        },
+        fit1 = fit,
+        m1 = m_test,
+        hash_d1 = hash_d_test,
+        n_mod = names(fit),
+        n = seq_along(fit),
+        SIMPLIFY = FALSE
+      )
     )
     if (length(unlist(fit_m1)) == 0) {
       warning(
@@ -492,10 +497,8 @@ sem.check <- function(
       saveRDS(fit_m1, file.path(out_dir, name, paste0(name, "_fit_m.rds")))
     }
     # Save mod + hash
-    saveRDS(mods, file.path(out_dir, name, paste0(name, "_m.rds")))
-    saveRDS(
-      hash_d, file.path(out_dir, hash_dir, paste0("hash_", name, "_d.rds"))
-    )
+    saveRDS(mods, file.path(out_dir, name, paste0(name, "_mod.rds")))
+    saveRDS(hash_d, file.path(out_dir, hash_dir, paste0(name, "_hash.rds")))
   }
   # Return
   if (std) {
