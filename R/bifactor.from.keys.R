@@ -1,4 +1,4 @@
-#' Runs bifactor models for multiple scales based on items in a keys list.
+#' Runs bifactor models for multiple scales based on keys lists.
 #'
 #' bifactor.from.keys runs a series of bifactor model from three keys lists---
 #' one for items on general factor; one for items on group factors;

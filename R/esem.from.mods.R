@@ -1,5 +1,4 @@
-#' Runs Exploratory Structural Equation Models based on Confirmatory and
-#' Exploratory Factor Analyses model outputs and keys.
+#' Runs ESEM based on CFA and EFA model outputs.
 #'
 #' esem.from.keys runs an exploratory structural equation model (ESEM) in lavaan
 #' where the exploratory factor analysis (EFA) factors predict either
