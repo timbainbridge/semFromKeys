@@ -39,8 +39,10 @@ package or outputs from other calls will be overwritten.}
 
 \item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
 
-\item{fit_measures}{A vector of fit measures to save, or \code{NULL} to select all fit measures.
-Defaults to \code{NULL}. Irrelevant if \code{fit_save = FALSE}.}
+\item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
+as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+function.
+Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{miss}{Sets the \code{missing} param, as per lavaan. Defaults to 'ML'.}
 
@@ -103,14 +105,14 @@ The 2-stage procedure employed mitigates some of the problems of poor fitting
 measurement models but, depending on your purpose and research
 question(s), it could nevertheless be important to update models to ensure
 good fit prior to running this function. There is currently no capability
-within \code{semFromKeys} to add modifications to CFA or bifactor models beyond
-removing items (which is done by removing them from the keys).
+within \code{semFromKeys} to add modifications to CFA or bifactor models
+(beyond removing items by removing them from the keys).
 
 For bifactor models predicted by ESEM factors, a complication is that fixing
 orthogonal relationships between general and group factors is not possible
 if any of the factors are regressed on any others.
 This is because, in SEM, fixing correlations with a factor that is an outcome
-fixes residual correlations,
+fixes correlations with the residual,
 which is, of course, not the requirement of a bifactor model.
 
 There are three solutions to this problem.
@@ -118,6 +120,8 @@ First, avoid using bifactor models.
 This may be possible sometimes, but it frequently is not.
 Second, avoid using regressions in models with bifactor models and compute
 regressions based on latent variable correlations.
+(This can be done by, e.g., creating a correlation matrix from the factor
+correlations and using the \code{\link[psych:setCor]{psych::setCor()}} function).
 This method produces accurate point estimates in the regressions,
 but standard errors are biased as the method cannot account for uncertainty
 in the correlations.
@@ -126,9 +130,7 @@ required.
 Finally, if the 2-stage procedure is employed, then there is little room for
 measurement models to change to allow factor correlations to change.
 Therefore, the parameter can be relaxed and implied correlations between the
-group and general factors ought to remain close to zero (although this cannot
-be easily confirmed because the total variance of a factor is not part of the
-model once it is an outcome).
+group and general factors ought to remain close to zero.
 This is the method employed by \code{esem.from.mods()}.
 }
 \references{

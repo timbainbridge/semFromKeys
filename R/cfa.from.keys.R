@@ -20,8 +20,10 @@
 #' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `TRUE`.
 #' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
 #' @param fit_measures
-#' A vector of fit measures to save, or `NULL` to select all fit measures.
-#' Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.
+#' A vector of fit measures to save or 'all' to select all fit measures,
+#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
+#' function.
+#' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param miss Sets the `missing` param, as per lavaan. Defaults to 'ML'.
 #' @param hash_dir
 #' A subdirectory of `out_dir` where data hashes are saved.

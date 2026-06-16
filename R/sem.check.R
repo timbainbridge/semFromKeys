@@ -12,7 +12,8 @@
 #' @param dat
 #' The data. This must include all observed variables used in any of the models.
 #' @param name
-#' A name for the collection of models to be run.
+#' A subdirectory for each function where model outputs will be saved when
+#' `save_out = TRUE`.
 #' The name should be unique for each time any function is called from the
 #' package or outputs from other calls will be overwritten.
 #' @param kl_s A named keys list matching the names and length of mod.
@@ -22,19 +23,23 @@
 #' `FALSE` to save unstandardised parameters estimates.
 #' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
 #' @param fit_measures
-#' A vector of fit measures to save, or `NULL` to select all fit measures.
-#' Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.
+#' A vector of fit measures to save or 'all' to select all fit measures,
+#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
+#' function.
+#' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param target
-#' Set to `TRUE` if the model is an ESEM with a target rotation.
-#' Set to `FALSE` otherwise.
+#' A rotation target as used in rotation.args in lavaan (see [lavaan::efa()].
+#' Defaults to `NULL`
 #' @param out_dir
-#' The directory where all function outputs will be saved. Defaults to 'output'.
-#' @param hash_dir
-#' A subdirectory of `out_dir` where data hashes are saved.
-#' Defaults to 'hashes'.
+#' A parent directory for collecting outputs from `semFromKeys` function calls
+#' when `save_out = TRUE`.
+#' Defaults to 'output'.
 #' @param orthogonal
-#' Sets the `orthogonal` param, as per lavaan. Defaults to `FALSE`.
-#' @param miss Sets the `missing` param, as per lavaan. Defaults to 'ML'.
+#' Sets the `orthogonal` param, as per lavaan (see [lavaan::lavOptions()]).
+#' Defaults to `FALSE`.
+#' @param miss
+#' Sets the `missing` param, as per lavaan (see [lavaan::lavOptions()]).
+#' Defaults to 'ML'.
 #' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `FALSE`.
 #' @param check
 #' Should the code check to see if previous outputs have been saved?
@@ -58,7 +63,9 @@
 #'
 #' @details
 #' The function is largely intended to be used as a helper function to upstream
-#' functions.
+#' functions,
+#' including [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()], and
+#' [esem.from.mods()].
 #'
 #' Matching the philosophy of the package, the function is designed to run for
 #' multiple models with a similar design. If you are using the function for a
@@ -87,15 +94,31 @@
 #' @importFrom openssl md5
 #' @export
 
+# TODO: Add est
+# TODO: Add tests for miss or est changes.
+
 sem.check <- function(
     mods, dat, name, kl_s = NULL, kl_e = NULL, std = TRUE,
-    fit_save = FALSE, fit_measures = NULL, target = NULL,
-    out_dir = "output", hash_dir = "hashes",
-    orthogonal = FALSE, miss = "ML", std.lv = FALSE,
+    fit_save = FALSE, fit_measures = "all", target = NULL,
+    out_dir = "output", orthogonal = FALSE, miss = "ML", std.lv = FALSE,
     check = TRUE, save_out = FALSE
 ) {
   if (!is.logical(fit_save)) {
     stop("`fit_save` is not logical. It should be `TRUE` or `FALSE`.")
+  }
+  if (fit_save & !is.character(fit_measures)) {
+    stop("`fit_measures` is not a character vector.")
+  }
+  # For completeness
+  # (not sure why anyone would do this but it causes some weirdness if they do
+  # without this)
+  if (fit_save & fit_measures[1] == "all" & length(fit_measures) > 1) {
+    stop(
+      paste(
+        "`fit_measures` should be either 'all' or a vector of fit measures",
+        "accepted by lavaan's `fitMeasures()` function."
+      )
+    )
   }
   if (!is.logical(check)) {
     stop("`check` is not logical. It should be `TRUE` or `FALSE`.")
@@ -110,17 +133,10 @@ sem.check <- function(
     if (!is.character(out_dir)) {
       stop("`out_dir` is not a character string.")
     }
-    if (!is.character(hash_dir)) {
-      stop("`hash_dir` is not a character string.")
-    }
   }
   if (!is.logical(std)) {
     stop("`std` is not logical. It should be `TRUE` or `FALSE`.")
   }
-  # if (!is.logical(target)) {
-  #   stop("`target` is not logical. It should be `TRUE` or `FALSE`.")
-  # }
-  # TODO: Fix target check.
   if (!is.logical(orthogonal)) {
     stop("`orthogonal` is not logical. It should be `TRUE` or `FALSE`.")
   }
@@ -230,9 +246,6 @@ sem.check <- function(
     if (!dir.exists(file.path(out_dir, name))) {
       dir.create(file.path(out_dir, name))
     }
-    if (!dir.exists(file.path(out_dir, hash_dir))) {
-      dir.create(file.path(out_dir, hash_dir))
-    }
   }
   # Tell user which model set is running
   if (check) {
@@ -245,9 +258,9 @@ sem.check <- function(
       } else FALSE
     hash_d0 <-
       if (file.exists(
-        file.path(out_dir, hash_dir, paste0(name, "_hash.rds"))
+        file.path(out_dir, name, paste0(name, "_hash.rds"))
       )) {
-        readRDS(file.path(out_dir, hash_dir, paste0(name, "_hash.rds")))
+        readRDS(file.path(out_dir, name, paste0(name, "_hash.rds")))
       } else FALSE
     # Create hashes
     hash_d <- sapply(
@@ -345,11 +358,11 @@ sem.check <- function(
       } else {
         if (length(mods) <= 1000) {
           # Print progress for every model
-          message(paste0(n, " / ", length(mods), "  ", n_mod))
+          message(paste(n, "/", length(mods), " ", n_mod))
         } else {
           # Print progress for every 10th model (starting from 1)
           if (n %in% round((0:(length(mods)/10)*10) + 1, 0)) {
-            message(paste0(n, " / ", length(mods), "  ", n_mod))
+            message(paste(n, "/", length(mods), " ", n_mod))
           }
         }
         if (is.null(target)) {
@@ -392,11 +405,11 @@ sem.check <- function(
       } else {
         if (length(fit) <= 1000) {
           # Print progress for every model
-          message(paste0(n, " / ", length(fit), "  ", n_mod))
+          message(paste(n, "/", length(fit), " ", n_mod))
         } else {
           # Print progress for every 10th model (starting from 1)
           if (n %in% round((0:(length(fit)/10)*10) + 1, 0)) {
-            message(paste0(n, " / ", length(fit), "  ", n_mod))
+            message(paste0(n, "/", length(fit), " ", n_mod))
           }
         }
         if (std) {
@@ -416,53 +429,51 @@ sem.check <- function(
   )
   if (fit_save) {
     message("Generating model fit statistics")
-    fit_m1 <- data.frame(
-      mapply(
-        function(m1, hash_d1, n_mod, fit1, n) {
-          # If the model's the same and fit measures exist...
-          if (hash_d1 & m1 & (n_mod %in% rownames(fit_m0))) {
-            # If fit_measures == NULL
-            if (is.null(fit_measures)) {
-              # If existing fit_m0 includes all fit stats...
-              if (length(fit_m0[n_mod, ]) >= 55) {
-                # Return existing
-                fit_m0[n_mod, ]
-              } else {
-                # Else, recalculate
-                message(paste0(n, " / ", length(fit), "  ", n_mod))
-                fitMeasures(fit1)
-              }
+    fit_m1 <- mapply(
+      function(m1, hash_d1, n_mod, fit1, n) {
+        # If the model's the same and fit measures exist...
+        if (hash_d1 & m1 & (n_mod %in% rownames(fit_m0))) {
+          # If fit_measures == "all"
+          if (fit_measures[1] == "all") {
+            # If existing fit_m0 includes all fit stats...
+            if (length(fit_m0[n_mod, ]) >= 55) {
+              # Return existing
+              fit_m0[n_mod, ]
             } else {
-              # If fit_m0 includes all required fit measures
-              if (
-                sum(fit_measures %in% names(fit_m0[n_mod, ])) ==
-                length(fit_measures)
-              ) {
-                # Return existing (with only required fit measures)
-                fit_m0[n_mod, fit_measures]
-              } else {
-                # Else, recalculate with required fit measures
-                message(paste0(n, " / ", length(fit), "  ", n_mod))
-                fitMeasures(fit1, fit.measures = fit_measures)
-              }
+              # Else, recalculate
+              message(paste(n, "/", length(fit), " ", n_mod))
+              fitMeasures(fit1)
             }
           } else {
-            # If the model has changed, recalculate with required fit measures
-            message(paste0(n, " / ", length(fit), "  ", n_mod))
-            if (is.null(fit_measures)) {
-              fitMeasures(fit1)
+            # If fit_m0 includes all required fit measures
+            if (
+              sum(fit_measures %in% names(fit_m0[n_mod, ])) ==
+              length(fit_measures)
+            ) {
+              # Return existing (with only required fit measures)
+              fit_m0[n_mod, fit_measures]
             } else {
+              # Else, recalculate with required fit measures
+              message(paste(n, "/", length(fit), " ", n_mod))
               fitMeasures(fit1, fit.measures = fit_measures)
             }
           }
-        },
-        fit1 = fit,
-        m1 = m_test,
-        hash_d1 = hash_d_test,
-        n_mod = names(fit),
-        n = seq_along(fit),
-        SIMPLIFY = FALSE
-      )
+        } else {
+          # If the model has changed, recalculate with required fit measures
+          message(paste(n, "/", length(fit), " ", n_mod))
+          if (fit_measures[1] == "all") {
+            fitMeasures(fit1)
+          } else {
+            fitMeasures(fit1, fit.measures = fit_measures)
+          }
+        }
+      },
+      fit1 = fit,
+      m1 = m_test,
+      hash_d1 = hash_d_test,
+      n_mod = names(fit),
+      n = seq_along(fit),
+      SIMPLIFY = FALSE
     )
     if (length(unlist(fit_m1)) == 0) {
       warning(
@@ -470,7 +481,10 @@ sem.check <- function(
       )
     } else {
       fit_m1 <- do.call(rbind, args = fit_m1)
-      if (ncol(fit_m1) != length(fit_measures) & !is.null(fit_measures)) {
+      if (
+        ncol(fit_m1) != length(fit_measures) &
+        !(is.null(fit_measures) | fit_measures == "all")
+      ) {
         warning(
           paste(
             "The following fit measures that you specified are not recognised",
@@ -498,7 +512,7 @@ sem.check <- function(
     }
     # Save mod + hash
     saveRDS(mods, file.path(out_dir, name, paste0(name, "_mod.rds")))
-    saveRDS(hash_d, file.path(out_dir, hash_dir, paste0(name, "_hash.rds")))
+    saveRDS(hash_d, file.path(out_dir, name, paste0(name, "_hash.rds")))
   }
   # Return
   if (std) {

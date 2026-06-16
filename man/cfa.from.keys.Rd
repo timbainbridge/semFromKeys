@@ -34,8 +34,10 @@ package or outputs from other calls will be overwritten.}
 
 \item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
 
-\item{fit_measures}{A vector of fit measures to save, or \code{NULL} to select all fit measures.
-Defaults to \code{NULL}. Irrelevant if \code{fit_save = FALSE}.}
+\item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
+as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+function.
+Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{miss}{Sets the \code{missing} param, as per lavaan. Defaults to 'ML'.}
 

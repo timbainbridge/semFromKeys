@@ -27,8 +27,10 @@
 #' The directory where all function outputs will be saved. Defaults to 'output'.
 #' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
 #' @param fit_measures
-#' A vector of fit measures to save, or `NULL` to select all fit measures.
-#' Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.
+#' A vector of fit measures to save or 'all' to select all fit measures,
+#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
+#' function.
+#' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param miss Sets the `missing` param, as per lavaan. Defaults to 'ML'.
 #' @param hash_dir
 #' A subdirectory of `out_dir` where data hashes are saved.
@@ -80,14 +82,14 @@
 #' measurement models but, depending on your purpose and research
 #' question(s), it could nevertheless be important to update models to ensure
 #' good fit prior to running this function. There is currently no capability
-#' within `semFromKeys` to add modifications to CFA or bifactor models beyond
-#' removing items (which is done by removing them from the keys).
+#' within `semFromKeys` to add modifications to CFA or bifactor models
+#' (beyond removing items by removing them from the keys).
 #'
 #' For bifactor models predicted by ESEM factors, a complication is that fixing
 #' orthogonal relationships between general and group factors is not possible
 #' if any of the factors are regressed on any others.
 #' This is because, in SEM, fixing correlations with a factor that is an outcome
-#' fixes residual correlations,
+#' fixes correlations with the residual,
 #' which is, of course, not the requirement of a bifactor model.
 #'
 #' There are three solutions to this problem.
@@ -95,6 +97,8 @@
 #' This may be possible sometimes, but it frequently is not.
 #' Second, avoid using regressions in models with bifactor models and compute
 #' regressions based on latent variable correlations.
+#' (This can be done by, e.g., creating a correlation matrix from the factor
+#' correlations and using the [psych::setCor()] function).
 #' This method produces accurate point estimates in the regressions,
 #' but standard errors are biased as the method cannot account for uncertainty
 #' in the correlations.
@@ -103,9 +107,7 @@
 #' Finally, if the 2-stage procedure is employed, then there is little room for
 #' measurement models to change to allow factor correlations to change.
 #' Therefore, the parameter can be relaxed and implied correlations between the
-#' group and general factors ought to remain close to zero (although this cannot
-#' be easily confirmed because the total variance of a factor is not part of the
-#' model once it is an outcome).
+#' group and general factors ought to remain close to zero.
 #' This is the method employed by `esem.from.mods()`.
 #'
 #' @references
@@ -119,8 +121,6 @@
 #' Interpretational confounding of unobserved variables in Structural Equation
 #' Models. Sociological Methods & Research, 5(1), 3-52.
 #' http://journals.sagepub.com/doi/10.1177/004912417600500101.
-
-# TODO: Add option for stand-alone items (in place of CFA or bifactor factors).
 
 esem.from.mods <- function(
     efa_fit, cfa_fit = NULL, bif_fit = NULL,

@@ -12,10 +12,9 @@ sem.check(
   kl_e = NULL,
   std = TRUE,
   fit_save = FALSE,
-  fit_measures = NULL,
+  fit_measures = "all",
   target = NULL,
   out_dir = "output",
-  hash_dir = "hashes",
   orthogonal = FALSE,
   miss = "ML",
   std.lv = FALSE,
@@ -28,7 +27,8 @@ sem.check(
 
 \item{dat}{The data. This must include all observed variables used in any of the models.}
 
-\item{name}{A name for the collection of models to be run.
+\item{name}{A subdirectory for each function where model outputs will be saved when
+\code{save_out = TRUE}.
 The name should be unique for each time any function is called from the
 package or outputs from other calls will be overwritten.}
 
@@ -41,20 +41,23 @@ package or outputs from other calls will be overwritten.}
 
 \item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
 
-\item{fit_measures}{A vector of fit measures to save, or \code{NULL} to select all fit measures.
-Defaults to \code{NULL}. Irrelevant if \code{fit_save = FALSE}.}
+\item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
+as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+function.
+Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{target}{Set to \code{TRUE} if the model is an ESEM with a target rotation.
-Set to \code{FALSE} otherwise.}
+\item{target}{A rotation target as used in rotation.args in lavaan (see \code{\link[lavaan:efa]{lavaan::efa()}}.
+Defaults to \code{NULL}}
 
-\item{out_dir}{The directory where all function outputs will be saved. Defaults to 'output'.}
+\item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
+when \code{save_out = TRUE}.
+Defaults to 'output'.}
 
-\item{hash_dir}{A subdirectory of \code{out_dir} where data hashes are saved.
-Defaults to 'hashes'.}
+\item{orthogonal}{Sets the \code{orthogonal} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to \code{FALSE}.}
 
-\item{orthogonal}{Sets the \code{orthogonal} param, as per lavaan. Defaults to \code{FALSE}.}
-
-\item{miss}{Sets the \code{missing} param, as per lavaan. Defaults to 'ML'.}
+\item{miss}{Sets the \code{missing} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to 'ML'.}
 
 \item{std.lv}{Sets the \code{std.lv} param, as per lavaan. Defaults to \code{FALSE}.}
 
@@ -87,7 +90,9 @@ or either one does not exist, then the models are run as normal.
 }
 \details{
 The function is largely intended to be used as a helper function to upstream
-functions.
+functions,
+including \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}}, and
+\code{\link[=esem.from.mods]{esem.from.mods()}}.
 
 Matching the philosophy of the package, the function is designed to run for
 multiple models with a similar design. If you are using the function for a

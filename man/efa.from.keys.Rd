@@ -20,7 +20,7 @@ efa.from.keys(
 )
 }
 \arguments{
-\item{keys}{A named list of keys. Names should be factor names, elements should be
+\item{keys}{A named list of keys. Names must be factor names, elements must be
 vectors of items that should be targeted to load on the factor.}
 
 \item{d}{The data. This must include all observed variables used in the models.}
@@ -31,16 +31,20 @@ package or outputs from other calls will be overwritten.}
 
 \item{out_dir}{The directory where all function outputs will be saved. Defaults to 'output'.}
 
-\item{orthogonal}{Sets the \code{orthogonal} param, as per lavaan. Defaults to \code{FALSE}.}
+\item{orthogonal}{Sets the \code{orthogonal} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to \code{FALSE}.}
 
 \item{std.lv}{Sets the \code{std.lv} param, as per lavaan. Defaults to \code{TRUE}.}
 
 \item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
 
-\item{fit_measures}{A vector of fit measures to save, or \code{NULL} to select all fit measures.
-Defaults to \code{NULL}. Irrelevant if \code{fit_save = FALSE}.}
+\item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
+as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+function.
+Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{miss}{Sets the \code{missing} param, as per lavaan. Defaults to 'ML'.}
+\item{miss}{Sets the \code{missing} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to 'ML'.}
 
 \item{hash_dir}{A subdirectory of \code{out_dir} where data hashes are saved.
 Defaults to 'hashes'.}
@@ -62,23 +66,26 @@ regardless of changes to code or data.}
 Returns a list of lists.
 The elements are a list of lavaan bifactor model output objects;
 a list of parameter estimates from the models (standardized if \code{std = TRUE});
-and, if \code{fit_measures} is not FALSE, a matrix of fit measures for each model.
+and, if \code{fit_save = TRUE}, a matrix of fit measures for each model.
 }
 \description{
 efa.from.keys runs a exploratory factor analysis (EFA) in lavaan with a
-rotation targeted based on a keys list. The keys list must be a named list of
-scales, where the scales are thought to represent separate factors of an EFA
-and each element is an item from the corresponding scale.
+rotation targeted based on a keys list.
 }
 \details{
 The function was designed to streamline running exploratory structural
 equation models (ESEM) using Burt's (1976) 2-stage procedure to prevent
 interpretational confounding in the context of ESEM. However, it can also be
 used to easily run a targeted EFA with only a keys list to avoid having to
-manually specify the target.
+manually specify the target and model.
+
+The function was designed for use with established multidimensional scales,
+such that a target is always reasonable.
+The function does not currently support untargeted rotations.
 }
 \references{
 Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation
 Models. Sociological Methods & Research, 5(1), 3-52.
+http://journals.sagepub.com/doi/10.1177/004912417600500101.
 }

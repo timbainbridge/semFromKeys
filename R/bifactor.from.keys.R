@@ -27,8 +27,10 @@
 #' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `TRUE`.
 #' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
 #' @param fit_measures
-#' A vector of fit measures to save, or `NULL` to select all fit measures.
-#' Defaults to `NULL`. Irrelevant if `fit_save = FALSE`.
+#' A vector of fit measures to save or 'all' to select all fit measures,
+#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
+#' function.
+#' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param miss Sets the `missing` param, as per lavaan. Defaults to 'ML'.
 #' @param hash_dir
 #' A subdirectory of `out_dir` where data hashes are saved.
@@ -60,7 +62,7 @@
 #' (which is usually the case; Murray & Johnson, 2013).
 #' They can also produce negative residual variances.
 #' lavaan will warn you of this and you should deal with it before proceeding.
-#' Items can also load in atheoretical ways on group factors.
+#' Items can also load in atheoretical ways on the general or group factors.
 #' This could be some items loading negatively instead of positively or
 #' vice versa or one or more items having insignificant loadings on a factor
 #' that they should theoretically load on.
@@ -69,8 +71,8 @@
 #' When items from one group factor dominate the general factor,
 #' the best solution might be to remove the general factor and treat the group
 #' factors as separate constructs.
-#' Perhaps more frequently, it might be solved by omitting one (or more) group
-#' factors (i.e., an S-1 model; Eid et al., 2017).
+#' Perhaps more frequently, these problems might be solved by omitting one
+#' (or more) group factors (i.e., an S-1 model; Eid et al., 2017).
 #' This can either be done a priori
 #' (perhaps based on which one should theoretically be most 'central' to the
 #' general factor)

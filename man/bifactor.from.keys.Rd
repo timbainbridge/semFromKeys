@@ -43,8 +43,10 @@ package or outputs from other calls will be overwritten.}
 
 \item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
 
-\item{fit_measures}{A vector of fit measures to save, or \code{NULL} to select all fit measures.
-Defaults to \code{NULL}. Irrelevant if \code{fit_save = FALSE}.}
+\item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
+as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+function.
+Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{miss}{Sets the \code{missing} param, as per lavaan. Defaults to 'ML'.}
 
@@ -84,7 +86,7 @@ data in the presence of unspecified complexity
 (which is usually the case; Murray & Johnson, 2013).
 They can also produce negative residual variances.
 lavaan will warn you of this and you should deal with it before proceeding.
-Items can also load in atheoretical ways on group factors.
+Items can also load in atheoretical ways on the general or group factors.
 This could be some items loading negatively instead of positively or
 vice versa or one or more items having insignificant loadings on a factor
 that they should theoretically load on.
@@ -93,8 +95,8 @@ These problems can often be solved by omitting a factor.
 When items from one group factor dominate the general factor,
 the best solution might be to remove the general factor and treat the group
 factors as separate constructs.
-Perhaps more frequently, it might be solved by omitting one (or more) group
-factors (i.e., an S-1 model; Eid et al., 2017).
+Perhaps more frequently, these problems might be solved by omitting one
+(or more) group factors (i.e., an S-1 model; Eid et al., 2017).
 This can either be done a priori
 (perhaps based on which one should theoretically be most 'central' to the
 general factor)
