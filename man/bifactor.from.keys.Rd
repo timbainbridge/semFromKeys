@@ -119,6 +119,33 @@ When more than one group factor is poor, I am not aware of any specific
 advice on which to remove, so use your judgment if previous research has not
 got any advice for your case.
 }
+\examples{
+# Create keys
+keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
+keys <- sapply(
+  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+)
+keys_g0 <- c("grit", "hope")
+keys_g <- sapply(
+  keys_g0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+)
+keys_b1 <- sapply(
+  keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
+)
+keys_b <- keys_b1
+bif_fit0 <- bifactor.from.keys(
+  keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
+)
+# Fix negative residual variance
+keys_b$hope <- keys_b1$hope[-1]
+bif_fit <- bifactor.from.keys(
+  keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
+)
+# Examine some results
+summary(bif_fit$fit$grit)  # Standard lavaan summary
+bif_fit$par$grit           # Parameter estimates
+bif_fit$fit_measures       # Fit measures
+}
 \references{
 Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
 Anomalous results in G-factor models: Explanations and alternatives.

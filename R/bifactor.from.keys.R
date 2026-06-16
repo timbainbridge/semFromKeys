@@ -106,6 +106,35 @@
 #' The limitations of model fit in comparing the bi-factor versus higher-order
 #' models of human cognitive ability structure. Intelligence, 41(5), 407-422.
 #' http://dx.doi.org/10.1016/j.intell.2013.06.004.
+#'
+#' @export
+#'
+#' @examples
+#' # Create keys
+#' keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
+#' keys <- sapply(
+#'   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+#' )
+#' keys_g0 <- c("grit", "hope")
+#' keys_g <- sapply(
+#'   keys_g0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+#' )
+#' keys_b1 <- sapply(
+#'   keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
+#' )
+#' keys_b <- keys_b1
+#' bif_fit0 <- bifactor.from.keys(
+#'   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
+#' )
+#' # Fix negative residual variance
+#' keys_b$hope <- keys_b1$hope[-1]
+#' bif_fit <- bifactor.from.keys(
+#'   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
+#' )
+#' # Examine some results
+#' summary(bif_fit$fit$grit)  # Standard lavaan summary
+#' bif_fit$par$grit           # Parameter estimates
+#' bif_fit$fit_measures       # Fit measures
 
 bifactor.from.keys <- function(
   keys_g, keys_b, keys, d, name = "bifactor", out_dir = "output",

@@ -98,7 +98,7 @@ keys <- sapply(
 )
 # Run models
 cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
-# Examine results
+# Examine some results
 summary(cfa_fit$fit$grit_c)  # Standard lavaan summary
 cfa_fit$par$grit_c           # Parameter estimates
 cfa_fit$fit_measures         # Fit measures

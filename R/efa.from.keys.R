@@ -75,6 +75,8 @@
 #' Interpretational confounding of unobserved variables in Structural Equation
 #' Models. Sociological Methods & Research, 5(1), 3-52.
 #' http://journals.sagepub.com/doi/10.1177/004912417600500101.
+#'
+#' @export
 
 efa.from.keys <- function(
     keys, d, name = "efa", out_dir = "output",

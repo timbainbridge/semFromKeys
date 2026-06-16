@@ -69,6 +69,8 @@
 #' model code is saved in `file.path(out_dir, name, paste0(name, _mod.rds)`,
 #' which could help with manually updating models.)
 #'
+#' @export
+#'
 #' @examples
 #' # Create CFA keys
 #' keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
@@ -77,7 +79,7 @@
 #' )
 #' # Run models
 #' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
-#' # Examine results
+#' # Examine some results
 #' summary(cfa_fit$fit$grit_c)  # Standard lavaan summary
 #' cfa_fit$par$grit_c           # Parameter estimates
 #' cfa_fit$fit_measures         # Fit measures
