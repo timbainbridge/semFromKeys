@@ -17,6 +17,7 @@ sem.check(
   out_dir = "output",
   orthogonal = FALSE,
   miss = "ML",
+  est = "default",
   std.lv = FALSE,
   check = TRUE,
   save_out = FALSE
@@ -53,13 +54,16 @@ Defaults to \code{NULL}}
 when \code{save_out = TRUE}.
 Defaults to 'output'.}
 
-\item{orthogonal}{Sets the \code{orthogonal} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{orthogonal}{Sets the \code{orthogonal} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to \code{FALSE}.}
 
-\item{miss}{Sets the \code{missing} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{miss}{Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to 'ML'.}
 
-\item{std.lv}{Sets the \code{std.lv} param, as per lavaan. Defaults to \code{FALSE}.}
+\item{est}{Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+The default ('default') uses the lavaan default for the model being run.}
+
+\item{std.lv}{Sets the \code{std.lv} parameter, as per lavaan. Defaults to \code{FALSE}.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
 If \code{TRUE}, the model will not run if model code and a data hash have not
@@ -82,11 +86,13 @@ and, if \code{fit_save} is not FALSE, a matrix of fit measures for each model.
 }
 \description{
 sem.check produces outputs from a series of lavaan models. For each model,
-the code checks for previously saved model code and a hash of data and,
-if they exist and match values for current code and data, the model is not
-run, the previous output is loaded instead.
-If either the code has changed, the hash of the data has changed,
-or either one does not exist, then the models are run as normal.
+the code checks for previously saved model code, a hash of data, and
+important parameter inputs.
+If they exist and match values for the current code and data,
+the model is not run, the previous output is loaded instead.
+If either the code has changed, the hash of the data has changed, or
+important parameter inputs have change, or any of these do not exist,
+then the models are run as normal.
 }
 \details{
 The function is largely intended to be used as a helper function to upstream
@@ -98,18 +104,28 @@ Matching the philosophy of the package, the function is designed to run for
 multiple models with a similar design. If you are using the function for a
 single model, transform inputs into lists as appropriate.
 
-Note that when the model includes at least one structural element,
-the function accounts for interpretational confounding using Burt's (1976)
-2-stage procedure.
+When \code{check = TRUE},
+the model looks for any previously saved outputs from earlier model runs.
+The check uses \code{out_dir} and \code{name} to find the location of any previous
+saves and saves outputs in the same location if \code{fit_save = TRUE}.
+If previous outputs exist, they are loaded and checked against current
+values.
+The comparisons are for model code;
+hashes of the data (using \code{\link[openssl:md5]{openssl::md5()}});
+and values of the \code{miss}, \code{est}, \code{std}, \code{std.lv}, and \code{orthogonal}
+parameters.
+If these values are the same
+(and the previous outputs are of the correct form),
+then previous model outputs are loaded instead of recreating them.
+For most applications, this feature can be safely ignored by not saving
+outputs (i.e., \code{fit_save = FALSE})
+and not checking for past saves (i.e., \code{check = FALSE}).
+The functionality is intended for a number of very slow models or a lot of
+faster models, such that time spent rerunning code would be onerous.
+However, the functionality can be safely used for faster runs too.
 
-The function temporarily changes the warning option to print warnings
-immediately rather than buffering them (i.e., \code{options(warn = 1)}).
+Note that the function temporarily changes the warning option to print
+warnings immediately rather than buffering them (i.e., \code{options(warn = 1)}).
 This enables easy matching of lavvan warnings to the model they occurred for.
 The original option value is saved and reset after the models have run.
-}
-\references{
-Burt, R. S. (1976).
-Interpretational confounding of unobserved variables in Structural Equation
-Models. Sociological Methods & Research, 5(1), 3-52.
-http://journals.sagepub.com/doi/10.1177/004912417600500101.
 }

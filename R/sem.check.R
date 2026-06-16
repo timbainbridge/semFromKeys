@@ -2,11 +2,13 @@
 #'
 #' @description
 #' sem.check produces outputs from a series of lavaan models. For each model,
-#' the code checks for previously saved model code and a hash of data and,
-#' if they exist and match values for current code and data, the model is not
-#' run, the previous output is loaded instead.
-#' If either the code has changed, the hash of the data has changed,
-#' or either one does not exist, then the models are run as normal.
+#' the code checks for previously saved model code, a hash of data, and
+#' important parameter inputs.
+#' If they exist and match values for the current code and data,
+#' the model is not run, the previous output is loaded instead.
+#' If either the code has changed, the hash of the data has changed, or
+#' important parameter inputs have change, or any of these do not exist,
+#' then the models are run as normal.
 #'
 #' @param mods Named list of lavaan models to run.
 #' @param dat
@@ -35,12 +37,16 @@
 #' when `save_out = TRUE`.
 #' Defaults to 'output'.
 #' @param orthogonal
-#' Sets the `orthogonal` param, as per lavaan (see [lavaan::lavOptions()]).
+#' Sets the `orthogonal` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' Defaults to `FALSE`.
 #' @param miss
-#' Sets the `missing` param, as per lavaan (see [lavaan::lavOptions()]).
+#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' Defaults to 'ML'.
-#' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `FALSE`.
+#' @param est
+#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' The default ('default') uses the lavaan default for the model being run.
+#' @param std.lv
+#' Sets the `std.lv` parameter, as per lavaan. Defaults to `FALSE`.
 #' @param check
 #' Should the code check to see if previous outputs have been saved?
 #' If `TRUE`, the model will not run if model code and a data hash have not
@@ -71,20 +77,30 @@
 #' multiple models with a similar design. If you are using the function for a
 #' single model, transform inputs into lists as appropriate.
 #'
-#' Note that when the model includes at least one structural element,
-#' the function accounts for interpretational confounding using Burt's (1976)
-#' 2-stage procedure.
+#' When `check = TRUE`,
+#' the model looks for any previously saved outputs from earlier model runs.
+#' The check uses `out_dir` and `name` to find the location of any previous
+#' saves and saves outputs in the same location if `fit_save = TRUE`.
+#' If previous outputs exist, they are loaded and checked against current
+#' values.
+#' The comparisons are for model code;
+#' hashes of the data (using [openssl::md5()]);
+#' and values of the `miss`, `est`, `std`, `std.lv`, and `orthogonal`
+#' parameters.
+#' If these values are the same
+#' (and the previous outputs are of the correct form),
+#' then previous model outputs are loaded instead of recreating them.
+#' For most applications, this feature can be safely ignored by not saving
+#' outputs (i.e., `fit_save = FALSE`)
+#' and not checking for past saves (i.e., `check = FALSE`).
+#' The functionality is intended for a number of very slow models or a lot of
+#' faster models, such that time spent rerunning code would be onerous.
+#' However, the functionality can be safely used for faster runs too.
 #'
-#' The function temporarily changes the warning option to print warnings
-#' immediately rather than buffering them (i.e., `options(warn = 1)`).
+#' Note that the function temporarily changes the warning option to print
+#' warnings immediately rather than buffering them (i.e., `options(warn = 1)`).
 #' This enables easy matching of lavvan warnings to the model they occurred for.
 #' The original option value is saved and reset after the models have run.
-#'
-#' @references
-#' Burt, R. S. (1976).
-#' Interpretational confounding of unobserved variables in Structural Equation
-#' Models. Sociological Methods & Research, 5(1), 3-52.
-#' http://journals.sagepub.com/doi/10.1177/004912417600500101.
 #'
 #' @importFrom gsubfn gsubfn
 #' @importFrom lavaan sem
@@ -94,13 +110,10 @@
 #' @importFrom openssl md5
 #' @export
 
-# TODO: Add est
-# TODO: Add tests for miss or est changes.
-
 sem.check <- function(
     mods, dat, name, kl_s = NULL, kl_e = NULL, std = TRUE,
-    fit_save = FALSE, fit_measures = "all", target = NULL,
-    out_dir = "output", orthogonal = FALSE, miss = "ML", std.lv = FALSE,
+    fit_save = FALSE, fit_measures = "all", target = NULL, out_dir = "output",
+    orthogonal = FALSE, miss = "ML", est = "default", std.lv = FALSE,
     check = TRUE, save_out = FALSE
 ) {
   if (!is.logical(fit_save)) {
@@ -249,17 +262,19 @@ sem.check <- function(
   }
   # Tell user which model set is running
   if (check) {
-    # Load hashes and prior models
+    # Load hashes, prior models, and critical parameters
     m0 <-
       if (file.exists(file.path(out_dir, name, paste0(name, "_mod.rds")))) {
         tmp <- readRDS(file.path(out_dir, name, paste0(name, "_mod.rds")))
         # Remove spaces
         lapply(tmp, function(x) gsub(" ", "", x))
       } else FALSE
+    params0 <-
+      if (file.exists(file.path(out_dir, name, paste0(name, "_params.rds")))) {
+        readRDS(file.path(out_dir, name, paste0(name, "_params.rds")))
+      } else FALSE
     hash_d0 <-
-      if (file.exists(
-        file.path(out_dir, name, paste0(name, "_hash.rds"))
-      )) {
+      if (file.exists(file.path(out_dir, name, paste0(name, "_hash.rds")))) {
         readRDS(file.path(out_dir, name, paste0(name, "_hash.rds")))
       } else FALSE
     # Create hashes
@@ -268,6 +283,7 @@ sem.check <- function(
       function(x) md5(paste(dat[c(kl_s[[x]], unlist(kl_e))], collapse = ""))
     )
     # Compare to previous hashes
+    # if includes possibility of hash_d0 <- c(FALSE, [hash]) for some reason.
     hash_d_test <- if (length(hash_d0) != 1 | hash_d0[[1]] != FALSE) {
       sapply(
         names(mods),
@@ -293,6 +309,10 @@ sem.check <- function(
           } else FALSE
         }
       )
+    } else FALSE
+    params <- c(miss, est, std, std.lv, orthogonal)
+    param_test <- if (length(params0) == length(params)) {
+      ifelse(sum(params0 != params) > 0, FALSE, TRUE)
     } else FALSE
     # Load old object if it exists
     fit0 <-
@@ -339,6 +359,7 @@ sem.check <- function(
   } else {
     m_test <- FALSE
     hash_d_test <- FALSE
+    param_test <- FALSE
     fit_type <- FALSE
     par_type <- FALSE
     fit_m0 <- FALSE
@@ -353,7 +374,7 @@ sem.check <- function(
   message("Fitting models")
   fit <- mapply(
     function(m1, hash_d1, n_mod, mods1, ft, n) {
-      if (hash_d1 & m1 & ft) {
+      if (hash_d1 & m1 & ft & param_test) {
         fit0[[n_mod]]
       } else {
         if (length(mods) <= 1000) {
@@ -366,25 +387,51 @@ sem.check <- function(
           }
         }
         if (is.null(target)) {
-          sem(
-            model   = mods1,
-            data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
-            missing = miss,
-            std.lv  = std.lv,
-            orthogonal = orthogonal
-          )
-        } else {
-          sem(
-            model   = mods1,
-            data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
-            missing = miss,
-            std.lv  = std.lv,
-            rotation = "target",
-            rotation.args = list(
-              rstarts = 30, row.weights = "none", algorithm = "gpa",
-              std.ov = TRUE, target = target, orthogonal = orthogonal
+          if (est == "default") {
+            sem(
+              model   = mods1,
+              data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+              missing = miss,
+              std.lv  = std.lv,
+              orthogonal = orthogonal
             )
-          )
+          } else {
+            sem(
+              model   = mods1,
+              data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+              missing = miss,
+              estimator = est,
+              std.lv  = std.lv,
+              orthogonal = orthogonal
+            )
+          }
+        } else {
+          if (est == "default") {
+            sem(
+              model   = mods1,
+              data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+              missing = miss,
+              std.lv  = std.lv,
+              rotation = "target",
+              rotation.args = list(
+                rstarts = 30, row.weights = "none", algorithm = "gpa",
+                std.ov = TRUE, target = target, orthogonal = orthogonal
+              )
+            )
+          } else {
+            sem(
+              model   = mods1,
+              data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+              missing = miss,
+              estimator = est,
+              std.lv  = std.lv,
+              rotation = "target",
+              rotation.args = list(
+                rstarts = 30, row.weights = "none", algorithm = "gpa",
+                std.ov = TRUE, target = target, orthogonal = orthogonal
+              )
+            )
+          }
         }
       }
     },
@@ -400,7 +447,7 @@ sem.check <- function(
   message("Generating parameter estimates")
   par <- mapply(
     function(m1, hash_d1, n_mod, fit1, pt, n) {
-      if (hash_d1 & m1 & pt) {
+      if (hash_d1 & m1 & pt & param_test) {
         out <- par0[[n_mod]]
       } else {
         if (length(fit) <= 1000) {
@@ -432,7 +479,7 @@ sem.check <- function(
     fit_m1 <- mapply(
       function(m1, hash_d1, n_mod, fit1, n) {
         # If the model's the same and fit measures exist...
-        if (hash_d1 & m1 & (n_mod %in% rownames(fit_m0))) {
+        if (hash_d1 & m1 & (n_mod %in% rownames(fit_m0)) & param_test) {
           # If fit_measures == "all"
           if (fit_measures[1] == "all") {
             # If existing fit_m0 includes all fit stats...
@@ -481,10 +528,7 @@ sem.check <- function(
       )
     } else {
       fit_m1 <- do.call(rbind, args = fit_m1)
-      if (
-        ncol(fit_m1) != length(fit_measures) &
-        !(is.null(fit_measures) | fit_measures == "all")
-      ) {
+      if (ncol(fit_m1) != length(fit_measures) & fit_measures[1] != "all") {
         warning(
           paste(
             "The following fit measures that you specified are not recognised",
@@ -510,9 +554,10 @@ sem.check <- function(
     if (fit_save) {
       saveRDS(fit_m1, file.path(out_dir, name, paste0(name, "_fit_m.rds")))
     }
-    # Save mod + hash
+    # Save mod + hash + params
     saveRDS(mods, file.path(out_dir, name, paste0(name, "_mod.rds")))
     saveRDS(hash_d, file.path(out_dir, name, paste0(name, "_hash.rds")))
+    saveRDS(params, file.path(out_dir, name, paste0(name, "_params.rds")))
   }
   # Return
   if (std) {

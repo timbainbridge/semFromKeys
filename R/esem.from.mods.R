@@ -31,10 +31,12 @@
 #' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
 #' function.
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
-#' @param miss Sets the `missing` param, as per lavaan. Defaults to 'ML'.
-#' @param hash_dir
-#' A subdirectory of `out_dir` where data hashes are saved.
-#' Defaults to 'hashes'.
+#' @param miss
+#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' Defaults to 'ML'.
+#' @param est
+#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' The default ('default') uses the lavaan default for the model being run.
 #' @param check
 #' Should the code check to see if previous outputs have been saved?
 #' If `TRUE`, the model will not run if model code and a data hash have not
@@ -70,6 +72,19 @@
 #' employ the 2-stage procedure.
 #' Using [efa.from.keys()], [cfa.from.keys()], and/or [bifactor.from.keys()]
 #' should make this relatively straight-forward.
+#'
+#' Matching the philosophy of the package, the function is designed to run for
+#' multiple models with a similar design. If you are using the function for a
+#' single model, transform inputs into lists as appropriate.
+#'
+#' The model relies on [sem.check()] for the back-end of running the models.
+#' This enables saving inputs and outputs from model runs
+#' (with `save_out = TRUE`) and checking to see if anything has changed from
+#' prior runs before running again (with `check = TRUE`).
+#' The functionality was included for a number of very slow models or a lot of
+#' faster models, such that time spent rerunning them would be onerous.
+#' For further details on how this works, see the [sem.check()] function
+#' documentation.
 #'
 #' Although the function will take any lavaan models that have successfully
 #' produced standard lavaan outputs,
@@ -124,8 +139,9 @@
 
 esem.from.mods <- function(
     efa_fit, cfa_fit = NULL, bif_fit = NULL,
-    d, name = "esem", out_dir = "output", fit_save = FALSE, fit_measures = NULL,
-    miss = "ML", hash_dir = "hashes", check = TRUE, save_out = FALSE
+    d, name = "esem", out_dir = "output",
+    fit_save = FALSE, fit_measures = "all",
+    miss = "ML", est = "default", check = TRUE, save_out = FALSE
 ) {
   if (is.null(cfa_fit) & is.null(bif_fit)) {
     stop("At least one of `cfa_fit` and `bif_fit` must be specified.")
@@ -349,8 +365,8 @@ esem.from.mods <- function(
     std = TRUE,
     fit_save = fit_save,
     fit_measures = fit_measures,
-    hash_dir = hash_dir,
     miss = miss,
+    est = est,
     std.lv = FALSE,  # Params are set from measurement models.
     check = check,
     save_out = save_out

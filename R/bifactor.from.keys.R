@@ -1,10 +1,13 @@
 #' Runs bifactor models for multiple scales based on items in a keys list.
 #'
-#' cfa.from.keys runs a confirmatory factor analysis (CFA) model for each
-#' element of a keys list. The keys list must be a named list of scales, where
-#' each element is an item from the corresponding scale. The function is
-#' designed to steamline running CFA models for all scales in a sample and to
-#' input model outputs into downstream functions.
+#' bifactor.from.keys runs a series of bifactor model from three keys lists---
+#' one for items on general factor; one for items on group factors;
+#' and one for group factors on general factors.
+#' The keys list must be named appropriately
+#' (i.e., general factor names, group factor names, and general factor names
+#' for the three lists respectively).
+#' The function is designed to steamline running CFA models for all scales in a
+#' sample and to input model outputs into downstream functions.
 #'
 #' @param keys_g
 #' A named list of general factors. Names must be the names of the general
@@ -31,10 +34,12 @@
 #' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
 #' function.
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
-#' @param miss Sets the `missing` param, as per lavaan. Defaults to 'ML'.
-#' @param hash_dir
-#' A subdirectory of `out_dir` where data hashes are saved.
-#' Defaults to 'hashes'.
+##' @param miss
+#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' Defaults to 'ML'.
+#' @param est
+#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' The default ('default') uses the lavaan default for the model being run.
 #' @param check
 #' Should the code check to see if previous outputs have been saved?
 #' If `TRUE`, the model will not run if model code and a data hash have not
@@ -56,6 +61,15 @@
 #' and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
 #'
 #' @details
+#' The model relies on [sem.check()] for the back-end of running the models.
+#' This enables saving inputs and outputs from model runs
+#' (with `save_out = TRUE`) and checking to see if anything has changed from
+#' prior runs before running again (with `check = TRUE`).
+#' The functionality was included for a number of very slow models or a lot of
+#' faster models, such that time spent rerunning them would be onerous.
+#' For further details on how this works, see the [sem.check()] function
+#' documentation.
+#'
 #' Please be careful with bifactor models.
 #' In simulation studies, they can fit better than the models that generated the
 #' data in the presence of unspecified complexity
@@ -95,8 +109,8 @@
 
 bifactor.from.keys <- function(
   keys_g, keys_b, keys, d, name = "bifactor", out_dir = "output",
-  std.lv = TRUE, fit_save = TRUE, fit_measures = NULL, miss = "ML",
-  hash_dir = "hashes", check = TRUE, save_out = FALSE
+  std.lv = TRUE, fit_save = TRUE, fit_measures = "all", miss = "ML",
+  est = "default", check = TRUE, save_out = FALSE
 ) {
   if (!is.list(keys_g)) {
     stop("`keys_g` is not a list.")
@@ -211,8 +225,8 @@ bifactor.from.keys <- function(
     fit_measures = fit_measures,
     std.lv = std.lv,
     out_dir = out_dir,
-    hash_dir = hash_dir,
     miss = miss,
+    est = est,
     orthogonal = TRUE,  # Must be TRUE for bifactor models.
     check = check,
     save_out = save_out

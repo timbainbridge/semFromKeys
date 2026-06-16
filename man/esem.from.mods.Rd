@@ -13,9 +13,9 @@ esem.from.mods(
   name = "esem",
   out_dir = "output",
   fit_save = FALSE,
-  fit_measures = NULL,
+  fit_measures = "all",
   miss = "ML",
-  hash_dir = "hashes",
+  est = "default",
   check = TRUE,
   save_out = FALSE
 )
@@ -44,10 +44,11 @@ as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMea
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{miss}{Sets the \code{missing} param, as per lavaan. Defaults to 'ML'.}
+\item{miss}{Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to 'ML'.}
 
-\item{hash_dir}{A subdirectory of \code{out_dir} where data hashes are saved.
-Defaults to 'hashes'.}
+\item{est}{Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+The default ('default') uses the lavaan default for the model being run.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
 If \code{TRUE}, the model will not run if model code and a data hash have not
@@ -93,6 +94,19 @@ The function requires fitted lavaan objects as inputs in order to properly
 employ the 2-stage procedure.
 Using \code{\link[=efa.from.keys]{efa.from.keys()}}, \code{\link[=cfa.from.keys]{cfa.from.keys()}}, and/or \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}
 should make this relatively straight-forward.
+
+Matching the philosophy of the package, the function is designed to run for
+multiple models with a similar design. If you are using the function for a
+single model, transform inputs into lists as appropriate.
+
+The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
+This enables saving inputs and outputs from model runs
+(with \code{save_out = TRUE}) and checking to see if anything has changed from
+prior runs before running again (with \code{check = TRUE}).
+The functionality was included for a number of very slow models or a lot of
+faster models, such that time spent rerunning them would be onerous.
+For further details on how this works, see the \code{\link[=sem.check]{sem.check()}} function
+documentation.
 
 Although the function will take any lavaan models that have successfully
 produced standard lavaan outputs,

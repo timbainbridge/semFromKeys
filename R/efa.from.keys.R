@@ -25,11 +25,11 @@
 #' function.
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param miss
-#' Sets the `missing` param, as per lavaan (see [lavaan::lavOptions()]).
+#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' Defaults to 'ML'.
-#' @param hash_dir
-#' A subdirectory of `out_dir` where data hashes are saved.
-#' Defaults to 'hashes'.
+#' @param est
+#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' The default ('default') uses the lavaan default for the model being run.
 #' @param check
 #' Should the code check to see if previous outputs have been saved?
 #' If `TRUE`, the model will not run if model code and a data hash have not
@@ -61,6 +61,15 @@
 #' such that a target is always reasonable.
 #' The function does not currently support untargeted rotations.
 #'
+#' The model relies on [sem.check()] for the back-end of running the models.
+#' This enables saving inputs and outputs from model runs
+#' (with `save_out = TRUE`) and checking to see if anything has changed from
+#' prior runs before running again (with `check = TRUE`).
+#' The functionality was included for a number of very slow models or a lot of
+#' faster models, such that time spent rerunning them would be onerous.
+#' For further details on how this works, see the [sem.check()] function
+#' documentation.
+#'
 #' @references
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
@@ -69,8 +78,8 @@
 
 efa.from.keys <- function(
     keys, d, name = "efa", out_dir = "output",
-    orthogonal = FALSE, std.lv = TRUE, fit_save = TRUE, fit_measures = NULL,
-    miss = "ML", hash_dir = "hashes", check = TRUE, save_out = FALSE
+    orthogonal = FALSE, std.lv = TRUE, fit_save = TRUE, fit_measures = "all",
+    miss = "ML", est = "default", check = TRUE, save_out = FALSE
 ) {
   target <- sapply(keys, function(y) ifelse(!unlist(keys) %in% y, 0, NA))
   mod <- list(
@@ -95,8 +104,8 @@ efa.from.keys <- function(
     orthogonal = orthogonal,
     std.lv = std.lv,
     target = target,
-    hash_dir = hash_dir,
     miss = miss,
+    est = est,
     check = check,
     save_out = save_out
   )
