@@ -147,6 +147,53 @@ Therefore, the parameter can be relaxed and implied correlations between the
 group and general factors ought to remain close to zero.
 This is the method employed by \code{esem.from.mods()}.
 }
+\examples{
+# Create CFA keys
+keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
+keys <- sapply(
+  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+)
+# Create bifactor keys
+keys_g0 <- c("grit", "hope")
+keys_g <- sapply(
+  keys_g0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+)
+keys_b1 <- sapply(
+  keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
+)
+keys_b <- keys_b1
+keys_b$hope <- keys_b1$hope[-1]
+# Create EFA keys
+# Using only 3 factors to save time
+keys_e0 <- paste0("bfi_", c("e", "a", "c"))
+# Using less than all items to save time on checks
+# (This results in a less than ideal solution but it doesn't matter for an
+# example)
+keys_e <- sapply(
+  keys_e0,
+  function(x) {
+    names(BFIGritHope)[grep(paste0(x, "\\\\d_[1-2]"), names(BFIGritHope))]
+  },
+  simplify = FALSE
+)
+# Create fitted objects to use as inputs
+cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
+efa_fit <-
+  efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = FALSE)
+bif_fit <- bifactor.from.keys(
+  keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = FALSE
+)
+# Run models
+esem_fit <- esem.from.mods(
+  efa_fit$fit$efa, cfa_fit$fit, bif_fit$fit, d = BFIGritHope,
+  fit_save = FALSE, check = FALSE
+)
+# Examine results
+summary(esem_fit$fit$grit_c)  # Standard lavaan summary
+esem_fit$par$grit_c           # Parameter estimates
+esem_fit$r2                   # R-squareds
+esem_fit$b                    # Betas
+}
 \references{
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).
 Evaluating the Big Five as an organizing framework for commonly used
