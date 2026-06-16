@@ -310,7 +310,10 @@ sem.check <- function(
         }
       )
     } else FALSE
-    params <- c(miss, est, std, std.lv, orthogonal)
+    params <- c(
+      miss = miss, est = est, std = std, std.lv = std.lv,
+      orthogonal = orthogonal
+    )
     param_test <- if (length(params0) == length(params)) {
       ifelse(sum(params0 != params) > 0, FALSE, TRUE)
     } else FALSE

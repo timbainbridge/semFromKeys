@@ -362,7 +362,7 @@ esem.from.mods <- function(
     name = name,
     kl_s = kl_s,
     kl_e = efa_keys,
-    std = TRUE,
+    std = TRUE,  # For r2 calcs.
     fit_save = fit_save,
     fit_measures = fit_measures,
     miss = miss,

@@ -98,7 +98,7 @@ efa.from.keys <- function(
     name = name,
     kl_s = NULL,
     kl_e = keys,
-    std = FALSE,
+    std = FALSE,  # For use in 2-stage procedure, must use non-standardised.
     fit_save = fit_save,
     fit_measures = fit_measures,
     orthogonal = orthogonal,

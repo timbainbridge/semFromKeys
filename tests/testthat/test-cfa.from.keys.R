@@ -232,27 +232,17 @@ test_that(
   }
 )
 test_that(
-  "Test partial running on `check = TRUE` after changes to fit measures",
+  "Test partial running on `check = TRUE` after adding fit measures",
   {
     out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
-    name <- "cfa"
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
-      name = name, out_dir = out_dir
+      out_dir = out_dir, fit_measures = "cfi"
     )
-    # Weird messages here. The 1 / 4 message is being picked up by
-    # expect_message and is not printed. All is correct if others are printed.
     expect_message(
       cfa.from.keys(
         keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
-        name = name, out_dir = out_dir, fit_measures = "cfi"
-      ),
-      "1 / \\d"
-    )
-    expect_message(
-      cfa.from.keys(
-        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
-        name = name, out_dir = out_dir
+        out_dir = out_dir, fit_measures = c("cfi", "rmsea")
       ),
       "1 / \\d"
     )
@@ -285,6 +275,57 @@ test_that(
         name = name, out_dir = out_dir
       ),
       message = "([1-2]|4) / \\d"
+    )
+  }
+)
+test_that(
+  "Test running on `check = TRUE` after changes to miss",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    check_fit <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      out_dir = out_dir
+    )
+    expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        out_dir = out_dir, miss = "pairwise"
+      ),
+      "1 / \\d"
+    )
+  }
+)
+test_that(
+  "Test running on `check = TRUE` after changes to est",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    check_fit <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      out_dir = out_dir
+    )
+    expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        out_dir = out_dir, est = "MLR"
+      ),
+      "1 / \\d"
+    )
+  }
+)
+test_that(
+  "Test running on `check = TRUE` after changes to std.lv",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    check_fit <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      out_dir = out_dir
+    )
+    expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        out_dir = out_dir, std.lv = FALSE
+      ),
+      "1 / \\d"
     )
   }
 )
