@@ -92,6 +92,27 @@ faster models, such that time spent rerunning them would be onerous.
 For further details on how this works, see the \code{\link[=sem.check]{sem.check()}} function
 documentation.
 }
+\examples{
+# Create EFA keys
+# Using only 3 factors to save time
+keys_e0 <- paste0("bfi_", c("e", "a", "c"))
+# Using less than all items to save time
+# (This results in a less than ideal solution but it shouldn't matter for an
+# example)
+keys_e <- sapply(
+  keys_e0,
+  function(x) {
+    names(BFIGritHope)[grep(paste0(x, "\\\\d_[1-2]"), names(BFIGritHope))]
+  },
+  simplify = FALSE
+)
+# Run model
+efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = TRUE)
+# Examine results
+summary(efa_fit$fit$efa)  # Standard lavaan summary
+efa_fit$par$efa           # Parameter estimates
+efa_fit$fit_measures      # Fit measures
+}
 \references{
 Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation

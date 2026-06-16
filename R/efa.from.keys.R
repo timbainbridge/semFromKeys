@@ -77,6 +77,27 @@
 #' http://journals.sagepub.com/doi/10.1177/004912417600500101.
 #'
 #' @export
+#'
+#' @examples
+#' # Create EFA keys
+#' # Using only 3 factors to save time
+#' keys_e0 <- paste0("bfi_", c("e", "a", "c"))
+#' # Using less than all items to save time
+#' # (This results in a less than ideal solution but it shouldn't matter for an
+#' # example)
+#' keys_e <- sapply(
+#'   keys_e0,
+#'   function(x) {
+#'     names(BFIGritHope)[grep(paste0(x, "\\d_[1-2]"), names(BFIGritHope))]
+#'   },
+#'   simplify = FALSE
+#' )
+#' # Run model
+#' efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = TRUE)
+#' # Examine results
+#' summary(efa_fit$fit$efa)  # Standard lavaan summary
+#' efa_fit$par$efa           # Parameter estimates
+#' efa_fit$fit_measures      # Fit measures
 
 efa.from.keys <- function(
     keys, d, name = "efa", out_dir = "output",
