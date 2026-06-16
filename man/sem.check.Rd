@@ -123,9 +123,4 @@ and not checking for past saves (i.e., \code{check = FALSE}).
 The functionality is intended for a number of very slow models or a lot of
 faster models, such that time spent rerunning code would be onerous.
 However, the functionality can be safely used for faster runs too.
-
-Note that the function temporarily changes the warning option to print
-warnings immediately rather than buffering them (i.e., \code{options(warn = 1)}).
-This enables easy matching of lavvan warnings to the model they occurred for.
-The original option value is saved and reset after the models have run.
 }

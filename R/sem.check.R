@@ -97,17 +97,13 @@
 #' faster models, such that time spent rerunning code would be onerous.
 #' However, the functionality can be safely used for faster runs too.
 #'
-#' Note that the function temporarily changes the warning option to print
-#' warnings immediately rather than buffering them (i.e., `options(warn = 1)`).
-#' This enables easy matching of lavvan warnings to the model they occurred for.
-#' The original option value is saved and reset after the models have run.
-#'
 #' @importFrom gsubfn gsubfn
 #' @importFrom lavaan sem
 #' @importFrom lavaan standardizedSolution
 #' @importFrom lavaan parameterEstimates
 #' @importFrom lavaan fitMeasures
 #' @importFrom openssl md5
+#' @importFrom withr with_options
 #' @export
 
 sem.check <- function(
@@ -369,84 +365,82 @@ sem.check <- function(
   }
   # Run
   # Warnings required to be printed immediately so people know which model
-  # caused the issue.
-  # But don't mess with people's warnings so
-  # save original, change, then change back to original.
-  og_warn <- getOption("warn")
-  options(warn = 1)
+  # caused the issue -> use with_options.
   message("Fitting models")
-  fit <- mapply(
-    function(m1, hash_d1, n_mod, mods1, ft, n) {
-      if (hash_d1 & m1 & ft & param_test) {
-        fit0[[n_mod]]
-      } else {
-        if (length(mods) <= 1000) {
-          # Print progress for every model
-          message(paste(n, "/", length(mods), " ", n_mod))
+  fit <- with_options(
+    list(warn = 1),
+    mapply(
+      function(m1, hash_d1, n_mod, mods1, ft, n) {
+        if (hash_d1 & m1 & ft & param_test) {
+          fit0[[n_mod]]
         } else {
-          # Print progress for every 10th model (starting from 1)
-          if (n %in% round((0:(length(mods)/10)*10) + 1, 0)) {
+          if (length(mods) <= 1000) {
+            # Print progress for every model
             message(paste(n, "/", length(mods), " ", n_mod))
+          } else {
+            # Print progress for every 10th model (starting from 1)
+            if (n %in% round((0:(length(mods)/10)*10) + 1, 0)) {
+              message(paste(n, "/", length(mods), " ", n_mod))
+            }
+          }
+          if (is.null(target)) {
+            if (est == "default") {
+              sem(
+                model   = mods1,
+                data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+                missing = miss,
+                std.lv  = std.lv,
+                orthogonal = orthogonal
+              )
+            } else {
+              sem(
+                model   = mods1,
+                data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+                missing = miss,
+                estimator = est,
+                std.lv  = std.lv,
+                orthogonal = orthogonal
+              )
+            }
+          } else {
+            if (est == "default") {
+              sem(
+                model   = mods1,
+                data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+                missing = miss,
+                std.lv  = std.lv,
+                rotation = "target",
+                rotation.args = list(
+                  rstarts = 30, row.weights = "none", algorithm = "gpa",
+                  std.ov = TRUE, target = target, orthogonal = orthogonal
+                )
+              )
+            } else {
+              sem(
+                model   = mods1,
+                data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+                missing = miss,
+                estimator = est,
+                std.lv  = std.lv,
+                rotation = "target",
+                rotation.args = list(
+                  rstarts = 30, row.weights = "none", algorithm = "gpa",
+                  std.ov = TRUE, target = target, orthogonal = orthogonal
+                )
+              )
+            }
           }
         }
-        if (is.null(target)) {
-          if (est == "default") {
-            sem(
-              model   = mods1,
-              data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
-              missing = miss,
-              std.lv  = std.lv,
-              orthogonal = orthogonal
-            )
-          } else {
-            sem(
-              model   = mods1,
-              data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
-              missing = miss,
-              estimator = est,
-              std.lv  = std.lv,
-              orthogonal = orthogonal
-            )
-          }
-        } else {
-          if (est == "default") {
-            sem(
-              model   = mods1,
-              data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
-              missing = miss,
-              std.lv  = std.lv,
-              rotation = "target",
-              rotation.args = list(
-                rstarts = 30, row.weights = "none", algorithm = "gpa",
-                std.ov = TRUE, target = target, orthogonal = orthogonal
-              )
-            )
-          } else {
-            sem(
-              model   = mods1,
-              data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
-              missing = miss,
-              estimator = est,
-              std.lv  = std.lv,
-              rotation = "target",
-              rotation.args = list(
-                rstarts = 30, row.weights = "none", algorithm = "gpa",
-                std.ov = TRUE, target = target, orthogonal = orthogonal
-              )
-            )
-          }
-        }
-      }
-    },
-    mods1 = mods,
-    m1 = m_test,
-    hash_d1 = hash_d_test,
-    n_mod = names(mods),
-    ft = fit_type,
-    n = seq_along(mods),
-    SIMPLIFY = FALSE
+      },
+      mods1 = mods,
+      m1 = m_test,
+      hash_d1 = hash_d_test,
+      n_mod = names(mods),
+      ft = fit_type,
+      n = seq_along(mods),
+      SIMPLIFY = FALSE
+    )
   )
-  options(warn = og_warn)
   message("Generating parameter estimates")
   par <- mapply(
     function(m1, hash_d1, n_mod, fit1, pt, n) {
