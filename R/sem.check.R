@@ -97,7 +97,7 @@
 #' faster models, such that time spent rerunning code would be onerous.
 #' However, the functionality can be safely used for faster runs too.
 #'
-#' @importFrom gsubfn gsubfn
+#' @importFrom stringr str_replace_all
 #' @importFrom lavaan sem
 #' @importFrom lavaan standardizedSolution
 #' @importFrom lavaan parameterEstimates
@@ -119,8 +119,9 @@ sem.check <- function(
     stop("`fit_measures` is not a character vector.")
   }
   # For completeness
-  # (not sure why anyone would do this but it causes some weirdness if they do
-  # without this)
+  # (I'm not sure why anyone would do this but it causes some weirdness if they
+  # do without this.)
+  # No need to test (mostly covered by measures that don't exist).
   if (fit_save & fit_measures[1] == "all" & length(fit_measures) > 1) {
     stop(
       paste(
@@ -296,12 +297,16 @@ sem.check <- function(
         function(x) {
           if (x %in% names(m0)) {
             # Only check to 4-decimal places.
-            gsubfn("([0-9]\\.[0-9]+)",
-                   ~format(round(as.numeric(x), 4), nsmall = 4),
-                   mods0[[x]]) ==
-              gsubfn("([0-9]\\.[0-9]+)",
-                     ~format(round(as.numeric(x), 4), nsmall = 4),
-                     m0[[x]])
+            str_replace_all(
+              mods0[[x]],
+              "([0-9]\\.[0-9]+)",
+              ~format(round(as.numeric(x), 4), nsmall = 4)
+            ) ==
+              str_replace_all(
+                m0[[x]],
+                "([0-9]\\.[0-9]+)",
+                ~format(round(as.numeric(x), 4), nsmall = 4)
+              )
           } else FALSE
         }
       )
