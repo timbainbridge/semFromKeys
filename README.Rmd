@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # semFromKeys
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The semFromKeys package was designed to streamline running exploratory structural equation models (ESEM) where EFA factors predict a series of latent variables in separate models using Burt's (1976) 2-stage procedure to prevent interpretational confounding. The package is designed to run analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).

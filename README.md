@@ -5,6 +5,7 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The semFromKeys package was designed to streamline running exploratory
@@ -242,7 +243,7 @@ values and regression parameters.
 # lavaan::summary(esem_fit$fit$grit_c)  # Standard lavaan summary
 esem_fit$r2
 #>               R2         se  ci.lower  ci.upper
-#> grit_c 0.5082472 0.04077849 0.4283228 0.5881715
+#> grit_c 0.5082472 0.04077850 0.4283228 0.5881715
 #> grit_p 0.7311690 0.03457043 0.6634122 0.7989258
 #> hope_a 0.7821293 0.02977472 0.7237719 0.8404867
 #> hope_p 0.6100138 0.03990771 0.5317961 0.6882315
