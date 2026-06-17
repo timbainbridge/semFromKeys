@@ -1,6 +1,6 @@
 Package: semFromKeys
 Type: Package
-Title: Run Structural Equation lavaan Models from Keys Lists
+Title: Run lavaan Models from Keys Lists
 Version: 0.1.0
 Authors@R: c(
     person(
