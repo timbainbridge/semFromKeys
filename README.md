@@ -241,12 +241,12 @@ values and regression parameters.
 ``` r
 # Not run due to length
 # lavaan::summary(esem_fit$fit$grit_c)  # Standard lavaan summary
-esem_fit$r2
-#>               R2         se  ci.lower  ci.upper
-#> grit_c 0.5082472 0.04077850 0.4283228 0.5881715
-#> grit_p 0.7311690 0.03457043 0.6634122 0.7989258
-#> hope_a 0.7821293 0.02977472 0.7237719 0.8404867
-#> hope_p 0.6100138 0.03990771 0.5317961 0.6882315
+round(esem_fit$r2, 3)
+#>           R2    se ci.lower ci.upper
+#> grit_c 0.508 0.041    0.428    0.588
+#> grit_p 0.731 0.035    0.663    0.799
+#> hope_a 0.782 0.030    0.724    0.840
+#> hope_p 0.610 0.040    0.532    0.688
 esem_fit$b$grit_c
 #>       rhs est.std    se      z pvalue ci.lower ci.upper
 #> 388 bfi_e  -0.155 0.046 -3.369  0.001   -0.244   -0.065

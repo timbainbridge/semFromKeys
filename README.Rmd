@@ -111,7 +111,7 @@ The function provides standard lavaan outputs, as well as r-squared values and r
 ```{r example-esem2}
 # Not run due to length
 # lavaan::summary(esem_fit$fit$grit_c)  # Standard lavaan summary
-esem_fit$r2
+round(esem_fit$r2, 3)
 esem_fit$b$grit_c
 ```
 
