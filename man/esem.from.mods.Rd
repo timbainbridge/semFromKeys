@@ -2,8 +2,7 @@
 % Please edit documentation in R/esem.from.mods.R
 \name{esem.from.mods}
 \alias{esem.from.mods}
-\title{Runs Exploratory Structural Equation Models based on Confirmatory and
-Exploratory Factor Analyses model outputs and keys.}
+\title{Runs ESEM based on CFA and EFA model outputs.}
 \usage{
 esem.from.mods(
   efa_fit,

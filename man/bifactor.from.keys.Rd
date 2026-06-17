@@ -2,7 +2,7 @@
 % Please edit documentation in R/bifactor.from.keys.R
 \name{bifactor.from.keys}
 \alias{bifactor.from.keys}
-\title{Runs bifactor models for multiple scales based on items in a keys list.}
+\title{Runs bifactor models for multiple scales based on keys lists.}
 \usage{
 bifactor.from.keys(
   keys_g,
