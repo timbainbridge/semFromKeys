@@ -187,7 +187,7 @@ bifactor.from.keys <- function(
     }
   )
   items <- with_options(
-    warn = 1,
+    list(warn = 1),
     mapply(
       function(x, xn, y) {
         sapply(
