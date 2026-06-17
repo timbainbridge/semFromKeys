@@ -337,7 +337,7 @@ esem.from.mods <- function(
         efa_items,
         function(x) {
           tmp <- efa_par[efa_par$op == "=~" & efa_par$rhs == x, ]
-          unlist(tmp[tmp$est == max(abs(tmp$est)), c("lhs", "rhs")])
+          unlist(tmp[abs(tmp$est) == max(abs(tmp$est)), c("lhs", "rhs")])
         }
       )
     )
