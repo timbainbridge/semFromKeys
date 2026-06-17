@@ -34,7 +34,7 @@
 #' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
 #' function.
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
-##' @param miss
+#' @param miss
 #' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' Defaults to 'ML'.
 #' @param est
@@ -186,60 +186,55 @@ bifactor.from.keys <- function(
       }
     }
   )
-  og_warn <- getOption("warn")
-  options(warn = 1)
-  items <- mapply(
-    function(x, xn, y) {
-      sapply(
-        y,
-        function(z) {
-          if (sum(!keys[[z]] %in% x) == length(keys[[z]])) {
-            stop(
-              paste0(
-                "All the items in the `",
-                z,
-                "` group factor are not in the `",
-                xn,
-                "` general factor."
+  items <- with_options(
+    warn = 1,
+    mapply(
+      function(x, xn, y) {
+        sapply(
+          y,
+          function(z) {
+            if (sum(!keys[[z]] %in% x) == length(keys[[z]])) {
+              stop(
+                paste0(
+                  "All the items in the `",
+                  z,
+                  "` group factor are not in the `",
+                  xn,
+                  "` general factor."
+                )
               )
-            )
+            }
           }
-        }
-      )
-      if (sum(!unlist(keys[y]) %in% x) > 0) {
-        warning(
-          paste(
-            "The following item(s) are in a group factor but not in the",
-            "general factor:\n   ",
-            paste(unlist(keys[y])[!unlist(keys[y]) %in% x], collapse = "\n    ")
-          )
         )
-        c(x, unlist(keys[y])[!unlist(keys[y]) %in% x])
-      } else {
-        x
-      }
-    },
-    x = keys_g, xn = names(keys_g), y = keys_b
+        if (sum(!unlist(keys[y]) %in% x) > 0) {
+          warning(
+            paste(
+              "The following item(s) are in a group factor but not in the",
+              "general factor:\n   ",
+              paste(unlist(keys[y])[!unlist(keys[y]) %in% x], collapse = "\n    ")
+            )
+          )
+          c(x, unlist(keys[y])[!unlist(keys[y]) %in% x])
+        } else {
+          x
+        }
+      },
+      x = keys_g, xn = names(keys_g), y = keys_b
+    )
   )
-  options(warn = og_warn)
   mods <- mapply(
     function(x, y, z) {
       tmp <- paste(z, "=~", paste(x, collapse = " + "))
-      if (length(y) != 0) {
-        tmp1 <- paste0(
-          c(
-            tmp,
-            mapply(
-              function(i, ni) paste(ni, "=~", paste0(i, collapse = " + ")),
-              i = keys[y], ni = names(keys[y]), SIMPLIFY = FALSE
-            )
-          ),
-          collapse = "\n"
-        )
-      } else {
-        tmp1 <- tmp
-      }
-      tmp1
+      paste0(
+        c(
+          tmp,
+          mapply(
+            function(i, ni) paste(ni, "=~", paste0(i, collapse = " + ")),
+            i = keys[y], ni = names(keys[y]), SIMPLIFY = FALSE
+          )
+        ),
+        collapse = "\n"
+      )
     },
     x = keys_g, y = keys_b, z = names(keys_g), SIMPLIFY = FALSE
   )

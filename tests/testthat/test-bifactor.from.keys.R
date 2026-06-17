@@ -78,6 +78,18 @@ test_that(
   }
 )
 test_that(
+  "Different order of `keys_b` and `keys_g`elements",
+  {
+    keys_b_swap <- keys_b[2:1]
+    expect_error(
+      bifactor.from.keys(
+        keys_g, keys_b_swap, keys, BFIGritHope, check = FALSE, fit_save = FALSE
+      ),
+      'Names of `keys_g` do not match.*`keys_b`'
+    )
+  }
+)
+test_that(
   "Mistakes in keys lists",
   {
     keys_mistake <- keys
@@ -87,7 +99,7 @@ test_that(
     keys_b_mistake <- keys_b
     keys_b_mistake$grit[1] <- "mistake"
     expect_error(
-      suppressWarnings(  # The warning is checked elsewhere.
+      suppressWarnings(
         bifactor.from.keys(
           keys_g, keys_b, keys_mistake, BFIGritHope,
           check = FALSE, fit_save = FALSE
