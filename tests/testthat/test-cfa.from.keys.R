@@ -41,6 +41,18 @@ test_that(
   }
 )
 test_that(
+  "`fit_measures` is not a character vector",
+  {
+    expect_error(
+      cfa.from.keys(
+        keys, BFIGritHope, check = FALSE, fit_save = TRUE,
+        fit_measures = 42
+      ),
+      "`fit_measures` is not a character vector"
+    )
+  }
+)
+test_that(
   "Incorrect fit measures",
   {
     expect_warning(
@@ -55,7 +67,7 @@ test_that(
         keys, BFIGritHope, check = FALSE, fit_save = TRUE,
         fit_measures = c("NotAFitMeasure", "AlsoNotAFitMeasure", "cfi")
       ),
-      "NotA|AlsoN"
+      "fit measures that you specified are not recognised"
     )
   }
 )
