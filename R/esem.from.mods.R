@@ -410,6 +410,7 @@ esem.from.mods <- function(
     name = name,
     kl_s = kl_s,
     kl_e = efa_keys,
+    out_dir = out_dir,
     std = TRUE,  # For r2 calcs.
     fit_save = fit_save,
     fit_measures = fit_measures,
@@ -445,6 +446,7 @@ esem.from.mods <- function(
     list(
       fit = mod_out$fit,
       par_std = mod_out$par_std,
+      fit_measures = mod_out$fit_measures,
       b = b,
       r2 = r2
     )

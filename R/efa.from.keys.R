@@ -126,6 +126,7 @@ efa.from.keys <- function(
     fit_measures = fit_measures,
     orthogonal = orthogonal,
     std.lv = std.lv,
+    out_dir = out_dir,
     target = target,
     miss = miss,
     est = est,
