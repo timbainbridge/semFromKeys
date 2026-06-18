@@ -1,8 +1,8 @@
-#' BFI and independent scale data from Bainbridge, Ludeke, & Smillie (2022),
+#' BFI, Grit, and Hope data from Bainbridge, Ludeke, & Smillie (2022),
 #' Study 2b.
 #'
-#' The subset of the data reported in the paper include only the BFI-2, grit,
-#' hope, and impulsivity.
+#' The subset of the data reported in the paper include only the BFI-2, Grit,
+#' and hope.
 #'
 #' @format ## `BFIGritHopeImp`
 #' A data frame with 388 rows and 95 columns:
