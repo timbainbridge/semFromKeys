@@ -123,6 +123,28 @@
 #' @importFrom openssl md5
 #' @importFrom withr with_options
 #' @export
+#'
+#' @examples
+#' # Although it is recommended to use the appropriate upstream functions
+#' # (i.e., cfa.from.keys(), efa.from.keys(), and/or bifactor.from.keys())
+#' # whenever possible,
+#' # they are not (currently) options when customised lavaan models are
+#' # required;
+#' # for example, when allowing two items residuals to correlate in a CFA.
+#' # Create CFA keys
+#' keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
+#' keys <- sapply(
+#'   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+#' )
+#' # Create model code
+#' mods <- mapply(
+#'   x = keys, y = names(keys), SIMPLIFY = FALSE,
+#'   FUN = function(x, y) paste(y, "=~", paste(x, collapse = " + "))
+#' )
+#' # Edit model code to add correlated residuals
+#' mods[[1]] <- paste0(mods[[1]], "\ngrit_c_1 ~~ grit_c_2")
+#' # Estimate the models with sem.check()
+#' cfa_fit <- sem.check(mods, BFIGritHope, "cfa", keys, check = FALSE)
 
 sem.check <- function(
     mods, dat, kl_s = NULL, kl_e = NULL, std = TRUE,
