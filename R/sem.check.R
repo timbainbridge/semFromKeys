@@ -13,17 +13,17 @@
 #' @param mods Named list of lavaan models to run.
 #' @param dat
 #' The data. This must include all observed variables used in any of the models.
-#' @param name
-#' A subdirectory for each function where model outputs will be saved when
-#' `save_out = TRUE`.
-#' The name should be unique for each time any function is called from the
-#' package or outputs from other calls will be overwritten.
 #' @param kl_s A named keys list matching the names and length of mod.
 #' @param kl_e A named keys list of the factors in an ESEM to be included.
 #' @param std
 #' `TRUE` to save standardised parameter estimates;
 #' `FALSE` to save unstandardised parameters estimates.
-#' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
+#' @param fit_save
+#' `TRUE` to include model fit measures in the output. `FALSE` otherwise.
+#' `FALSE` may be desirable when you do not care about fit measures and where
+#' they may take a long time to estimate.
+#' Fit can still be examined for individual models with something like,
+#' `lavaan::fitMeasures(fit$fit$model)`.
 #' @param fit_measures
 #' A vector of fit measures to save or 'all' to select all fit measures,
 #' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
@@ -31,11 +31,19 @@
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param target
 #' A rotation target as used in rotation.args in lavaan (see [lavaan::efa()].
-#' Defaults to `NULL`
+#' If `NULL`, target is not specified and lavaan uses default behaviour.
+#' Defaults to `NULL`.
+#' Irrelevant when the model does not include an EFA or ESEM.
+#' @param name
+#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
+#' Defaults to "sem".
+#' The name should be unique for each set of models or outputs from other
+#' calls will be overwritten.
 #' @param out_dir
 #' A parent directory for collecting outputs from `semFromKeys` function calls
 #' when `save_out = TRUE`.
 #' Defaults to 'output'.
+#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' @param orthogonal
 #' Sets the `orthogonal` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' Defaults to `FALSE`.
@@ -46,17 +54,22 @@
 #' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' The default ('default') uses the lavaan default for the model being run.
 #' @param std.lv
-#' Sets the `std.lv` parameter, as per lavaan. Defaults to `FALSE`.
+#' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' Defaults to `FALSE`.
 #' @param check
 #' Should the code check to see if previous outputs have been saved?
-#' If `TRUE`, the model will not run if model code and a data hash have not
-#' changed and output is of class lavaan.
+#' If `TRUE`, the model will not run if model code, parameters, and a data hash
+#' have not changed and output is of the correct class.
 #' If `FALSE`, the model will run regardless of the existence of previous
 #' outputs.
 #' @param save_out
 #' Should outputs be saved to enable checking next time?
-#' If `TRUE` model code, a hash of the data, and output will be saved and will
-#' be checked against for changes next time the code is run.
+#' If `TRUE`, model code, a hash of the data, important input parameter values,
+#' and output will be saved.
+#' If `check = TRUE` the next time the code is run,
+#' then saved inputs and outputs will be checked against current values to
+#' determine whether the code needs to be rerun.
+#' If not, the outputs from the previous run will be returned.
 #' If `FALSE`, nothing will be saved, the output will simply be returned as per
 #' normal R functioning. Next time the code is run, models will be re-estimated
 #' regardless of changes to code or data.

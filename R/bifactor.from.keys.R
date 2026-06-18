@@ -22,11 +22,14 @@
 #' @param d
 #' The data. This must include all observed variables used in any of the models.
 #' @param name
-#' A name for the collection of models. Defaults to 'bifactor'.
-#' The name should be unique for each time any function is called from the
-#' package or outputs from other calls will be overwritten.
+#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
+#' Defaults to 'bifactor'.
+#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
+#' The name should be unique for each set of models or outputs from other
+#' calls will be overwritten.
 #' @param out_dir
 #' The directory where all function outputs will be saved. Defaults to 'output'.
+#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `TRUE`.
 #' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
 #' @param fit_measures
