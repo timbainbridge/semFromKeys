@@ -127,6 +127,12 @@
 #' group and general factors ought to remain close to zero.
 #' This is the method employed by `esem.from.mods()`.
 #'
+#' @seealso
+#' [sem.check()], which this function uses for all the back-end;
+#' [cfa.from.keys()], [efa.from.keys()], and [bifactor.from.keys()],
+#' which are useful functions for creating inputs into `esem.from.mods()`; and
+#' [lavaan::sem()], which is used to estimate the models.
+#'
 #' @references
 #' Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).
 #' Evaluating the Big Five as an organizing framework for commonly used

@@ -110,6 +110,11 @@
 #' faster models, such that time spent rerunning code would be onerous.
 #' However, the functionality can be safely used for faster runs too.
 #'
+#' @seealso
+#' [cfa.from.keys()], [efa.from.keys()], [bifactor.from.keys()], and
+#' [esem.from.keys()]---all these function depend upon `sem.check()` to work---
+#' and [lavaan::sem()], which is used to estimate the models.
+#'
 #' @importFrom stringr str_replace_all
 #' @importFrom lavaan sem
 #' @importFrom lavaan standardizedSolution

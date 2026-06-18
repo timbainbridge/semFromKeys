@@ -72,6 +72,10 @@
 #' For further details on how this works, see the [sem.check()] function
 #' documentation.
 #'
+#' @seealso
+#' [sem.check()], which `efa.from.keys()` uses for all the back-end, and
+#' [lavaan::sem()], which is used to estimate the models.
+#'
 #' @references
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation

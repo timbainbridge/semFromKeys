@@ -71,6 +71,10 @@
 #' model code is saved in `file.path(out_dir, name, paste0(name, _mod.rds)`,
 #' which could help with manually updating models.)
 #'
+#' @seealso
+#' [sem.check()], which `cfa.from.keys()` uses for all the back-end, and
+#' [lavaan::sem()], which is used to estimate the models.
+#'
 #' @export
 #'
 #' @examples

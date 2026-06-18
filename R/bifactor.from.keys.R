@@ -110,6 +110,10 @@
 #' models of human cognitive ability structure. Intelligence, 41(5), 407-422.
 #' http://dx.doi.org/10.1016/j.intell.2013.06.004.
 #'
+#' @seealso
+#' [sem.check()], which `bifactor.from.keys()` uses for all the back-end, and
+#' [lavaan::sem()], which is used to estimate the models.
+#'
 #' @export
 #'
 #' @examples
