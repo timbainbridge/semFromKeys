@@ -49,7 +49,7 @@ test_that(
   }
 )
 
-# keys_e goes to kl_e in sem.check, not kl_s, so needs to be tested
+# keys_e goes to keys_e in sem.check, not keys_s, so needs to be tested
 test_that(
   "Misspecified keys",
   {
@@ -57,11 +57,11 @@ test_that(
     keys_mistake$bfi_e[1] <- "mistake"
     expect_error(
       efa.from.keys(keys_mistake, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "items are in `kl_e` but they are not in `dat`"
+      "items are in `keys_e` but they are not in `data`"
     )
     expect_error(
       efa.from.keys(keys_e$bfi_e, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "`kl_e` is not a list"
+      "`keys_e` is not a list"
     )
   }
 )
@@ -72,7 +72,7 @@ test_that(
     names(keys_e_nm)[1:2] <- "bfi_e"
     expect_error(
       efa.from.keys(keys_e_nm, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "two elements of `kl_e` share the same name"
+      "two elements of `keys_e` share the same name"
     )
   }
 )

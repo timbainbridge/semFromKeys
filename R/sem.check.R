@@ -145,7 +145,7 @@
 #' # Edit model code to add correlated residuals
 #' mods[[1]] <- paste0(mods[[1]], "\ngrit_c_1 ~~ grit_c_2")
 #' # Estimate the models with sem.check()
-#' cfa_fit <- sem.check(mods, BFIGritHope, "cfa", keys, check = FALSE)
+#' cfa_fit <- sem.check(mods, BFIGritHope, keys, name = "cfa", check = FALSE)
 
 sem.check <- function(
     mods, data, keys_s = NULL, keys_e = NULL, std = TRUE,

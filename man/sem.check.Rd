@@ -157,7 +157,7 @@ mods <- mapply(
 # Edit model code to add correlated residuals
 mods[[1]] <- paste0(mods[[1]], "\ngrit_c_1 ~~ grit_c_2")
 # Estimate the models with sem.check()
-cfa_fit <- sem.check(mods, BFIGritHope, "cfa", keys, check = FALSE)
+cfa_fit <- sem.check(mods, BFIGritHope, keys, name = "cfa", check = FALSE)
 }
 \seealso{
 \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, and
