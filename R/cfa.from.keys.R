@@ -6,50 +6,26 @@
 #' designed to streamline running CFA models for all scales in a sample and to
 #' input model outputs into downstream functions.
 #'
+#' @inheritParams sem.check
 #' @param keys
 #' A named list of keys. Names should be scale names, elements should a list of
 #' items included in each scale.
-#' @param d
-#' The data. This must include all observed variables used in any of the models.
+#' @param data
+#' The data. This must include all observed variables in any of the keys.
 #' @param name
 #' A subdirectory where model outputs will be saved when `save_out = TRUE`.
-#' Defaults to 'cfa'. Irrelevant if both `save_out = FALSE` and `check = FALSE`.
+#' Defaults to 'cfa'.
+#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models or outputs from other
 #' calls will be overwritten.
-#' @param out_dir
-#' The directory where all function outputs will be saved. Defaults to 'output'.
-#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `TRUE`.
-#' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
-#' @param fit_measures
-#' A vector of fit measures to save or 'all' to select all fit measures,
-#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
-#' function.
-#' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
-#' @param miss
-#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
-#' Defaults to 'ML'.
-#' @param est
-#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
-#' The default ('default') uses the lavaan default for the model being run.
-#' @param check
-#' Should the code check to see if previous outputs have been saved?
-#' If `TRUE`, the model will not run if model code and a data hash have not
-#' changed and output is of class lavaan.
-#' If `FALSE`, the model will run regardless of the existence of previous
-#' outputs.
-#' @param save_out
-#' Should outputs be saved to enable checking next time?
-#' If `TRUE` model code, a hash of the data, and output will be saved and will
-#' be checked against for changes next time the code is run.
-#' If `FALSE`, nothing will be saved, the output will simply be returned as per
-#' normal R functioning. Next time the code is run, models will be re-estimated
-#' regardless of changes to code or data.
+#' @param std.lv
+#' Sets the `std.lv` param, as per lavaan (see [lavaan::lavOptions()]).
+#' Defaults to `TRUE`.
 #'
 #' @return
 #' Returns a list of lists.
 #' The elements are a list of lavaan CFA model output objects;
-#' a list of parameter estimates from the models (standardized if `std = TRUE`);
+#' a list of parameter estimates from the models;
 #' and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
 #'
 #' @details
@@ -91,7 +67,7 @@
 #' cfa_fit$fit_measures         # Fit measures
 
 cfa.from.keys <- function(
-    keys, d, name = "cfa", out_dir = "output", std.lv = TRUE,
+    keys, data, name = "cfa", out_dir = "output", std.lv = TRUE,
     fit_save = TRUE, fit_measures = "all", miss = "ML", est = "default",
     check = TRUE, save_out = FALSE
 ) {
@@ -112,10 +88,10 @@ cfa.from.keys <- function(
   )
   sem.check(
     mods,
-    d,
+    data,
     name = name,
-    kl_s = keys,
-    kl_e = NULL,
+    keys_s = keys,
+    keys_e = NULL,
     std = FALSE,  # For use in 2-stage procedure, must use non-standardised.
     fit_save = fit_save,
     fit_measures = fit_measures,

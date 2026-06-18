@@ -6,9 +6,9 @@
 \usage{
 sem.check(
   mods,
-  dat,
-  kl_s = NULL,
-  kl_e = NULL,
+  data,
+  keys_s = NULL,
+  keys_e = NULL,
   std = TRUE,
   fit_save = FALSE,
   fit_measures = "all",
@@ -26,16 +26,20 @@ sem.check(
 \arguments{
 \item{mods}{Named list of lavaan models to run.}
 
-\item{dat}{The data. This must include all observed variables used in any of the models.}
+\item{data}{The data. This must include all observed variables used in any of the models.}
 
-\item{kl_s}{A named keys list matching the names and length of mod.}
+\item{keys_s}{A named keys list matching the names and length of mod.}
 
-\item{kl_e}{A named keys list of the factors in an ESEM to be included.}
+\item{keys_e}{A named keys list of the factors in an ESEM to be included.}
 
 \item{std}{\code{TRUE} to save standardised parameter estimates;
 \code{FALSE} to save unstandardised parameters estimates.}
 
-\item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
+\item{fit_save}{\code{TRUE} to include model fit measures in the output. \code{FALSE} otherwise.
+\code{FALSE} may be desirable when you do not care about fit measures and where
+they may take a long time to estimate.
+Fit can still be examined for individual models with something like,
+\code{lavaan::fitMeasures(fit$fit$model)}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
 as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
@@ -43,16 +47,19 @@ function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{target}{A rotation target as used in rotation.args in lavaan (see \code{\link[lavaan:efa]{lavaan::efa()}}.
-Defaults to \code{NULL}}
+If \code{NULL}, target is not specified and lavaan uses default behaviour.
+Defaults to \code{NULL}.
+Irrelevant when the model does not include an EFA or ESEM.}
 
-\item{name}{A subdirectory for each function where model outputs will be saved when
-\code{save_out = TRUE}.
-The name should be unique for each time any function is called from the
-package or outputs from other calls will be overwritten.}
+\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
+Defaults to "sem".
+The name should be unique for each set of models or outputs from other
+calls will be overwritten.}
 
 \item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
 when \code{save_out = TRUE}.
-Defaults to 'output'.}
+Defaults to 'output'.
+Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.}
 
 \item{orthogonal}{Sets the \code{orthogonal} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to \code{FALSE}.}
@@ -63,17 +70,23 @@ Defaults to 'ML'.}
 \item{est}{Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
 
-\item{std.lv}{Sets the \code{std.lv} parameter, as per lavaan. Defaults to \code{FALSE}.}
+\item{std.lv}{Sets the \code{std.lv} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to \code{FALSE}.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
-If \code{TRUE}, the model will not run if model code and a data hash have not
-changed and output is of class lavaan.
+If \code{TRUE}, the model will not run if model code, parameters, and a data hash
+exist and have not changed and output is of the correct class.
 If \code{FALSE}, the model will run regardless of the existence of previous
 outputs.}
 
 \item{save_out}{Should outputs be saved to enable checking next time?
-If \code{TRUE} model code, a hash of the data, and output will be saved and will
-be checked against for changes next time the code is run.
+If \code{TRUE}, model code, a hash of the data, important input parameter values,
+and output will be saved.
+If \code{check = TRUE} the next time the code is run,
+then saved inputs will be checked against current values to determine whether
+the code needs to be rerun.
+If not (and the outputs are the correct class),
+then the outputs from the previous run will be returned.
 If \code{FALSE}, nothing will be saved, the output will simply be returned as per
 normal R functioning. Next time the code is run, models will be re-estimated
 regardless of changes to code or data.}
@@ -123,4 +136,31 @@ and not checking for past saves (i.e., \code{check = FALSE}).
 The functionality is intended for a number of very slow models or a lot of
 faster models, such that time spent rerunning code would be onerous.
 However, the functionality can be safely used for faster runs too.
+}
+\examples{
+# Although it is recommended to use the appropriate upstream functions
+# (i.e., cfa.from.keys(), efa.from.keys(), and/or bifactor.from.keys())
+# whenever possible,
+# they are not (currently) options when customised lavaan models are
+# required;
+# for example, when allowing two items residuals to correlate in a CFA.
+# Create CFA keys
+keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
+keys <- sapply(
+  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+)
+# Create model code
+mods <- mapply(
+  x = keys, y = names(keys), SIMPLIFY = FALSE,
+  FUN = function(x, y) paste(y, "=~", paste(x, collapse = " + "))
+)
+# Edit model code to add correlated residuals
+mods[[1]] <- paste0(mods[[1]], "\ngrit_c_1 ~~ grit_c_2")
+# Estimate the models with sem.check()
+cfa_fit <- sem.check(mods, BFIGritHope, "cfa", keys, check = FALSE)
+}
+\seealso{
+\code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, and
+\code{\link[=esem.from.mods]{esem.from.mods()}}---all these function depend upon \code{sem.check()} to work---
+and \code{\link[lavaan:sem]{lavaan::sem()}}, which is used to estimate the models.
 }

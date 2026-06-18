@@ -9,6 +9,7 @@
 #' The function is designed to steamline running CFA models for all scales in a
 #' sample and to input model outputs into downstream functions.
 #'
+#' @inheritParams sem.check
 #' @param keys_g
 #' A named list of general factors. Names must be the names of the general
 #' factors, elements are vectors of items that will load on the general factor.
@@ -19,43 +20,17 @@
 #' A named list of items of group factors. Names must be group factor names.
 #' Elements must be items that load on the group factors.
 #' Elements must include group factors across all bifactor models.
-#' @param d
-#' The data. This must include all observed variables used in any of the models.
+#' @param data
+#' The data. This must include all observed variables in any of the keys.
 #' @param name
 #' A subdirectory where model outputs will be saved when `save_out = TRUE`.
 #' Defaults to 'bifactor'.
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models or outputs from other
 #' calls will be overwritten.
-#' @param out_dir
-#' The directory where all function outputs will be saved. Defaults to 'output'.
-#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `TRUE`.
-#' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
-#' @param fit_measures
-#' A vector of fit measures to save or 'all' to select all fit measures,
-#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
-#' function.
-#' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
-#' @param miss
-#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
-#' Defaults to 'ML'.
-#' @param est
-#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
-#' The default ('default') uses the lavaan default for the model being run.
-#' @param check
-#' Should the code check to see if previous outputs have been saved?
-#' If `TRUE`, the model will not run if model code and a data hash have not
-#' changed and output is of class lavaan.
-#' If `FALSE`, the model will run regardless of the existence of previous
-#' outputs.
-#' @param save_out
-#' Should outputs be saved to enable checking next time?
-#' If `TRUE` model code, a hash of the data, and output will be saved and will
-#' be checked against for changes next time the code is run.
-#' If `FALSE`, nothing will be saved, the output will simply be returned as per
-#' normal R functioning. Next time the code is run, models will be re-estimated
-#' regardless of changes to code or data.
+#' @param std.lv
+#' Sets the `std.lv` param, as per lavaan (see [lavaan::lavOptions()]).
+#' Defaults to `TRUE`.
 #'
 #' @return
 #' Returns a list of lists.
@@ -103,12 +78,12 @@
 #' Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
 #' Anomalous results in G-factor models: Explanations and alternatives.
 #' Psychological Methods, 22(3), 541-562.
-#' https://doi.apa.org/doi/10.1037/met0000083.
+#' doi.org/10.1037/met0000083.
 #'
 #' Murray, A. L. & Johnson, W. (2013).
 #' The limitations of model fit in comparing the bi-factor versus higher-order
 #' models of human cognitive ability structure. Intelligence, 41(5), 407-422.
-#' http://dx.doi.org/10.1016/j.intell.2013.06.004.
+#' doi.org/10.1016/j.intell.2013.06.004.
 #'
 #' @seealso
 #' [sem.check()], which `bifactor.from.keys()` uses for all the back-end, and
@@ -144,7 +119,7 @@
 #' bif_fit$fit_measures       # Fit measures
 
 bifactor.from.keys <- function(
-  keys_g, keys_b, keys, d, name = "bifactor", out_dir = "output",
+  keys_g, keys_b, keys, data, name = "bifactor", out_dir = "output",
   std.lv = TRUE, fit_save = TRUE, fit_measures = "all", miss = "ML",
   est = "default", check = TRUE, save_out = FALSE
 ) {
@@ -247,10 +222,10 @@ bifactor.from.keys <- function(
   )
   sem.check(
     mods,
-    d,
+    data,
     name = name,
-    kl_s = items,
-    kl_e = NULL,
+    keys_s = items,
+    keys_e = NULL,
     std = FALSE,  # For use in 2-stage procedure, must use non-standardised.
     fit_save = fit_save,
     fit_measures = fit_measures,

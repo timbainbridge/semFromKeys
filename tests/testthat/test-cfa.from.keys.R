@@ -23,10 +23,10 @@ test_that(
   {
     expect_error(
       cfa.from.keys(keys = NULL, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "one of `kl_s` or `kl_e`"
+      "one of `keys_s` or `keys_e`"
     )
     expect_error(
-      cfa.from.keys(d = BFIGritHope, check = FALSE, fit_save = FALSE),
+      cfa.from.keys(data = BFIGritHope, check = FALSE, fit_save = FALSE),
       'argument "keys" is missing'
     )
   }
@@ -36,7 +36,7 @@ test_that(
   {
     expect_error(
       cfa.from.keys(keys, check = FALSE, fit_save = FALSE),
-      'argument "d" is missing'
+      'argument "data" is missing'
     )
   }
 )
@@ -103,7 +103,7 @@ test_that(
     keys_mistake$grit_c[1] <- "mistake"
     expect_error(
       cfa.from.keys(keys_mistake, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "items are in `kl_s` but they are not in `dat`"
+      "items are in `keys_s` but they are not in `data`"
     )
   }
 )
@@ -112,7 +112,7 @@ test_that(
   {
     expect_error(
       cfa.from.keys(keys$grit_c, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "`kl_s` is not a list"
+      "`keys_s` is not a list"
     )
   }
 )
@@ -140,7 +140,7 @@ test_that(
     names(keys_nm)[1:2] <- "grit"
     expect_error(
       cfa.from.keys(keys_nm, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "two elements of `kl_s` share the same name"
+      "two elements of `keys_s` share the same name"
     )
   }
 )
@@ -212,8 +212,8 @@ test_that(
       "some variables have no values"
     )
     expect_error(
-      cfa.from.keys(keys, d = "cfa", check = FALSE, fit_save = FALSE),
-      "items are in `kl_s` but they are not in `dat`"
+      cfa.from.keys(keys, data = "cfa", check = FALSE, fit_save = FALSE),
+      "items are in `keys_s` but they are not in `data`"
     )
   }
 )

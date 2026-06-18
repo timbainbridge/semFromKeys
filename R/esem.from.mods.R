@@ -9,6 +9,7 @@
 #' use outputs from [efa.from.keys()], and [cfa.from.keys()] or
 #' [bifactor.from.keys()].
 #'
+#' @inheritParams sem.check
 #' @param efa_fit A fitted lavaan object of an EFA model.
 #' @param cfa_fit
 #' A named list of fitted lavaan objects of CFA models.
@@ -16,42 +17,12 @@
 #' @param bif_fit
 #' A list of fitted lavaan objects of bifactor models.
 #' Can be `NULL` if `cfa_fit` is not `NULL`.
-#' @param d
-#' The data. This must include all observed variables used in any of the models.
 #' @param name
 #' A subdirectory where model outputs will be saved when `save_out = TRUE`.
 #' Defaults to "esem".
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models or outputs from other
 #' calls will be overwritten.
-#' @param out_dir
-#' The directory where all function outputs will be saved. Defaults to 'output'.
-#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
-#' @param fit_measures
-#' A vector of fit measures to save or 'all' to select all fit measures,
-#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
-#' function.
-#' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
-#' @param miss
-#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
-#' Defaults to 'ML'.
-#' @param est
-#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
-#' The default ('default') uses the lavaan default for the model being run.
-#' @param check
-#' Should the code check to see if previous outputs have been saved?
-#' If `TRUE`, the model will not run if model code and a data hash have not
-#' changed and output is of class lavaan.
-#' If `FALSE`, the model will run regardless of the existence of previous
-#' outputs.
-#' @param save_out
-#' Should outputs be saved to enable checking next time?
-#' If `TRUE` model code, a hash of the data, and output will be saved and will
-#' be checked against for changes next time the code is run.
-#' If `FALSE`, nothing will be saved, the output will simply be returned as per
-#' normal R functioning. Next time the code is run, models will be re-estimated
-#' regardless of changes to code or data.
 #'
 #' @return
 #' Returns a length 2 or 3 list of lists.
@@ -138,12 +109,12 @@
 #' Evaluating the Big Five as an organizing framework for commonly used
 #' psychological trait scales.
 #' Journal of Personality and Social Psychology, 122(4), 749-777.
-#' http://doi.apa.org/getdoi.cfm?doi=10.1037/pspp0000395.
+#' doi.org/10.1037/pspp0000395.
 #'
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
 #' Models. Sociological Methods & Research, 5(1), 3-52.
-#' http://journals.sagepub.com/doi/10.1177/004912417600500101.
+#' doi.org/10.1177/004912417600500101.
 #'
 #' @export
 #'
@@ -185,7 +156,7 @@
 #' )
 #' # Run models
 #' esem_fit <- esem.from.mods(
-#'   efa_fit$fit$efa, cfa_fit$fit, bif_fit$fit, d = BFIGritHope,
+#'   efa_fit$fit$efa, cfa_fit$fit, bif_fit$fit, data = BFIGritHope,
 #'   fit_save = FALSE, check = FALSE
 #' )
 #' # Examine results
@@ -196,7 +167,7 @@
 
 esem.from.mods <- function(
     efa_fit, cfa_fit = NULL, bif_fit = NULL,
-    d, name = "esem", out_dir = "output",
+    data, name = "esem", out_dir = "output",
     fit_save = FALSE, fit_measures = "all",
     miss = "ML", est = "default", check = TRUE, save_out = FALSE
 ) {
@@ -405,20 +376,20 @@ esem.from.mods <- function(
   }
   if (!is.null(bif_fit) & !is.null(cfa_fit)) {
     mods <- c(mods_cfa, mods_bif)
-    kl_s <- c(cfa_keys, bif_keys)
+    keys_s <- c(cfa_keys, bif_keys)
   } else if (!is.null(cfa_fit)) {
     mods <- mods_cfa
-    kl_s <- cfa_keys
+    keys_s <- cfa_keys
   } else {
     mods <- mods_bif
-    kl_s <- bif_keys
+    keys_s <- bif_keys
   }
   mod_out <- sem.check(
     mods,
-    d,
+    data,
     name = name,
-    kl_s = kl_s,
-    kl_e = efa_keys,
+    keys_s = keys_s,
+    keys_e = efa_keys,
     out_dir = out_dir,
     std = TRUE,  # For r2 calcs.
     fit_save = fit_save,

@@ -27,7 +27,7 @@ test_that(
   {
     expect_error(
       bifactor.from.keys(
-        keys = keys_g, d = BFIGritHope, check = FALSE, fit_save = FALSE
+        keys = keys_g, data = BFIGritHope, check = FALSE, fit_save = FALSE
       ),
       'argument "keys_g" is missing'
     )
@@ -38,14 +38,14 @@ test_that(
   {
     expect_error(
       bifactor.from.keys(
-        keys_g, d = BFIGritHope, check = FALSE, fit_save = FALSE
+        keys_g, data = BFIGritHope, check = FALSE, fit_save = FALSE
       ),
       'argument "keys_b" is missing'
     )
   }
 )
 test_that(
-  "Mistakes with keys specification: Include d as keys_b",
+  "Mistakes with keys specification: Include data as keys_b",
   {
     expect_error(
       bifactor.from.keys(
@@ -105,7 +105,7 @@ test_that(
           check = FALSE, fit_save = FALSE
         )
       ),
-      "items are in `kl_s` but they are not in `dat`"
+      "items are in `keys_s` but they are not in `data`"
     )
     expect_error(
       suppressWarnings(
@@ -114,7 +114,7 @@ test_that(
           check = FALSE, fit_save = FALSE
         )
       ),
-      "items are in `kl_s` but they are not in `dat`"
+      "items are in `keys_s` but they are not in `data`"
     )
     expect_error(
       bifactor.from.keys(

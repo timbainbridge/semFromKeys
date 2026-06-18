@@ -11,10 +11,10 @@
 #' then the models are run as normal.
 #'
 #' @param mods Named list of lavaan models to run.
-#' @param dat
+#' @param data
 #' The data. This must include all observed variables used in any of the models.
-#' @param kl_s A named keys list matching the names and length of mod.
-#' @param kl_e A named keys list of the factors in an ESEM to be included.
+#' @param keys_s A named keys list matching the names and length of mod.
+#' @param keys_e A named keys list of the factors in an ESEM to be included.
 #' @param std
 #' `TRUE` to save standardised parameter estimates;
 #' `FALSE` to save unstandardised parameters estimates.
@@ -59,7 +59,7 @@
 #' @param check
 #' Should the code check to see if previous outputs have been saved?
 #' If `TRUE`, the model will not run if model code, parameters, and a data hash
-#' have not changed and output is of the correct class.
+#' exist and have not changed and output is of the correct class.
 #' If `FALSE`, the model will run regardless of the existence of previous
 #' outputs.
 #' @param save_out
@@ -67,9 +67,10 @@
 #' If `TRUE`, model code, a hash of the data, important input parameter values,
 #' and output will be saved.
 #' If `check = TRUE` the next time the code is run,
-#' then saved inputs and outputs will be checked against current values to
-#' determine whether the code needs to be rerun.
-#' If not, the outputs from the previous run will be returned.
+#' then saved inputs will be checked against current values to determine whether
+#' the code needs to be rerun.
+#' If not (and the outputs are the correct class),
+#' then the outputs from the previous run will be returned.
 #' If `FALSE`, nothing will be saved, the output will simply be returned as per
 #' normal R functioning. Next time the code is run, models will be re-estimated
 #' regardless of changes to code or data.
@@ -112,7 +113,7 @@
 #'
 #' @seealso
 #' [cfa.from.keys()], [efa.from.keys()], [bifactor.from.keys()], and
-#' [esem.from.keys()]---all these function depend upon `sem.check()` to work---
+#' [esem.from.mods()]---all these function depend upon `sem.check()` to work---
 #' and [lavaan::sem()], which is used to estimate the models.
 #'
 #' @importFrom stringr str_replace_all
@@ -147,7 +148,7 @@
 #' cfa_fit <- sem.check(mods, BFIGritHope, "cfa", keys, check = FALSE)
 
 sem.check <- function(
-    mods, dat, kl_s = NULL, kl_e = NULL, std = TRUE,
+    mods, data, keys_s = NULL, keys_e = NULL, std = TRUE,
     fit_save = FALSE, fit_measures = "all", target = NULL,
     name = "sem", out_dir = "output",
     orthogonal = FALSE, miss = "ML", est = "default", std.lv = FALSE,
@@ -192,48 +193,50 @@ sem.check <- function(
       )
     )
   }
-  dat <- as.data.frame(dat)
-  if (is.null(kl_s) & is.null(kl_e)) {
-    stop("At least one of `kl_s` or `kl_e` must be specified.")
+  data <- as.data.frame(data)
+  if (is.null(keys_s) & is.null(keys_e)) {
+    stop("At least one of `keys_s` or `keys_e` must be specified.")
   }
-  if (!is.list(kl_s) & !is.null(kl_s)) {
+  if (!is.list(keys_s) & !is.null(keys_s)) {
     stop(
       paste(
-        "`kl_s` is not a list. Please ensure that kl_s is specified correctly.",
+        "`keys_s` is not a list.",
+        "Please ensure that keys_s is specified correctly.",
         "See the function's help for further information."
       )
     )
   }
-  if (!is.null(kl_s)) {
-    if (sum(table(names(kl_s)) > 1) > 0) {
+  if (!is.null(keys_s)) {
+    if (sum(table(names(keys_s)) > 1) > 0) {
       stop(
         paste(
-          "At least two elements of `kl_s` share the same name.",
+          "At least two elements of `keys_s` share the same name.",
           "Please ensure that all model names are unique."
         )
       )
     }
   }
-  if (!is.list(kl_e) & !is.null(kl_e)) {
+  if (!is.list(keys_e) & !is.null(keys_e)) {
     stop(
       paste(
-        "`kl_e` is not a list. Please ensure that kl_s is specified correctly.",
+        "`keys_e` is not a list.",
+        "Please ensure that keys_s is specified correctly.",
         "See the function's help for further information."
       )
     )
   }
-  if (!is.null(kl_e)) {
-    if (sum(table(names(kl_e)) > 1) > 0) {
+  if (!is.null(keys_e)) {
+    if (sum(table(names(keys_e)) > 1) > 0) {
       stop(
         paste(
-          "At least two elements of `kl_e` share the same name.",
+          "At least two elements of `keys_e` share the same name.",
           "Please ensure that all model names are unique."
         )
       )
     }
-    if (sum(sapply(kl_e, function(x) length(x) < 2)) > 0) {
+    if (sum(sapply(keys_e, function(x) length(x) < 2)) > 0) {
       short_factors <-
-        names(kl_e)[sapply(kl_e, function(x) length(x) == 1)]
+        names(keys_e)[sapply(keys_e, function(x) length(x) == 1)]
       warning(
         paste(
           paste0("    ", short_factors, collapse = "    \n"),
@@ -245,30 +248,31 @@ sem.check <- function(
       )
     }
   }
-  if (sum(!(unlist(kl_s)) %in% colnames(dat)) > 0) {
-    una_items <- unlist(kl_s)[!(unlist(kl_s)) %in% colnames(dat)]
+  if (sum(!(unlist(keys_s)) %in% colnames(data)) > 0) {
+    una_items <- unlist(keys_s)[!(unlist(keys_s)) %in% colnames(data)]
     stop(
       paste0(
-        "The following items are in `kl_s` but they are not in `dat`:\n      ",
+        "The following items are in `keys_s` but they are not in `data`:",
+        "\n      ",
         paste0(una_items, collapse = "\n      "),
         paste0(
-          "\n\nEnsure that the column names of `dat` and keys list item names ",
-          "match and that `dat` is a dataframe or coercible into a dataframe.",
-          "\n",
+          "\n\nEnsure that the column names of `data` and keys list item ",
+          "names match and that `data` is a dataframe or coercible to a ",
+          "dataframe.\n",
           "If using bifactor.from.keys, ensure that you have not swapped keys ",
           "inadvertently (e.g., keys_g for keys_b)."
         )
       )
     )
   }
-  if (sum(!(unlist(kl_e)) %in% colnames(dat)) > 0) {
-    una_items <- unlist(kl_e)[!(unlist(kl_e)) %in% colnames(dat)]
+  if (sum(!(unlist(keys_e)) %in% colnames(data)) > 0) {
+    una_items <- unlist(keys_e)[!(unlist(keys_e)) %in% colnames(data)]
     message(paste0("  ", una_items, collapse = "  \n"))
     stop(
       paste(
-        "The above items are in `kl_e` but they are not in `dat`.",
-        "Ensure that dat is a data frame (or coercible into a data frame)",
-        "and that column names of `dat` and keys list item names match."
+        "The above items are in `keys_e` but they are not in `data`.",
+        "Ensure that data is a data frame (or coercible into a data frame)",
+        "and that column names of `data` and keys list item names match."
       )
     )
   }
@@ -298,7 +302,9 @@ sem.check <- function(
     # Create hashes
     hash_d <- sapply(
       names(mods),
-      function(x) md5(paste(dat[c(kl_s[[x]], unlist(kl_e))], collapse = ""))
+      function(x) {
+        md5(paste(data[c(keys_s[[x]], unlist(keys_e))], collapse = ""))
+      }
     )
     # Compare to previous hashes
     # if includes possibility of hash_d0 <- c(FALSE, [hash]) for some reason.
@@ -413,7 +419,7 @@ sem.check <- function(
             if (est == "default") {
               sem(
                 model   = mods1,
-                data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+                data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                 missing = miss,
                 std.lv  = std.lv,
                 orthogonal = orthogonal
@@ -421,7 +427,7 @@ sem.check <- function(
             } else {
               sem(
                 model   = mods1,
-                data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+                data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                 missing = miss,
                 estimator = est,
                 std.lv  = std.lv,
@@ -432,7 +438,7 @@ sem.check <- function(
             if (est == "default") {
               sem(
                 model   = mods1,
-                data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+                data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                 missing = miss,
                 std.lv  = std.lv,
                 rotation = "target",
@@ -444,7 +450,7 @@ sem.check <- function(
             } else {
               sem(
                 model   = mods1,
-                data    = dat[c(kl_s[[n_mod]], unlist(kl_e))],
+                data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                 missing = miss,
                 estimator = est,
                 std.lv  = std.lv,

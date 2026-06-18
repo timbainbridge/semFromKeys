@@ -3,48 +3,20 @@
 #' efa.from.keys runs a exploratory factor analysis (EFA) in lavaan with a
 #' rotation targeted based on a keys list.
 #'
+#' @inheritParams sem.check
 #' @param keys
 #' A named list of keys. Names must be factor names, elements must be
 #' vectors of items that should be targeted to load on the factor.
-#' @param d
-#' The data. This must include all observed variables used in the models.
+#' @param data
+#' The data. This must include all observed variables in any of the keys.
 #' @param name
 #' A subdirectory where model outputs will be saved when `save_out = TRUE`.
 #' Defaults to 'efa'. Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models or outputs from other
 #' calls will be overwritten.
-#' @param out_dir
-#' The directory where all function outputs will be saved. Defaults to 'output'.
-#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' @param orthogonal
-#' Sets the `orthogonal` param, as per lavaan (see [lavaan::lavOptions()]).
-#' Defaults to `FALSE`.
-#' @param std.lv Sets the `std.lv` param, as per lavaan. Defaults to `TRUE`.
-#' @param fit_save `TRUE` to save model fit measures. `FALSE` otherwise.
-#' @param fit_measures
-#' A vector of fit measures to save or 'all' to select all fit measures,
-#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
-#' function.
-#' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
-#' @param miss
-#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
-#' Defaults to 'ML'.
-#' @param est
-#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
-#' The default ('default') uses the lavaan default for the model being run.
-#' @param check
-#' Should the code check to see if previous outputs have been saved?
-#' If `TRUE`, the model will not run if model code and a data hash have not
-#' changed and output is of class lavaan.
-#' If `FALSE`, the model will run regardless of the existence of previous
-#' outputs.
-#' @param save_out
-#' Should outputs be saved to enable checking next time?
-#' If `TRUE` model code, a hash of the data, and output will be saved and will
-#' be checked against for changes next time the code is run.
-#' If `FALSE`, nothing will be saved, the output will simply be returned as per
-#' normal R functioning. Next time the code is run, models will be re-estimated
-#' regardless of changes to code or data.
+#' @param std.lv
+#' Sets the `std.lv` param, as per lavaan (see [lavaan::lavOptions()]).
+#' Defaults to `TRUE`.
 #'
 #' @return
 #' Returns a list of lists.
@@ -80,7 +52,7 @@
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
 #' Models. Sociological Methods & Research, 5(1), 3-52.
-#' http://journals.sagepub.com/doi/10.1177/004912417600500101.
+#' doi.org/10.1177/004912417600500101.
 #'
 #' @export
 #'
@@ -106,7 +78,7 @@
 #' efa_fit$fit_measures      # Fit measures
 
 efa.from.keys <- function(
-    keys, d, name = "efa", out_dir = "output",
+    keys, data, name = "efa", out_dir = "output",
     orthogonal = FALSE, std.lv = TRUE, fit_save = TRUE, fit_measures = "all",
     miss = "ML", est = "default", check = TRUE, save_out = FALSE
 ) {
@@ -123,10 +95,10 @@ efa.from.keys <- function(
   names(mod) <- name
   sem.check(
     mod,
-    d,
+    data,
     name = name,
-    kl_s = NULL,
-    kl_e = keys,
+    keys_s = NULL,
+    keys_e = keys,
     std = FALSE,  # For use in 2-stage procedure, must use non-standardised.
     fit_save = fit_save,
     fit_measures = fit_measures,

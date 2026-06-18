@@ -8,7 +8,7 @@ bifactor.from.keys(
   keys_g,
   keys_b,
   keys,
-  d,
+  data,
   name = "bifactor",
   out_dir = "output",
   std.lv = TRUE,
@@ -31,17 +31,27 @@ Elements must be the group factor names.}
 Elements must be items that load on the group factors.
 Elements must include group factors across all bifactor models.}
 
-\item{d}{The data. This must include all observed variables used in any of the models.}
+\item{data}{The data. This must include all observed variables in any of the keys.}
 
-\item{name}{A name for the collection of models. Defaults to 'bifactor'.
-The name should be unique for each time any function is called from the
-package or outputs from other calls will be overwritten.}
+\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
+Defaults to 'bifactor'.
+Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
+The name should be unique for each set of models or outputs from other
+calls will be overwritten.}
 
-\item{out_dir}{The directory where all function outputs will be saved. Defaults to 'output'.}
+\item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
+when \code{save_out = TRUE}.
+Defaults to 'output'.
+Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.}
 
-\item{std.lv}{Sets the \code{std.lv} param, as per lavaan. Defaults to \code{TRUE}.}
+\item{std.lv}{Sets the \code{std.lv} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to \code{TRUE}.}
 
-\item{fit_save}{\code{TRUE} to save model fit measures. \code{FALSE} otherwise.}
+\item{fit_save}{\code{TRUE} to include model fit measures in the output. \code{FALSE} otherwise.
+\code{FALSE} may be desirable when you do not care about fit measures and where
+they may take a long time to estimate.
+Fit can still be examined for individual models with something like,
+\code{lavaan::fitMeasures(fit$fit$model)}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
 as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
@@ -55,14 +65,19 @@ Defaults to 'ML'.}
 The default ('default') uses the lavaan default for the model being run.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
-If \code{TRUE}, the model will not run if model code and a data hash have not
-changed and output is of class lavaan.
+If \code{TRUE}, the model will not run if model code, parameters, and a data hash
+exist and have not changed and output is of the correct class.
 If \code{FALSE}, the model will run regardless of the existence of previous
 outputs.}
 
 \item{save_out}{Should outputs be saved to enable checking next time?
-If \code{TRUE} model code, a hash of the data, and output will be saved and will
-be checked against for changes next time the code is run.
+If \code{TRUE}, model code, a hash of the data, important input parameter values,
+and output will be saved.
+If \code{check = TRUE} the next time the code is run,
+then saved inputs will be checked against current values to determine whether
+the code needs to be rerun.
+If not (and the outputs are the correct class),
+then the outputs from the previous run will be returned.
 If \code{FALSE}, nothing will be saved, the output will simply be returned as per
 normal R functioning. Next time the code is run, models will be re-estimated
 regardless of changes to code or data.}
@@ -150,10 +165,14 @@ bif_fit$fit_measures       # Fit measures
 Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
 Anomalous results in G-factor models: Explanations and alternatives.
 Psychological Methods, 22(3), 541-562.
-https://doi.apa.org/doi/10.1037/met0000083.
+doi.org/10.1037/met0000083.
 
 Murray, A. L. & Johnson, W. (2013).
 The limitations of model fit in comparing the bi-factor versus higher-order
 models of human cognitive ability structure. Intelligence, 41(5), 407-422.
-http://dx.doi.org/10.1016/j.intell.2013.06.004.
+doi.org/10.1016/j.intell.2013.06.004.
+}
+\seealso{
+\code{\link[=sem.check]{sem.check()}}, which \code{bifactor.from.keys()} uses for all the back-end, and
+\code{\link[lavaan:sem]{lavaan::sem()}}, which is used to estimate the models.
 }
