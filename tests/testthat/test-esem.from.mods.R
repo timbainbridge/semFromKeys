@@ -4,7 +4,7 @@ test_that(
     esem_fit <- esem.from.mods(
       efa_fit, cfa_fit, d = BFIGritHope, fit_save = FALSE, check = FALSE
     )
-    expect_equal(length(esem_fit), 4)
+    expect_equal(length(esem_fit), 5)
     expect_equal(length(esem_fit$fit), length(keys))
     expect_equal(length(esem_fit$par), length(keys))
     expect_equal(
@@ -21,7 +21,7 @@ test_that(
       efa_fit, bif_fit = bif_fit, d = BFIGritHope,
       fit_save = FALSE, check = FALSE
     )
-    expect_equal(length(esem_fit), 4)
+    expect_equal(length(esem_fit), 5)
     expect_equal(length(esem_fit$fit), length(keys_g))
     expect_equal(length(esem_fit$par), length(keys_g))
     expect_equal(
@@ -36,14 +36,15 @@ test_that(
   {
     esem_fit <- esem.from.mods(
       efa_fit, cfa_fit = cfa_fit, bif_fit = bif_fit, d = BFIGritHope,
-      fit_save = FALSE, check = FALSE
+      fit_save = TRUE, check = FALSE
     )
-    expect_equal(length(esem_fit), 4)
+    expect_equal(length(esem_fit), 5)
     expect_equal(length(esem_fit$fit), length(keys_g) + length(keys))
     expect_equal(length(esem_fit$par), length(keys_g) + length(keys))
     expect_equal(
       sum(sapply(esem_fit$fit, function(x) !inherits(x, "lavaan"))), 0
     )
+    expect_equal(nrow(esem_fit$fit_measures), length(keys_g) + length(keys))
     expect_equal(length(esem_fit$b), length(keys_g) + length(keys))
     expect_equal(nrow(esem_fit$r2), length(keys_g) + length(keys))
   }
@@ -184,5 +185,33 @@ test_that(
         efa_fit, bif_fit = bif_fit2, d = BFIGritHope, check = FALSE
       )
     )
+  }
+)
+test_that(
+  "Test `save_out = TRUE` file creation and `check = TRUE` correctly loading",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    name <- "esem"
+    check_fit <- esem.from.mods(
+      efa_fit, cfa_fit, d = BFIGritHope, check = TRUE, save_out = TRUE,
+      fit_save = TRUE, name = name, out_dir = out_dir
+    )
+    expect_all_true(
+      c(
+        file.exists(file.path(out_dir, name, paste0(name, "_fit.rds"))),
+        file.exists(file.path(out_dir, name, paste0(name, "_par_std.rds"))),
+        file.exists(file.path(out_dir, name, paste0(name, "_fit_m.rds"))),
+        file.exists(file.path(out_dir, name, paste0(name, "_mod.rds"))),
+        file.exists(file.path(out_dir, name, paste0(name, "_hash.rds")))
+      )
+    )
+    check_fit2 <- expect_no_message(
+      esem.from.mods(
+        efa_fit, cfa_fit, d = BFIGritHope, check = TRUE, save_out = TRUE,
+        fit_save = TRUE, name = name, out_dir = out_dir
+      ),
+      message = "\\d / \\d"
+    )
+    expect_identical(check_fit, check_fit2)
   }
 )

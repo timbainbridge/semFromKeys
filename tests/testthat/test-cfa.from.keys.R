@@ -41,6 +41,31 @@ test_that(
   }
 )
 test_that(
+  "Various things 'not logical'",
+  {
+    expect_error(
+      cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = 42),
+      "`fit_save` is not logical"
+    )
+    expect_error(
+      cfa.from.keys(keys, BFIGritHope, check = 42, fit_save = FALSE),
+      "`check` is not logical"
+    )
+    expect_error(
+      cfa.from.keys(
+        keys, BFIGritHope, check = FALSE, fit_save = FALSE, save_out = 42
+      ),
+      "`save_out` is not logical"
+    )
+    expect_error(
+      cfa.from.keys(
+        keys, BFIGritHope, check = FALSE, fit_save = FALSE, std.lv = 42
+      ),
+      "`std.lv` is not logical"
+    )
+  }
+)
+test_that(
   "`fit_measures` is not a character vector",
   {
     expect_error(
@@ -105,6 +130,17 @@ test_that(
     expect_error(
       cfa.from.keys(keys_l1, BFIGritHope, check = FALSE, fit_save = FALSE),
       "only length 1"
+    )
+  }
+)
+test_that(
+  "Keys with the same name",
+  {
+    keys_nm <- keys
+    names(keys_nm)[1:2] <- "grit"
+    expect_error(
+      cfa.from.keys(keys_nm, BFIGritHope, check = FALSE, fit_save = FALSE),
+      "two elements of `kl_s` share the same name"
     )
   }
 )
@@ -244,7 +280,29 @@ test_that(
   }
 )
 test_that(
-  "Test partial running on `check = TRUE` after adding fit measures",
+  "Test running on `check = TRUE` after changing to full `fit_measures` set",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    check_fit <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      out_dir = out_dir, fit_measures = c("chisq", "cfi", "rmsea")
+    )
+    check_fit2 <- expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        out_dir = out_dir
+      ),
+      "1 / \\d"
+    )
+    expect_all_true(
+      c(ncol(check_fit$fit_measures) == 3, ncol(check_fit2$fit_measures) >= 55)
+    )
+  }
+)
+# This is treated slightly differently to the above in sem.check
+# due to distinction between `fit_measures = "all"` and a subset.
+test_that(
+  "Test running on `check = TRUE` after adding fit measures (not to full set)",
   {
     out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
     check_fit <- cfa.from.keys(
@@ -338,6 +396,54 @@ test_that(
         out_dir = out_dir, std.lv = FALSE
       ),
       "1 / \\d"
+    )
+  }
+)
+test_that(
+  "Test running on `check = TRUE` after selecting subset of `fit_measures`",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    check_fit <- cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      out_dir = out_dir
+    )
+    check_fit2 <- expect_no_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        out_dir = out_dir, fit_measures = c("chisq", "cfi", "rmsea")
+      ),
+      message = "\\d / \\d"
+    )
+    expect_all_true(
+      c(ncol(check_fit$fit_measures) >= 55, ncol(check_fit2$fit_measures) == 3)
+    )
+  }
+)
+test_that(
+  "Test adding a model between saved runs",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    cfa.from.keys(
+      keys[-1], BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      out_dir = out_dir
+    )
+    expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+        out_dir = out_dir
+      ),
+      "1 / \\d"
+    )
+    cfa.from.keys(
+      keys[-4], BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      out_dir = out_dir
+    )
+    expect_message(
+      cfa.from.keys(
+        keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        out_dir = out_dir
+      ),
+      "4 / \\d"
     )
   }
 )

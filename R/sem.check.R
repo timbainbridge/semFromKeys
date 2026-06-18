@@ -107,8 +107,9 @@
 #' @export
 
 sem.check <- function(
-    mods, dat, name, kl_s = NULL, kl_e = NULL, std = TRUE,
-    fit_save = FALSE, fit_measures = "all", target = NULL, out_dir = "output",
+    mods, dat, kl_s = NULL, kl_e = NULL, std = TRUE,
+    fit_save = FALSE, fit_measures = "all", target = NULL,
+    name = "sem", out_dir = "output",
     orthogonal = FALSE, miss = "ML", est = "default", std.lv = FALSE,
     check = TRUE, save_out = FALSE
 ) {
@@ -118,23 +119,11 @@ sem.check <- function(
   if (fit_save & !is.character(fit_measures)) {
     stop("`fit_measures` is not a character vector.")
   }
-  # For completeness
-  # (I'm not sure why anyone would do this but it causes some weirdness if they
-  # do without this.)
-  # No need to test (mostly covered by measures that don't exist).
-  if (fit_save & fit_measures[1] == "all" & length(fit_measures) > 1) {
-    stop(
-      paste(
-        "`fit_measures` should be either 'all' or a vector of fit measures",
-        "accepted by lavaan's `fitMeasures()` function."
-      )
-    )
-  }
   if (!is.logical(check)) {
     stop("`check` is not logical. It should be `TRUE` or `FALSE`.")
   }
   if (!is.logical(save_out)) {
-    stop("`save` is not logical. It should be `TRUE` or `FALSE`.")
+    stop("`save_out` is not logical. It should be `TRUE` or `FALSE`.")
   }
   if (save_out | check) {
     if (!is.character(name)) {
@@ -156,7 +145,7 @@ sem.check <- function(
   if (!is.list(mods)) {
     stop(
       paste(
-        "`mod` is not a list.",
+        "`mods` is not a list.",
         "If you are trying to run a single model, you will have to make a",
         "length 1 list",
         "(e.g., `mods = list(mod_name = mod)`)"
@@ -164,14 +153,6 @@ sem.check <- function(
     )
   }
   dat <- as.data.frame(dat)
-  if (!is.data.frame(dat)) {
-    stop(
-      paste(
-        "`dat` cannot be coerced into a data.frame.",
-        "Please use a data format that can be coerced into a data.frame."
-      )
-    )
-  }
   if (is.null(kl_s) & is.null(kl_e)) {
     stop("At least one of `kl_s` or `kl_e` must be specified.")
   }
@@ -299,13 +280,13 @@ sem.check <- function(
             # Only check to 4-decimal places.
             str_replace_all(
               mods0[[x]],
-              "([0-9]\\.[0-9]+)",
-              ~format(round(as.numeric(x), 4), nsmall = 4)
+              "([0-9]+\\.[0-9]+)",
+              ~format(round(as.numeric(.x), 4), nsmall = 4)
             ) ==
               str_replace_all(
                 m0[[x]],
                 "([0-9]\\.[0-9]+)",
-                ~format(round(as.numeric(x), 4), nsmall = 4)
+                ~format(round(as.numeric(.x), 4), nsmall = 4)
               )
           } else FALSE
         }

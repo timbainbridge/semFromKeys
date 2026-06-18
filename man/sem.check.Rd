@@ -7,13 +7,13 @@
 sem.check(
   mods,
   dat,
-  name,
   kl_s = NULL,
   kl_e = NULL,
   std = TRUE,
   fit_save = FALSE,
   fit_measures = "all",
   target = NULL,
+  name = "sem",
   out_dir = "output",
   orthogonal = FALSE,
   miss = "ML",
@@ -27,11 +27,6 @@ sem.check(
 \item{mods}{Named list of lavaan models to run.}
 
 \item{dat}{The data. This must include all observed variables used in any of the models.}
-
-\item{name}{A subdirectory for each function where model outputs will be saved when
-\code{save_out = TRUE}.
-The name should be unique for each time any function is called from the
-package or outputs from other calls will be overwritten.}
 
 \item{kl_s}{A named keys list matching the names and length of mod.}
 
@@ -49,6 +44,11 @@ Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{target}{A rotation target as used in rotation.args in lavaan (see \code{\link[lavaan:efa]{lavaan::efa()}}.
 Defaults to \code{NULL}}
+
+\item{name}{A subdirectory for each function where model outputs will be saved when
+\code{save_out = TRUE}.
+The name should be unique for each time any function is called from the
+package or outputs from other calls will be overwritten.}
 
 \item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
 when \code{save_out = TRUE}.

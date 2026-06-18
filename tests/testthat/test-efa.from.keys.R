@@ -24,7 +24,8 @@ test_that(
         abs(
           efa_fit$par$efa$est[
             grepl(
-              paste0("^", names(keys_e), "$", collapse = "|"), efa_fit$par$efa$lhs
+              paste0("^", names(keys_e), "$", collapse = "|"),
+              efa_fit$par$efa$lhs
             ) &
               efa_fit$par$efa$op == "~~" &
               efa_fit$par$efa$lhs != efa_fit$par$efa$rhs
@@ -38,7 +39,9 @@ test_that(
 test_that(
   "Test normal behaviour when fit_save = TRUE",
   {
-    efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = TRUE)
+    efa_fit <- efa.from.keys(
+      keys_e, BFIGritHope, check = FALSE, fit_save = TRUE
+    )
     expect_equal(length(efa_fit), 3)
     expect_equal(length(efa_fit$fit), 1)
     expect_equal(length(efa_fit$par), 1)
@@ -59,6 +62,17 @@ test_that(
     expect_error(
       efa.from.keys(keys_e$bfi_e, BFIGritHope, check = FALSE, fit_save = FALSE),
       "`kl_e` is not a list"
+    )
+  }
+)
+test_that(
+  "Keys with the same name",
+  {
+    keys_e_nm <- keys_e
+    names(keys_e_nm)[1:2] <- "bfi_e"
+    expect_error(
+      efa.from.keys(keys_e_nm, BFIGritHope, check = FALSE, fit_save = FALSE),
+      "two elements of `kl_e` share the same name"
     )
   }
 )
@@ -85,6 +99,33 @@ test_that(
       efa.from.keys(
         keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
         out_dir = out_dir, orthogonal = TRUE
+      ),
+      "1 / \\d"
+    )
+  }
+)
+test_that(
+  "Non-logical orthogonal setting",
+  {
+    expect_error(
+      efa.from.keys(
+        keys_e, BFIGritHope, check = FALSE, fit_save = FALSE, orthogonal = 42
+      )
+    )
+  }
+)
+test_that(
+  "Test running on `check = TRUE` after changes to est",
+  {
+    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    check_fit <- efa.from.keys(
+      keys_e, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      out_dir = out_dir
+    )
+    expect_message(
+      efa.from.keys(
+        keys_e, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
+        out_dir = out_dir, est = "MLR"
       ),
       "1 / \\d"
     )
