@@ -30,7 +30,7 @@
 #' function.
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param target
-#' A rotation target as used in rotation.args in lavaan (see [lavaan::efa()].
+#' A rotation target as used in `rotation.args` in lavaan (see [lavaan::efa()].
 #' If `NULL`, target is not specified and lavaan uses default behaviour.
 #' Defaults to `NULL`.
 #' Irrelevant when the model does not include an EFA or ESEM.

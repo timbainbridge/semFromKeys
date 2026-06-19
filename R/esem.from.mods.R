@@ -1,6 +1,6 @@
 #' Runs ESEM based on CFA and EFA model outputs.
 #'
-#' esem.from.keys runs an exploratory structural equation model (ESEM) in lavaan
+#' `esem.from.keys` runs an exploratory structural equation model (ESEM) in lavaan
 #' where the exploratory factor analysis (EFA) factors predict either
 #' confirmatory factor analysis (CFA) factors in separate models for each CFA
 #' factor OR bifactor factors in separate models for each bifactor model.

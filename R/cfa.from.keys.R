@@ -1,6 +1,6 @@
 #' Runs CFA models for multiple scales based on items in a keys list.
 #'
-#' cfa.from.keys runs a confirmatory factor analysis (CFA) model for each
+#' `cfa.from.keys` runs a confirmatory factor analysis (CFA) model for each
 #' element of a keys list. The keys list must be a named list of scales, where
 #' each element is an item from the corresponding scale. The function is
 #' designed to streamline running CFA models for all scales in a sample and to

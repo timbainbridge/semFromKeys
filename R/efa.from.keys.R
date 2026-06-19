@@ -1,6 +1,6 @@
 #' Runs an EFA model based on items in a keys list.
 #'
-#' efa.from.keys runs a exploratory factor analysis (EFA) in lavaan with a
+#' `efa.from.keys` runs a exploratory factor analysis (EFA) in lavaan with a
 #' rotation targeted based on a keys list.
 #'
 #' @inheritParams sem.check
