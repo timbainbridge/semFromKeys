@@ -119,9 +119,9 @@
 #' bif_fit$fit_measures       # Fit measures
 
 bifactor.from.keys <- function(
-  keys_g, keys_b, keys, data, name = "bifactor", out_dir = "output",
-  std.lv = TRUE, fit_save = TRUE, fit_measures = "all", miss = "ML",
-  est = "default", check = FALSE, save_out = FALSE
+  keys_g, keys_b, keys, data, fit_save = TRUE, fit_measures = "all",
+  std.lv = TRUE, miss = "ML", est = "default",
+  name = "bifactor", check = FALSE, save_out = FALSE
 ) {
   if (!is.list(keys_g)) {
     stop("`keys_g` is not a list.")
@@ -230,7 +230,6 @@ bifactor.from.keys <- function(
     fit_save = fit_save,
     fit_measures = fit_measures,
     std.lv = std.lv,
-    out_dir = out_dir,
     miss = miss,
     est = est,
     orthogonal = TRUE,  # Must be TRUE for bifactor models.

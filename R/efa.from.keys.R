@@ -78,9 +78,9 @@
 #' efa_fit$fit_measures      # Fit measures
 
 efa.from.keys <- function(
-    keys, data, name = "efa", out_dir = "output",
-    orthogonal = FALSE, std.lv = TRUE, fit_save = TRUE, fit_measures = "all",
-    miss = "ML", est = "default", check = FALSE, save_out = FALSE
+    keys, data, orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
+    std.lv = TRUE, miss = "ML", est = "default",
+    name = "efa", check = FALSE, save_out = FALSE
 ) {
   target <- sapply(keys, function(y) ifelse(!unlist(keys) %in% y, 0, NA))
   mod <- list(
@@ -104,7 +104,6 @@ efa.from.keys <- function(
     fit_measures = fit_measures,
     orthogonal = orthogonal,
     std.lv = std.lv,
-    out_dir = out_dir,
     target = target,
     miss = miss,
     est = est,

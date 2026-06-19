@@ -161,11 +161,11 @@
 #' cfa_fit <- sem.check(mods, BFIGritHope, keys, name = "cfa", check = FALSE)
 
 sem.check <- function(
-    mods, data, keys_s = NULL, keys_e = NULL, std = TRUE,
-    fit_save = FALSE, fit_measures = "all", target = NULL,
-    name = "sem",
-    orthogonal = FALSE, miss = "ML", est = "default", std.lv = FALSE,
-    check = FALSE, save_out = FALSE
+    mods, data, keys_s = NULL, keys_e = NULL,
+    fit_save = FALSE, fit_measures = "all",
+    miss = "ML", est = "default", std.lv = FALSE, std = TRUE,
+    orthogonal = FALSE, target = NULL,
+    name = "sem", check = FALSE, save_out = FALSE
 ) {
   if (!is.logical(fit_save)) {
     stop("`fit_save` is not logical. It should be `TRUE` or `FALSE`.")

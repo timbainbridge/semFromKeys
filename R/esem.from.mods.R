@@ -166,10 +166,9 @@
 #' esem_fit$b                    # Betas
 
 esem.from.mods <- function(
-    efa_fit, cfa_fit = NULL, bif_fit = NULL,
-    data, name = "esem", out_dir = "output",
-    fit_save = FALSE, fit_measures = "all",
-    miss = "ML", est = "default", check = FALSE, save_out = FALSE
+    efa_fit, cfa_fit = NULL, bif_fit = NULL, data,
+    fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
+    name = "esem", check = FALSE, save_out = FALSE
 ) {
   if (is.null(cfa_fit) & is.null(bif_fit)) {
     stop("At least one of `cfa_fit` and `bif_fit` must be specified.")
@@ -390,7 +389,6 @@ esem.from.mods <- function(
     name = name,
     keys_s = keys_s,
     keys_e = efa_keys,
-    out_dir = out_dir,
     std = TRUE,  # For r2 calcs.
     fit_save = fit_save,
     fit_measures = fit_measures,
