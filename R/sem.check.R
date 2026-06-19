@@ -152,7 +152,7 @@ sem.check <- function(
     fit_save = FALSE, fit_measures = "all", target = NULL,
     name = "sem", out_dir = "output",
     orthogonal = FALSE, miss = "ML", est = "default", std.lv = FALSE,
-    check = TRUE, save_out = FALSE
+    check = FALSE, save_out = FALSE
 ) {
   if (!is.logical(fit_save)) {
     stop("`fit_save` is not logical. It should be `TRUE` or `FALSE`.")

@@ -121,7 +121,7 @@
 bifactor.from.keys <- function(
   keys_g, keys_b, keys, data, name = "bifactor", out_dir = "output",
   std.lv = TRUE, fit_save = TRUE, fit_measures = "all", miss = "ML",
-  est = "default", check = TRUE, save_out = FALSE
+  est = "default", check = FALSE, save_out = FALSE
 ) {
   if (!is.list(keys_g)) {
     stop("`keys_g` is not a list.")
