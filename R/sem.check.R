@@ -297,7 +297,8 @@ sem.check <- function(
       )
     )
   }
-  if (save_out & !dir.exists(file.path(cache_dir, name))) {
+  if (save_out) {
+    if (!dir.exists(file.path(cache_dir, name))) {
       dir.create(file.path(cache_dir, name))
     }
   }

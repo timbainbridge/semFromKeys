@@ -73,7 +73,6 @@ cache.setup <- function(location = "user") {
     if (!dir.exists(cache_dir)) {
       dir.create(cache_dir, recursive = TRUE)
     }
-    # Store the fact that caching is enabled, maybe in package options
     options(semFromKeys_cache_dir = cache_dir)
     message(paste0("The cache directory is set as: '", cache_dir, "'."))
   } else {
