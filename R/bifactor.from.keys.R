@@ -11,32 +11,45 @@
 #'
 #' @inheritParams sem.check
 #' @param keys_g
-#' A named list of general factors. Names must be the names of the general
-#' factors, elements are vectors of items that will load on the general factor.
+#' A named list of items in general factors.
+#' Names must be the names of the general factors.
+#' Each list element must be a vector of items that load on the general factors.
+#' Must be the same length as `keys_b`.
 #' @param keys_b
-#' A named list of group factors. Names must be the general factors.
-#' Elements must be the group factor names.
+#' A named list of group factors in general factors.
+#' Names must be the names of the general factors.
+#' Each list element must be a vector of group factors that load on the general
+#' factors.
+#' Must be the same length as `keys_g`.
 #' @param keys
-#' A named list of items of group factors. Names must be group factor names.
-#' Elements must be items that load on the group factors.
-#' Elements must include group factors across all bifactor models.
+#' A named list of items in group factors.
+#' Names must be the names of the group factors.
+#' Each list element must be a vector of items that load on the group factors.
+#' Need not be the same length as `keys_g` and `keys_b`.
 #' @param data
-#' The data. This must include all observed variables in any of the keys.
+#' A dataframe or object coercible to a dataframe.
+#' Data must include all observed variables in any of the keys.
 #' @param name
-#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
+#' A string indicating a subdirectory where model outputs will be saved when
+#' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to 'bifactor'.
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' The name should be unique for each set of models or outputs from other
-#' calls will be overwritten.
+#' The name should be unique for each set of models or outputs from calls with
+#' the same name will be overwritten.
 #' @param std.lv
+#' Logical.
 #' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' `TRUE` indicates that factor variances should be fixed to 1.
+#' `FALSE` indicates that loadings of the first items of factors should be fixed
+#' to 1.
 #' Defaults to `TRUE`.
 #'
 #' @return
-#' Returns a list of lists.
-#' The elements are a list of lavaan bifactor model output objects;
+#' Returns a list of length 2 (if `fit_save = FALSE`) or
+#' 3 (if `fit_save = TRUE`).
+#' The elements of the list are: a list of lavaan model output objects;
 #' a list of parameter estimates from the models (standardized if `std = TRUE`);
-#' and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
+#' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
 #' The model relies on [sem.check()] for the back-end of running the models.

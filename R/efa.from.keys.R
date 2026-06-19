@@ -8,12 +8,15 @@
 #' A named list of keys. Names must be factor names, elements must be
 #' vectors of items that should be targeted to load on the factor.
 #' @param data
-#' The data. This must include all observed variables in any of the keys.
+#' A dataframe or object coercible to a dataframe.
+#' Data must include all observed variables in any of the keys.
 #' @param name
-#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
-#' Defaults to 'efa'. Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' The name should be unique for each set of models or outputs from other
-#' calls will be overwritten.
+#' A string indicating a subdirectory where model outputs will be saved when
+#' `save_out = TRUE` and checked against when `check = TRUE`.
+#' Defaults to 'efa'.
+#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
+#' The name should be unique for each set of models or outputs from calls with
+#' the same name will be overwritten.
 #' @param std.lv
 #' Sets the `std.lv` param, as per lavaan (see [lavaan::lavOptions()]).
 #' Defaults to `TRUE`.

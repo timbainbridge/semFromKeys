@@ -1,11 +1,11 @@
 #' Runs ESEM based on CFA and EFA model outputs.
 #'
-#' `esem.from.keys` runs an exploratory structural equation model (ESEM) in lavaan
-#' where the exploratory factor analysis (EFA) factors predict either
-#' confirmatory factor analysis (CFA) factors in separate models for each CFA
-#' factor OR bifactor factors in separate models for each bifactor model.
+#' `esem.from.keys` runs exploratory structural equation models (ESEM) in lavaan
+#' where the exploratory factor analysis (EFA) factors predict confirmatory
+#' factor analysis (CFA) factors and/or bifactor factors in separate models
+#' for each CFA or bifactor model.
 #' The function takes a fitted lavaan object from an EFA and lists of fitted
-#' CFA or bifactor lavaan model objects as inputs so will typically
+#' CFA and/or bifactor lavaan model objects as inputs so will typically
 #' use outputs from [efa.from.keys()], and [cfa.from.keys()] or
 #' [bifactor.from.keys()].
 #'
@@ -15,24 +15,24 @@
 #' A named list of fitted lavaan objects of CFA models.
 #' Can be `NULL` if `bif_fit` is not `NULL`.
 #' @param bif_fit
-#' A list of fitted lavaan objects of bifactor models.
+#' A named list of fitted lavaan objects of bifactor models.
 #' Can be `NULL` if `cfa_fit` is not `NULL`.
 #' @param name
-#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
+#' A string indicating a subdirectory where model outputs will be saved when
+#' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to "esem".
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' The name should be unique for each set of models or outputs from other
-#' calls will be overwritten.
+#' The name should be unique for each set of models or outputs from calls with
+#' the same name will be overwritten.
 #'
 #' @return
-#' Returns a length 2 or 3 list of lists.
-#' The first elements of the list is a list of fitted lavaan esem model output
-#' objects.
-#' The second element of the list is a list of parameter estimates from the
-#' models (standardized if `std = TRUE`).
-#' If `fit_save = TRUE`, then the list will have a third element, which will be
-#' a matrix of fit measures for each model.
-#' All elements are the length of `cfa_keys` plus the length of `bif_keys`.
+#' Returns a list of length 4 (if `fit_save = FALSE`) or
+#' 5 (if `fit_save = TRUE`).
+#' The elements of the list are: a list of lavaan model output objects;
+#' a list of parameter estimates from the models (standardized if `std = TRUE`);
+#' if `fit_save = TRUE`, a matrix of fit measures for each model;
+#' a list of regression beta parameters from each model;
+#' and a dataframe of R-squared values from each model.
 #'
 #' @details
 #' The function was designed to streamline running exploratory structural

@@ -10,71 +10,85 @@
 #' important parameter inputs have change, or any of these do not exist,
 #' then the models are run as normal.
 #'
-#' @param mods Named list of lavaan models to run.
+#' @param mods A named list of lavaan models to run.
 #' @param data
-#' The data. This must include all observed variables used in any of the models.
+#' A dataframe or object coercible to a dataframe.
+#' Data must include all observed variables used in any of the models.
 #' @param keys_s A named keys list matching the names and length of mod.
 #' @param keys_e A named keys list of the factors in an ESEM to be included.
 #' @param std
-#' `TRUE` to save standardised parameter estimates;
-#' `FALSE` to save unstandardised parameters estimates.
+#' Logical.
+#' `TRUE` indicates that standardised parameter estimates should be saved;
+#' `FALSE` indicates that unstandardised parameters estimates should be saved.
 #' @param fit_save
-#' `TRUE` to include model fit measures in the output. `FALSE` otherwise.
-#' `FALSE` may be desirable when you do not care about fit measures and where
+#' Logical.
+#' `TRUE` indicates model fit measures should be included in the output;
+#' `FALSE` indicates model fit measures should not be included in the output.
+#' `FALSE` may be desirable when fit measures are of little interest and when
 #' they may take a long time to estimate.
-#' Fit can still be examined for individual models with something like,
-#' `lavaan::fitMeasures(fit$fit$model)`.
+#' Fit can still be examined for individual models with,
+#' `lavaan::fitMeasures(fit$fit$[model name])`.
 #' @param fit_measures
 #' A vector of fit measures to save or 'all' to select all fit measures,
 #' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
 #' function.
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param target
-#' A rotation target as used in `rotation.args` in lavaan (see [lavaan::efa()].
-#' If `NULL`, target is not specified and lavaan uses default behaviour.
-#' Defaults to `NULL`.
+#' A matrix indicating a rotation target,
+#' as used in the `rotation.args` argument in lavaan (see [lavaan::efa()].
+#' If `NULL` (default),
+#' target is not specified and lavaan uses default behaviour.
 #' Irrelevant when the model does not include an EFA or ESEM.
 #' @param name
-#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
+#' A string indicating a subdirectory where model outputs will be saved when
+#' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to "sem".
-#' The name should be unique for each set of models or outputs from other
-#' calls will be overwritten.
+#' The name should be unique for each set of models or outputs from calls with
+#' the same name will be overwritten.
 #' @param orthogonal
+#' Logical.
 #' Sets the `orthogonal` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' `TRUE` indicates that unspecified latent variable correlations should be
+#' fixed at 0;
+#' `FALSE` indicates that unspecified latent variable correlations should be
+#' freely estimated.
 #' Defaults to `FALSE`.
 #' @param miss
+#' A string.
 #' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' Defaults to 'ML'.
 #' @param est
+#' A string.
 #' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' The default ('default') uses the lavaan default for the model being run.
 #' @param std.lv
+#' Logical.
 #' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' `TRUE` indicates that factor variances should be fixed to 1.
+#' `FALSE` indicates that loadings of the first items of factors should be fixed
+#' to 1.
 #' Defaults to `FALSE`.
 #' @param check
-#' Should the code check to see if previous outputs have been saved?
-#' If `TRUE`, the model will not run if model code, parameters, and a data hash
-#' exist and have not changed and output is of the correct class.
-#' If `FALSE`, the model will run regardless of the existence of previous
-#' outputs.
+#' Logical.
+#' `TRUE` indicates that current inputs should be compared to previous inputs
+#' if they exist and that the model should not be rerun if nothing has changed;
+#' `FALSE` indicates that these checks should not be made and the model should
+#' be run regardless of the existence of previous inputs.
 #' @param save_out
-#' Should outputs be saved to enable checking next time?
-#' If `TRUE`, model code, a hash of the data, important input parameter values,
-#' and output will be saved.
-#' If `check = TRUE` the next time the code is run,
-#' then saved inputs will be checked against current values to determine whether
-#' the code needs to be rerun.
-#' If not (and the outputs are the correct class),
-#' then the outputs from the previous run will be returned.
-#' If `FALSE`, nothing will be saved, the output will simply be returned as per
-#' normal R functioning. Next time the code is run, models will be re-estimated
-#' regardless of changes to code or data.
+#' Logical.
+#' `TRUE` indicates that model code, a hash of the data, important input
+#' parameter values, and output will be saved;
+#' `FALSE` indicates that nothing will be saved.
+#' Selecting `save_out = TRUE` enables the function to not rerun models next
+#' time if `check = TRUE` the next time the code is run and nothing has changed
+#' in the meantime.
 #'
 #' @return
-#' Returns a list of lists.
-#' The elements are a list of lavaan model output objects;
+#' Returns a list of length 2 (if `fit_save = FALSE`) or
+#' 3 (if `fit_save = TRUE`).
+#' The elements of the list are: a list of lavaan model output objects;
 #' a list of parameter estimates from the models (standardized if `std = TRUE`);
-#' and, if `fit_save` is not FALSE, a matrix of fit measures for each model.
+#' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
 #' The function is largely intended to be used as a helper function to upstream
@@ -121,7 +135,7 @@
 #'
 #' For most applications, the checking feature can be safely ignored by not
 #' saving outputs (i.e., `fit_save = FALSE`)
-#' and not checking for past saves (i.e., `check = FALSE`).
+#' and not checking for past saves (i.e., `check = FALSE`, both default).
 #' The functionality is intended for a number of very slow models or a very
 #' large number of faster models,
 #' such that time spent rerunning code would be onerous.
