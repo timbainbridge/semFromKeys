@@ -9,14 +9,13 @@ bifactor.from.keys(
   keys_b,
   keys,
   data,
-  name = "bifactor",
-  out_dir = "output",
-  std.lv = TRUE,
   fit_save = TRUE,
   fit_measures = "all",
+  std.lv = TRUE,
   miss = "ML",
   est = "default",
-  check = TRUE,
+  name = "bifactor",
+  check = FALSE,
   save_out = FALSE
 )
 }
@@ -33,20 +32,6 @@ Elements must include group factors across all bifactor models.}
 
 \item{data}{The data. This must include all observed variables in any of the keys.}
 
-\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
-Defaults to 'bifactor'.
-Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
-The name should be unique for each set of models or outputs from other
-calls will be overwritten.}
-
-\item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
-when \code{save_out = TRUE}.
-Defaults to 'output'.
-Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.}
-
-\item{std.lv}{Sets the \code{std.lv} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
-Defaults to \code{TRUE}.}
-
 \item{fit_save}{\code{TRUE} to include model fit measures in the output. \code{FALSE} otherwise.
 \code{FALSE} may be desirable when you do not care about fit measures and where
 they may take a long time to estimate.
@@ -58,11 +43,20 @@ as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMea
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
+\item{std.lv}{Sets the \code{std.lv} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to \code{TRUE}.}
+
 \item{miss}{Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to 'ML'.}
 
 \item{est}{Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
+
+\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
+Defaults to 'bifactor'.
+Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
+The name should be unique for each set of models or outputs from other
+calls will be overwritten.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
 If \code{TRUE}, the model will not run if model code, parameters, and a data hash
@@ -89,13 +83,13 @@ a list of parameter estimates from the models (standardized if \code{std = TRUE}
 and, if \code{fit_measures} is not FALSE, a matrix of fit measures for each model.
 }
 \description{
-bifactor.from.keys runs a series of bifactor model from three keys lists---
+\code{bifactor.from.keys} runs a series of bifactor model from three keys lists---
 one for items on general factor; one for items on group factors;
 and one for group factors on general factors.
 The keys list must be named appropriately
 (i.e., general factor names, group factor names, and general factor names
 for the three lists respectively).
-The function is designed to steamline running CFA models for all scales in a
+The function is designed to streamline running CFA models for all scales in a
 sample and to input model outputs into downstream functions.
 }
 \details{

@@ -37,11 +37,11 @@
 #'
 #' Functions that directly or indirectly might require a cache directory are:
 #' [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()],
-#' [esem.from.keys()], and [sem.check()].
+#' [esem.from.mods()], and [sem.check()].
 #'
 #' @seealso
 #' [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()],
-#' [esem.from.keys()], and [sem.check()] for dependent functions;
+#' [esem.from.mods()], and [sem.check()] for dependent functions;
 #' [tools::R_user_dir()] for default cache directories; and
 #' [here::here()] for project-based cache directory setting.
 #'

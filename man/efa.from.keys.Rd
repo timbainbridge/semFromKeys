@@ -7,15 +7,14 @@
 efa.from.keys(
   keys,
   data,
-  name = "efa",
-  out_dir = "output",
   orthogonal = FALSE,
-  std.lv = TRUE,
   fit_save = TRUE,
   fit_measures = "all",
+  std.lv = TRUE,
   miss = "ML",
   est = "default",
-  check = TRUE,
+  name = "efa",
+  check = FALSE,
   save_out = FALSE
 )
 }
@@ -25,21 +24,8 @@ vectors of items that should be targeted to load on the factor.}
 
 \item{data}{The data. This must include all observed variables in any of the keys.}
 
-\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
-Defaults to 'efa'. Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
-The name should be unique for each set of models or outputs from other
-calls will be overwritten.}
-
-\item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
-when \code{save_out = TRUE}.
-Defaults to 'output'.
-Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.}
-
 \item{orthogonal}{Sets the \code{orthogonal} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to \code{FALSE}.}
-
-\item{std.lv}{Sets the \code{std.lv} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
-Defaults to \code{TRUE}.}
 
 \item{fit_save}{\code{TRUE} to include model fit measures in the output. \code{FALSE} otherwise.
 \code{FALSE} may be desirable when you do not care about fit measures and where
@@ -52,11 +38,19 @@ as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMea
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
+\item{std.lv}{Sets the \code{std.lv} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to \code{TRUE}.}
+
 \item{miss}{Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to 'ML'.}
 
 \item{est}{Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
+
+\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
+Defaults to 'efa'. Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
+The name should be unique for each set of models or outputs from other
+calls will be overwritten.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
 If \code{TRUE}, the model will not run if model code, parameters, and a data hash
@@ -83,7 +77,7 @@ a list of parameter estimates from the models (standardized if \code{std = TRUE}
 and, if \code{fit_save = TRUE}, a matrix of fit measures for each model.
 }
 \description{
-efa.from.keys runs a exploratory factor analysis (EFA) in lavaan with a
+\code{efa.from.keys} runs a exploratory factor analysis (EFA) in lavaan with a
 rotation targeted based on a keys list.
 }
 \details{

@@ -9,13 +9,12 @@ esem.from.mods(
   cfa_fit = NULL,
   bif_fit = NULL,
   data,
-  name = "esem",
-  out_dir = "output",
   fit_save = FALSE,
   fit_measures = "all",
   miss = "ML",
   est = "default",
-  check = TRUE,
+  name = "esem",
+  check = FALSE,
   save_out = FALSE
 )
 }
@@ -29,17 +28,6 @@ Can be \code{NULL} if \code{bif_fit} is not \code{NULL}.}
 Can be \code{NULL} if \code{cfa_fit} is not \code{NULL}.}
 
 \item{data}{The data. This must include all observed variables used in any of the models.}
-
-\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
-Defaults to "esem".
-Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
-The name should be unique for each set of models or outputs from other
-calls will be overwritten.}
-
-\item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
-when \code{save_out = TRUE}.
-Defaults to 'output'.
-Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.}
 
 \item{fit_save}{\code{TRUE} to include model fit measures in the output. \code{FALSE} otherwise.
 \code{FALSE} may be desirable when you do not care about fit measures and where
@@ -57,6 +45,12 @@ Defaults to 'ML'.}
 
 \item{est}{Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
+
+\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
+Defaults to "esem".
+Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
+The name should be unique for each set of models or outputs from other
+calls will be overwritten.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
 If \code{TRUE}, the model will not run if model code, parameters, and a data hash
@@ -87,7 +81,7 @@ a matrix of fit measures for each model.
 All elements are the length of \code{cfa_keys} plus the length of \code{bif_keys}.
 }
 \description{
-esem.from.keys runs an exploratory structural equation model (ESEM) in lavaan
+\code{esem.from.keys} runs an exploratory structural equation model (ESEM) in lavaan
 where the exploratory factor analysis (EFA) factors predict either
 confirmatory factor analysis (CFA) factors in separate models for each CFA
 factor OR bifactor factors in separate models for each bifactor model.

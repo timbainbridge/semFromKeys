@@ -9,17 +9,16 @@ sem.check(
   data,
   keys_s = NULL,
   keys_e = NULL,
-  std = TRUE,
   fit_save = FALSE,
   fit_measures = "all",
-  target = NULL,
-  name = "sem",
-  out_dir = "output",
-  orthogonal = FALSE,
   miss = "ML",
   est = "default",
   std.lv = FALSE,
-  check = TRUE,
+  std = TRUE,
+  orthogonal = FALSE,
+  target = NULL,
+  name = "sem",
+  check = FALSE,
   save_out = FALSE
 )
 }
@@ -32,9 +31,6 @@ sem.check(
 
 \item{keys_e}{A named keys list of the factors in an ESEM to be included.}
 
-\item{std}{\code{TRUE} to save standardised parameter estimates;
-\code{FALSE} to save unstandardised parameters estimates.}
-
 \item{fit_save}{\code{TRUE} to include model fit measures in the output. \code{FALSE} otherwise.
 \code{FALSE} may be desirable when you do not care about fit measures and where
 they may take a long time to estimate.
@@ -46,24 +42,6 @@ as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMea
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{target}{A rotation target as used in rotation.args in lavaan (see \code{\link[lavaan:efa]{lavaan::efa()}}.
-If \code{NULL}, target is not specified and lavaan uses default behaviour.
-Defaults to \code{NULL}.
-Irrelevant when the model does not include an EFA or ESEM.}
-
-\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
-Defaults to "sem".
-The name should be unique for each set of models or outputs from other
-calls will be overwritten.}
-
-\item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
-when \code{save_out = TRUE}.
-Defaults to 'output'.
-Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.}
-
-\item{orthogonal}{Sets the \code{orthogonal} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
-Defaults to \code{FALSE}.}
-
 \item{miss}{Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to 'ML'.}
 
@@ -72,6 +50,22 @@ The default ('default') uses the lavaan default for the model being run.}
 
 \item{std.lv}{Sets the \code{std.lv} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to \code{FALSE}.}
+
+\item{std}{\code{TRUE} to save standardised parameter estimates;
+\code{FALSE} to save unstandardised parameters estimates.}
+
+\item{orthogonal}{Sets the \code{orthogonal} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to \code{FALSE}.}
+
+\item{target}{A rotation target as used in \code{rotation.args} in lavaan (see \code{\link[lavaan:efa]{lavaan::efa()}}.
+If \code{NULL}, target is not specified and lavaan uses default behaviour.
+Defaults to \code{NULL}.
+Irrelevant when the model does not include an EFA or ESEM.}
+
+\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
+Defaults to "sem".
+The name should be unique for each set of models or outputs from other
+calls will be overwritten.}
 
 \item{check}{Should the code check to see if previous outputs have been saved?
 If \code{TRUE}, the model will not run if model code, parameters, and a data hash
@@ -112,38 +106,53 @@ The function is largely intended to be used as a helper function to upstream
 functions,
 including \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}}, and
 \code{\link[=esem.from.mods]{esem.from.mods()}}.
+Although it is recommended to use the appropriate upstream function whenever
+possible,
+there are not (currently) options to do so when customised lavaan models are
+required;
+for example, when allowing two items' residuals to correlate in a CFA.
+\code{sem.check()} can be used in these cases (see example).
 
 Matching the philosophy of the package, the function is designed to run for
 multiple models with a similar design. If you are using the function for a
 single model, transform inputs into lists as appropriate.
 
+When \code{save_out = TRUE}, if a cache directory has been set,
+the model will save various inputs and outputs from the function call.
 When \code{check = TRUE},
-the model looks for any previously saved outputs from earlier model runs.
-The check uses \code{out_dir} and \code{name} to find the location of any previous
-saves and saves outputs in the same location if \code{fit_save = TRUE}.
-If previous outputs exist, they are loaded and checked against current
-values.
-The comparisons are for model code;
+the model will look for any previously saved outputs from earlier model runs
+in the same cache directory and only run again if nothing has changed.
+In cases where something has changed for a subset of models
+(e.g., a data cleaning mistake might affect only a subset of variables in a
+subset of models), then the function will only re-run the models where
+something has changed.
+Changes to arguments that influence all lavaan model runs (e.g., miss or est)
+will trigger all models to be re-run.
+
+For either \code{save_out = TRUE} or \code{check = TRUE},
+the function will look for a cache directory set and created by the
+\code{\link[=cache.setup]{cache.setup()}} function.
+If a cache directory has not been set for the current session,
+then the function will exit with an error suggesting that either
+\code{\link[=cache.setup]{cache.setup()}} be run or \code{save_out} and \code{check} set to FALSE.
+
+When the cache directory is found and output from previous runs are detected,
+the comparisons performed are for:
+model code;
 hashes of the data (using \code{\link[openssl:md5]{openssl::md5()}});
-and values of the \code{miss}, \code{est}, \code{std}, \code{std.lv}, and \code{orthogonal}
-parameters.
-If these values are the same
-(and the previous outputs are of the correct form),
-then previous model outputs are loaded instead of recreating them.
-For most applications, this feature can be safely ignored by not saving
-outputs (i.e., \code{fit_save = FALSE})
+values of the \code{miss}, \code{est}, \code{std}, \code{std.lv}, and \code{orthogonal}parameters;
+the class of model objects (i.e., class lavaan);
+and the class of parameter estimates (i.e., class lavaan.data.frame).
+
+For most applications, the checking feature can be safely ignored by not
+saving outputs (i.e., \code{fit_save = FALSE})
 and not checking for past saves (i.e., \code{check = FALSE}).
-The functionality is intended for a number of very slow models or a lot of
-faster models, such that time spent rerunning code would be onerous.
+The functionality is intended for a number of very slow models or a very
+large number of faster models,
+such that time spent rerunning code would be onerous.
 However, the functionality can be safely used for faster runs too.
 }
 \examples{
-# Although it is recommended to use the appropriate upstream functions
-# (i.e., cfa.from.keys(), efa.from.keys(), and/or bifactor.from.keys())
-# whenever possible,
-# they are not (currently) options when customised lavaan models are
-# required;
-# for example, when allowing two items residuals to correlate in a CFA.
 # Create CFA keys
 keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
 keys <- sapply(
@@ -161,6 +170,9 @@ cfa_fit <- sem.check(mods, BFIGritHope, keys, name = "cfa", check = FALSE)
 }
 \seealso{
 \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, and
-\code{\link[=esem.from.mods]{esem.from.mods()}}---all these function depend upon \code{sem.check()} to work---
-and \code{\link[lavaan:sem]{lavaan::sem()}}, which is used to estimate the models.
+\code{\link[=esem.from.mods]{esem.from.mods()}}---all these function depend upon \code{sem.check()} to work;
+\code{\link[lavaan:sem]{lavaan::sem()}}, which is used to estimate the models;
+\code{\link[lavaan:parameterEstimates]{lavaan::parameterEstimates()}}, which is used to estimate parameter values;
+and \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}, which is used to estimate fit statistics when
+\code{fit_save = TRUE}.
 }
