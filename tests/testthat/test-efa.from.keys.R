@@ -90,15 +90,14 @@ test_that(
 test_that(
   "Test running on `check = TRUE` after changes to orthogonal",
   {
-    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    cache_dir <- cache.setup("tests/testthat")
     check_fit <- efa.from.keys(
-      keys_e, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
-      out_dir = out_dir
+      keys_e, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE
     )
     expect_message(
       efa.from.keys(
         keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
-        out_dir = out_dir, orthogonal = TRUE
+        orthogonal = TRUE
       ),
       "1 / \\d"
     )
@@ -117,22 +116,16 @@ test_that(
 test_that(
   "Test running on `check = TRUE` after changes to est",
   {
-    out_dir <- withr::local_tempdir(tmpdir = "tests/testthat")
+    cache.setup("tests/testthat")
     check_fit <- efa.from.keys(
-      keys_e, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
-      out_dir = out_dir
+      keys_e, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE
     )
     expect_message(
       efa.from.keys(
         keys_e, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE,
-        out_dir = out_dir, est = "MLR"
+        est = "MLR"
       ),
       "1 / \\d"
     )
   }
 )
-# I am not going to stop people from including differently named scales in the
-# same EFA (e.g., BFI + grit). There may be good reasons to do that and it will
-# return many false positives
-# (e.g., e1, e2, ..., a1, a2, ... will erroneously find Big Five factors as
-# different scales).

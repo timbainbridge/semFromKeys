@@ -31,9 +31,9 @@ keys_e <- sapply(
 )
 
 # Create fit objects to using in test-esem.from.mods
-cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)$fit
+cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)$fit
 efa_fit <-
-  efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = FALSE)$fit$efa
+  efa.from.keys(keys_e, BFIGritHope, fit_save = FALSE)$fit$efa
 bif_fit <- bifactor.from.keys(
-  keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = FALSE
+  keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE
 )$fit

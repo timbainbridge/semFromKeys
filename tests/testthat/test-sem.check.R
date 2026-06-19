@@ -6,7 +6,7 @@ test_that(
       FUN = function(x, y) paste(y, "=~", paste(x, collapse = " + "))
     )
     expect_error(
-      sem.check(mods, BFIGritHope, "cfa", keys, check = FALSE, std = 42),
+      sem.check(mods, BFIGritHope, keys, std = 42),
       "`std` is not logical"
     )
   }
@@ -19,7 +19,7 @@ test_that(
       FUN = function(x, y) paste(y, "=~", paste(x, collapse = " + "))
     )
     expect_error(
-      sem.check(mods$grit_c, BFIGritHope, "cfa", keys, check = FALSE),
+      sem.check(mods$grit_c, BFIGritHope, keys),
       "`mods` is not a list"
     )
   }
