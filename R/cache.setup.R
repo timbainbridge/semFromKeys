@@ -79,8 +79,8 @@ cache.setup <- function(location = "user") {
     if (length(location) != 1 | !is.character(location)) {
       stop("`location` is not a length 1 character vector")
     }
-    if (require(here)) {
-      cache_dir <- paste0(here(), "/", location)
+    if (requireNamespace("here")) {
+      cache_dir <- paste0(here::here(), "/", location)
     } else {
       cache_dir <- paste0(getwd(), "/", location)
     }
