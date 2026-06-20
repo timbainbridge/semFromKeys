@@ -15,8 +15,8 @@ If any other string is used a folder will be created within either the
 if available, within the directory identified by \code{\link[here:here]{here::here()}}.}
 }
 \value{
-The cache directory path (invisibly). Primarily called for its side effect
-of setting up the cache configuration.
+The cache directory path (invisibly).
+Primarily called to set up the cache configuration.
 }
 \description{
 Using \code{save_out = TRUE} or \code{check = TRUE} from
@@ -69,6 +69,7 @@ Functions that directly or indirectly might require a cache directory are:
 \seealso{
 \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}},
 \code{\link[=esem.from.mods]{esem.from.mods()}}, and \code{\link[=sem.check]{sem.check()}} for dependent functions;
-\code{\link[tools:R_user_dir]{tools::R_user_dir()}} for default cache directories; and
-\code{\link[here:here]{here::here()}} for project-based cache directory setting.
+\code{\link[tools:R_user_dir]{tools::R_user_dir()}} for default cache directories;
+\code{\link[here:here]{here::here()}} for project-based cache directory setting; and
+\code{\link[=cache.clean]{cache.clean()}} for a function to clean cache.
 }

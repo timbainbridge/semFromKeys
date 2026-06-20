@@ -1,7 +1,7 @@
 Package: semFromKeys
 Type: Package
 Title: Run `lavaan` Models From Keys Lists
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person(
       "Timothy F.", "Bainbridge",
@@ -15,9 +15,6 @@ Description: Specifying lavaan models manually can be time consuming when
     from simple keys lists instead of writing out model code manually.
     The package also optionally checks that identical models have not been run
     on the same data, which saves time when code needs to be run again.
-    For structural models, functions use Burt's (1976)
-    <doi:doi.org/10.1177/004912417600500101> procedure to control for
-    interpretational confounding.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true

@@ -20,67 +20,80 @@ bifactor.from.keys(
 )
 }
 \arguments{
-\item{keys_g}{A named list of general factors. Names must be the names of the general
-factors, elements are vectors of items that will load on the general factor.}
+\item{keys_g}{A named list of items in general factors.
+Names must be the names of the general factors.
+Each list element must be a vector of items that load on the general factors.
+Must be the same length as \code{keys_b}.}
 
-\item{keys_b}{A named list of group factors. Names must be the general factors.
-Elements must be the group factor names.}
+\item{keys_b}{A named list of group factors in general factors.
+Names must be the names of the general factors.
+Each list element must be a vector of group factors that load on the general
+factors.
+Must be the same length as \code{keys_g}.}
 
-\item{keys}{A named list of items of group factors. Names must be group factor names.
-Elements must be items that load on the group factors.
-Elements must include group factors across all bifactor models.}
+\item{keys}{A named list of items in group factors.
+Names must be the names of the group factors.
+Each list element must be a vector of items that load on the group factors.
+Need not be the same length as \code{keys_g} and \code{keys_b}.}
 
-\item{data}{The data. This must include all observed variables in any of the keys.}
+\item{data}{A dataframe or object coercible to a dataframe.
+Data must include all observed variables in any of the keys.}
 
-\item{fit_save}{\code{TRUE} to include model fit measures in the output. \code{FALSE} otherwise.
-\code{FALSE} may be desirable when you do not care about fit measures and where
+\item{fit_save}{Logical.
+\code{TRUE} indicates model fit measures should be included in the output;
+\code{FALSE} indicates model fit measures should not be included in the output.
+\code{FALSE} may be desirable when fit measures are of little interest and when
 they may take a long time to estimate.
-Fit can still be examined for individual models with something like,
-\code{lavaan::fitMeasures(fit$fit$model)}.}
+Fit can still be examined for individual models with,
+\verb{lavaan::fitMeasures(fit$fit$[model name])}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
 as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{std.lv}{Sets the \code{std.lv} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{std.lv}{Logical.
+Sets the \code{std.lv} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\code{TRUE} indicates that factor variances should be fixed to 1.
+\code{FALSE} indicates that loadings of the first items of factors should be fixed
+to 1.
 Defaults to \code{TRUE}.}
 
-\item{miss}{Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{miss}{A string.
+Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to 'ML'.}
 
-\item{est}{Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{est}{A string.
+Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
 
-\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
+\item{name}{A string indicating a subdirectory where model outputs will be saved when
+\code{save_out = TRUE} and checked against when \code{check = TRUE}.
 Defaults to 'bifactor'.
 Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
-The name should be unique for each set of models or outputs from other
-calls will be overwritten.}
+The name should be unique for each set of models or outputs from calls with
+the same name will be overwritten.}
 
-\item{check}{Should the code check to see if previous outputs have been saved?
-If \code{TRUE}, the model will not run if model code, parameters, and a data hash
-exist and have not changed and output is of the correct class.
-If \code{FALSE}, the model will run regardless of the existence of previous
-outputs.}
+\item{check}{Logical.
+\code{TRUE} indicates that current inputs should be compared to previous inputs
+if they exist and that the model should not be rerun if nothing has changed;
+\code{FALSE} indicates that these checks should not be made and the model should
+be run regardless of the existence of previous inputs.}
 
-\item{save_out}{Should outputs be saved to enable checking next time?
-If \code{TRUE}, model code, a hash of the data, important input parameter values,
-and output will be saved.
-If \code{check = TRUE} the next time the code is run,
-then saved inputs will be checked against current values to determine whether
-the code needs to be rerun.
-If not (and the outputs are the correct class),
-then the outputs from the previous run will be returned.
-If \code{FALSE}, nothing will be saved, the output will simply be returned as per
-normal R functioning. Next time the code is run, models will be re-estimated
-regardless of changes to code or data.}
+\item{save_out}{Logical.
+\code{TRUE} indicates that model code, a hash of the data, important input
+parameter values, and output will be saved;
+\code{FALSE} indicates that nothing will be saved.
+Selecting \code{save_out = TRUE} enables the function to not rerun models next
+time if \code{check = TRUE} the next time the code is run and nothing has changed
+in the meantime.}
 }
 \value{
-Returns a list of lists.
-The elements are a list of lavaan bifactor model output objects;
+Returns a list of length 2 (if \code{fit_save = FALSE}) or
+3 (if \code{fit_save = TRUE}).
+The elements of the list are: a list of lavaan model output objects;
 a list of parameter estimates from the models (standardized if \code{std = TRUE});
-and, if \code{fit_measures} is not FALSE, a matrix of fit measures for each model.
+and, if \code{fit_save = TRUE}, a matrix of fit measures for each model.
 }
 \description{
 \code{bifactor.from.keys} runs a series of bifactor model from three keys lists---
