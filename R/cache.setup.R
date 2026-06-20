@@ -77,7 +77,7 @@ cache.setup <- function(location = "user") {
     options(semFromKeys_cache_dir = cache_dir)
     message(paste0("The cache directory is set as: '", cache_dir, "'."))
   } else {
-    if (length(location) != 1 | !is.character(location)) {
+    if (!is.character(location)) {
       stop("`location` is not a length 1 character vector")
     }
     if (requireNamespace("here")) {

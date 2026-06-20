@@ -238,6 +238,18 @@ test_that(
   }
 )
 test_that(
+  "Cache location invalid",
+  {
+    expect_error(
+      cache.setup(c("tests/testthat/cache", "tests/testhtat/invalid")),
+      "the condition has length > 1"
+    )
+    expect_error(
+      cache.setup(42), "`location` is not a length 1 character vector"
+    )
+  }
+)
+test_that(
   "Test partial running on `check = TRUE` after changes to a model",
   {
     cache_dir <- cache.setup("tests/testthat/cache")
@@ -448,5 +460,39 @@ test_that(
     expect_equal(
       length(list.files(cache_dir, full.names = TRUE, recursive = TRUE)), 0
     )
+  }
+)
+test_that(
+  "Test `older_than` not set",
+  {
+    cache_dir <- cache.setup("tests/testthat/cache")
+    name <- "cfa"
+    cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      name = name
+    )
+    expect_error(
+      cache.clean(interactive = FALSE), "specify a value for `older_than`"
+    )
+  }
+)
+test_that(
+  "Cache directory not set",
+  {
+    # frequently fails without this due to the cache being set elsewhere that
+    # this does not correctly forget.
+    options(semFromKeys_cache_dir = NULL)
+    expect_error(
+      cache.clean(0, interactive = FALSE), "cache directory is not configured"
+    )
+  }
+)
+test_that(
+  "No files to delete",
+  {
+    cache.setup("tests/testthat/cache")
+    # Does always delete files from previous tests
+    cache.clean(0, interactive = FALSE)
+    expect_message(cache.clean(0, interactive = FALSE), "No files to delete")
   }
 )

@@ -117,29 +117,28 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
     }
   )
   dirs_del <- dirs[dirs_empty]
-  if (length(dirs_del) <= 1) {  # 1 due to parent directory.
-    return(invisible(NULL))
-  }
-  dirs_del <- dirs_del[-1]
-  if (interactive & interactive()) {
-    message(
-      paste0(
-        "\nAbout to delete the following ", length(dirs_del) - 1,
-        " empty directories from:\n",
-        cache_dir, "\n\n  ",
+  dirs_del <- dirs_del[-1]  # Don't delete parent (i.e., cache_dir)
+  if (length(dirs_del) > 0) {
+    if (interactive & interactive()) {
+      message(
         paste0(
-          sub(paste0(cache_dir, ".*/"), "", dirs_del[-1]), collapse = "\n  "
+          "\nAbout to delete the following ", length(dirs_del) - 1,
+          " empty directories from:\n",
+          cache_dir, "\n\n  ",
+          paste0(
+            sub(paste0(cache_dir, ".*/"), "", dirs_del[-1]), collapse = "\n  "
+          )
         )
       )
-    )
-    response2 <- readline("Continue? (y/n): ")
-    if (tolower(substr(response2, 1, 1)) != "y") {
-      message("Cancelled.")
-      return(invisible(NULL))
+      response2 <- readline("Continue? (y/n): ")
+      if (tolower(substr(response2, 1, 1)) != "y") {
+        message("Cancelled.")
+        return(invisible(NULL))
+      }
     }
+    # Delete empty directories
+    unlink(dirs_del)
   }
-  # Delete empty directories
-  unlink(dirs_del)
   if (length(list.files(cache_dir, full.names = TRUE, recursive = TRUE)) > 0) {
     return(invisible(NULL))
   }
