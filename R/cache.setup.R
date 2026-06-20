@@ -19,8 +19,8 @@
 #' if available, within the directory identified by [here::here()].
 #'
 #' @return
-#' The cache directory path (invisibly). Primarily called for its side effect
-#' of setting up the cache configuration.
+#' The cache directory path (invisibly).
+#' Primarily called to set up the cache configuration.
 #'
 #' @details
 #' To avoid writing to users' computers without permission,
@@ -42,8 +42,9 @@
 #' @seealso
 #' [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()],
 #' [esem.from.mods()], and [sem.check()] for dependent functions;
-#' [tools::R_user_dir()] for default cache directories; and
-#' [here::here()] for project-based cache directory setting.
+#' [tools::R_user_dir()] for default cache directories;
+#' [here::here()] for project-based cache directory setting; and
+#' [cache.clean()] for a function to clean cache.
 #'
 #' @export
 #'
