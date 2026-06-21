@@ -36,11 +36,11 @@ outputs are returned, saving the time (and energy) of running them
 again. To get this feature to work, a cache directory will have to be
 set with the `cache.setup()` function, which, by default, configures a
 cache directory in the users’ cache as determined by the operating
-system. It can alternatively be set as a subdirectory within a project.
-Once the cache is set, `save_out = TRUE` can be included in function
-calls to save the relevant outputs, and `check = TRUE` can be included
-to look for previous outputs and only run models where something has
-changed.
+system. It can alternatively be set as a subdirectory within the current
+project or, if not using a project, the current working directory. Once
+the cache is set, `save_out = TRUE` can be included in function calls to
+save the relevant outputs, and `check = TRUE` can be included to look
+for previous outputs and only run models where something has changed.
 
 Given that the package enables creating files in a cache directory, the
 `cache.clean()` function has also been included to help clean up files.
@@ -57,25 +57,19 @@ pak::pak("timbainbridge/semFromKeys")
 
 ## Example
 
-The following example generates keys; runs an exploratory factor
-analysis (EFA) and 4 CFAs using these keys, and uses outputs from these
-to run four ESEMs. In this case, keys can be created from names in the
-dataset but they can also be created with simple code to generate a
-list.
+The following example generates keys, runs CFAs and an EFA using these
+keys, and uses outputs from these to run ESEMs.
+
+### CFAs
+
+In this case, keys can be created from names in the dataset but they can
+also be created with simple code to generate a list.
 
 ``` r
 library(semFromKeys)
-# Create CFA keys
 keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
 keys <- sapply(
   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
-)
-# Create EFA keys
-keys_e0 <- paste0("bfi_", c("e", "a", "c", "n", "o"))
-keys_e <- sapply(
-  keys_e0,
-  function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))],
-  simplify = FALSE
 )
 ```
 
@@ -94,29 +88,6 @@ keys
 #> 
 #> $hope_p
 #> [1] "hope_p_1" "hope_p_2" "hope_p_3" "hope_p_4"
-```
-
-``` r
-keys_e
-#> $bfi_e
-#>  [1] "bfi_e1_1" "bfi_e1_2" "bfi_e1_3" "bfi_e1_4" "bfi_e2_1" "bfi_e2_2"
-#>  [7] "bfi_e2_3" "bfi_e2_4" "bfi_e3_1" "bfi_e3_2" "bfi_e3_3" "bfi_e3_4"
-#> 
-#> $bfi_a
-#>  [1] "bfi_a1_1" "bfi_a1_2" "bfi_a1_3" "bfi_a1_4" "bfi_a2_1" "bfi_a2_2"
-#>  [7] "bfi_a2_3" "bfi_a2_4" "bfi_a3_1" "bfi_a3_2" "bfi_a3_3" "bfi_a3_4"
-#> 
-#> $bfi_c
-#>  [1] "bfi_c1_1" "bfi_c1_2" "bfi_c1_3" "bfi_c1_4" "bfi_c2_1" "bfi_c2_2"
-#>  [7] "bfi_c2_3" "bfi_c2_4" "bfi_c3_1" "bfi_c3_2" "bfi_c3_3" "bfi_c3_4"
-#> 
-#> $bfi_n
-#>  [1] "bfi_n1_1" "bfi_n1_2" "bfi_n1_3" "bfi_n1_4" "bfi_n2_1" "bfi_n2_2"
-#>  [7] "bfi_n2_3" "bfi_n2_4" "bfi_n3_1" "bfi_n3_2" "bfi_n3_3" "bfi_n3_4"
-#> 
-#> $bfi_o
-#>  [1] "bfi_o1_1" "bfi_o1_2" "bfi_o1_3" "bfi_o1_4" "bfi_o2_1" "bfi_o2_2"
-#>  [7] "bfi_o2_3" "bfi_o2_4" "bfi_o3_1" "bfi_o3_2" "bfi_o3_3" "bfi_o3_4"
 ```
 
 Once keys are created, the CFAs can be run. The function produces
@@ -143,10 +114,10 @@ cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = TRUE)
 #> 4 / 4   hope_p
 ```
 
-Results can be examined. For example:
+Results can be examined. For example, standard lavaan summaries:
 
 ``` r
-lavaan::summary(cfa_fit$fit$grit_c)        # Standard lavaan summary
+lavaan::summary(cfa_fit$fit$grit_c)
 #> lavaan 0.6-21 ended normally after 12 iterations
 #> 
 #>   Estimator                                         ML
@@ -198,8 +169,10 @@ lavaan::summary(cfa_fit$fit$grit_c)        # Standard lavaan summary
 #>     grit_c            1.000
 ```
 
+And selected fit measures:
+
 ``` r
-cfa_fit$fit_measures[, c("cfi", "rmsea")]  # Selected fit measures
+cfa_fit$fit_measures[, c("cfi", "rmsea")]
 #>              cfi      rmsea
 #> grit_c 0.9328014 0.12550173
 #> grit_p 0.9143581 0.12213711
@@ -210,11 +183,28 @@ cfa_fit$fit_measures[, c("cfi", "rmsea")]  # Selected fit measures
 These models can be used to examine the measurement characteristics of
 the scales or to calculate latent variable model-based reliability
 scores (e.g., with
-`sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` as
-recommended by Cho, 2021).
+`sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for
+composite reliability).
 
-Next an EFA model is run. Fit measures can be restricted to speed up
-estimation if not all are required (as for lavaan’s
+### EFAs
+
+As for CFAs, an EFA can be run from a keys list. In this case, the keys
+list indicates factor that items are expected to load on rather than
+separate models. These are used to generate a target rotation to help
+ensure the EFA matches expectations.
+
+``` r
+keys_e0 <- paste0("bfi_", c("e", "a", "c", "n", "o"))
+keys_e <- sapply(
+  keys_e0,
+  function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))],
+  simplify = FALSE
+)
+```
+
+After the keys list has been created, the model can be run similarly to
+the CFAs. When running the model, fit measures can be restricted to
+speed up estimation if not all are required (as for lavaan’s
 `lavaan::fitMeasures()` function).
 
 ``` r
@@ -230,7 +220,7 @@ efa_fit <- efa.from.keys(
 #> 1 / 1   efa
 ```
 
-The EFA can be examined in a similar way to the CFAs.
+EFA results can be examined in a similar way to the CFAs.
 
 ``` r
 # Not run due to length
@@ -240,12 +230,14 @@ efa_fit$fit_measures                # Fit measures
 #> efa 4808.621 1480      0 62887.71
 ```
 
-Finally, outputs from these models can be used as inputs into an ESEM
+### ESEM
+
+Finally, outputs from these models can be used as inputs into ESEMs
 where the scales of the CFAs are regressed on the EFA factors.
 
 ``` r
 esem_fit <- esem.from.mods(
-  efa_fit$fit$efa, cfa_fit$fit, d = BFIGritHope, check = FALSE
+  efa_fit$fit$efa, cfa_fit$fit, data = BFIGritHope, fit_save = FALSE
 )
 #> Fitting models
 #> 1 / 4   grit_c
@@ -283,7 +275,9 @@ esem_fit$b$grit_c
 #> 392 bfi_o   0.100 0.048  2.112  0.035    0.007    0.193
 ```
 
-To examine how to set up and use a cache directory see `?cache.setup`.
+To take advantage of functions’ time-saving `check = TRUE` for
+subsequent running of code, a cache directory will need to be set. To
+see how to do this, see `?cache.setup`.
 
 <!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
 
@@ -297,7 +291,3 @@ trait scales. Journal of Personality and Social Psychology, 122(4),
 Burt, R. S. (1976). Interpretational confounding of unobserved variables
 in Structural Equation Models. Sociological Methods & Research, 5(1),
 3-52. <http://journals.sagepub.com/doi/10.1177/004912417600500101>.
-
-Cho, E. (2021). Neither Cronbach’s Alpha nor McDonald’s Omega: A
-Commentary on Sijtsma and Pfadt. Psychometrika, 86(4), 877-886.
-<https://doi.org/10.1007/s11336-021-09801-1>.

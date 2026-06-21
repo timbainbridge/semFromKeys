@@ -1,7 +1,7 @@
 Package: semFromKeys
 Type: Package
-Title: Run `lavaan` Models From Keys Lists
-Version: 0.2.0
+Title: Run `lavaan` Models from Keys Lists
+Version: 0.1.1
 Authors@R: c(
     person(
       "Timothy F.", "Bainbridge",
@@ -9,9 +9,9 @@ Authors@R: c(
       role = c("aut", "cre", "cph")
     )
   )
-Description: Specifying lavaan models manually can be time consuming when
-    multiple similar models are required. The semFromKeys package aims to
-    streamline the process of running lavaan models by generating model code
+Description: Specifying `lavaan` models manually can be time consuming when
+    multiple similar models are required. The `semFromKeys` package aims to
+    streamline the process of running `lavaan` models by generating model code
     from simple keys lists instead of writing out model code manually.
     The package also optionally checks that identical models have not been run
     on the same data, which saves time when code needs to be run again.
