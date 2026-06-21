@@ -116,9 +116,8 @@ keys <- sapply(
 # Run models
 cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
 # Examine some results
-summary(cfa_fit$fit$grit_c)  # Standard lavaan summary
-cfa_fit$par$grit_c           # Parameter estimates
-cfa_fit$fit_measures         # Fit measures
+summary(cfa_fit$fit$grit_c)                # Standard lavaan summary
+cfa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 }
 \seealso{
 \code{\link[=sem.check]{sem.check()}}, which \code{cfa.from.keys()} uses for all the back-end, and

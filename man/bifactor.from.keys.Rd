@@ -164,20 +164,19 @@ bif_fit <- bifactor.from.keys(
   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
 )
 # Examine some results
-summary(bif_fit$fit$grit)  # Standard lavaan summary
-bif_fit$par$grit           # Parameter estimates
-bif_fit$fit_measures       # Fit measures
+summary(bif_fit$fit$grit)                  # Standard lavaan summary
+bif_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 }
 \references{
 Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
 Anomalous results in G-factor models: Explanations and alternatives.
 Psychological Methods, 22(3), 541-562.
-doi.org/10.1037/met0000083.
+https://doi.org/10.1037/met0000083.
 
 Murray, A. L. & Johnson, W. (2013).
 The limitations of model fit in comparing the bi-factor versus higher-order
 models of human cognitive ability structure. Intelligence, 41(5), 407-422.
-doi.org/10.1016/j.intell.2013.06.004.
+https://doi.org/10.1016/j.intell.2013.06.004.
 }
 \seealso{
 \code{\link[=sem.check]{sem.check()}}, which \code{bifactor.from.keys()} uses for all the back-end, and

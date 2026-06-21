@@ -125,15 +125,14 @@ keys_e <- sapply(
 # Run model
 efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = TRUE)
 # Examine results
-summary(efa_fit$fit$efa)  # Standard lavaan summary
-efa_fit$par$efa           # Parameter estimates
-efa_fit$fit_measures      # Fit measures
+summary(efa_fit$fit$efa)                   # Standard lavaan summary
+efa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 }
 \references{
 Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation
 Models. Sociological Methods & Research, 5(1), 3-52.
-doi.org/10.1177/004912417600500101.
+https://doi.org/10.1177/004912417600500101.
 }
 \seealso{
 \code{\link[=sem.check]{sem.check()}}, which \code{efa.from.keys()} uses for all the back-end, and
