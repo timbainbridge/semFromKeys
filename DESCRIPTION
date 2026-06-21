@@ -9,10 +9,10 @@ Authors@R: c(
       role = c("aut", "cre", "cph")
     )
   )
-Description: Specifying `lavaan` models manually can be time consuming when
-    multiple similar models are required. The `semFromKeys` package aims to
-    streamline the process of running `lavaan` models by generating model code
-    from simple keys lists instead of writing out model code manually.
+Description: Specifying 'lavaan' models manually can be time consuming when
+    multiple similar models are required. The 'semFromKeys' package streamlines
+    the process of running 'lavaan' models by generating model code from simple
+    keys lists and running entire collections of models at once.
     The package also optionally checks that identical models have not been run
     on the same data, which saves time when code needs to be run again.
 License: GPL (>= 3)
