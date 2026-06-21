@@ -116,6 +116,11 @@
 #' Models. Sociological Methods & Research, 5(1), 3-52.
 #' doi.org/10.1177/004912417600500101.
 #'
+#' Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
+#' Anomalous results in G-factor models: Explanations and alternatives.
+#' Psychological Methods, 22(3), 541-562.
+#' doi.org/10.1037/met0000083.
+#'
 #' @importFrom lavaan summary
 #' @export
 #'
@@ -133,14 +138,14 @@
 #' keys_b1 <- sapply(
 #'   keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
 #' )
+#' # Avoid fit problems with an S-1 model (Eid et al., 2017)
 #' keys_b <- keys_b1
 #' keys_b$hope <- keys_b1$hope[-1]
 #' # Create EFA keys
-#' # Using only 3 factors to save time
-#' keys_e0 <- paste0("bfi_", c("e", "a", "c"))
-#' # Using less than all items to save time on checks
+#' # Using only 3 factors and fewer items to save time for a simple example
 #' # (This results in a less than ideal solution but it doesn't matter for an
 #' # example)
+#' keys_e0 <- paste0("bfi_", c("e", "a", "c"))
 #' keys_e <- sapply(
 #'   keys_e0,
 #'   function(x) {
@@ -149,11 +154,10 @@
 #'   simplify = FALSE
 #' )
 #' # Create fitted objects to use as inputs
-#' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
-#' efa_fit <-
-#'   efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = FALSE)
+#' cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)
+#' efa_fit <- efa.from.keys(keys_e, BFIGritHope, fit_save = FALSE)
 #' bif_fit <- bifactor.from.keys(
-#'   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = FALSE
+#'   keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE
 #' )
 #' # Run models
 #' esem_fit <- esem.from.mods(
@@ -162,7 +166,6 @@
 #' )
 #' # Examine results
 #' summary(esem_fit$fit$grit_c)  # Standard lavaan summary
-#' esem_fit$par$grit_c           # Parameter estimates
 #' esem_fit$r2                   # R-squareds
 #' esem_fit$b                    # Betas
 

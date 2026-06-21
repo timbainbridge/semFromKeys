@@ -77,9 +77,8 @@
 #' # Run model
 #' efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = TRUE)
 #' # Examine results
-#' summary(efa_fit$fit$efa)  # Standard lavaan summary
-#' efa_fit$par$efa           # Parameter estimates
-#' efa_fit$fit_measures      # Fit measures
+#' summary(efa_fit$fit$efa)                   # Standard lavaan summary
+#' efa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 
 efa.from.keys <- function(
     keys, data, orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",

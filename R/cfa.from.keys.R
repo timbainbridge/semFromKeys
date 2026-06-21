@@ -71,9 +71,8 @@
 #' # Run models
 #' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
 #' # Examine some results
-#' summary(cfa_fit$fit$grit_c)  # Standard lavaan summary
-#' cfa_fit$par$grit_c           # Parameter estimates
-#' cfa_fit$fit_measures         # Fit measures
+#' summary(cfa_fit$fit$grit_c)                # Standard lavaan summary
+#' cfa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 
 cfa.from.keys <- function(
     keys, data, fit_save = TRUE, fit_measures = "all",

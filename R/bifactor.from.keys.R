@@ -128,9 +128,8 @@
 #'   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
 #' )
 #' # Examine some results
-#' summary(bif_fit$fit$grit)  # Standard lavaan summary
-#' bif_fit$par$grit           # Parameter estimates
-#' bif_fit$fit_measures       # Fit measures
+#' summary(bif_fit$fit$grit)                  # Standard lavaan summary
+#' bif_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 
 bifactor.from.keys <- function(
   keys_g, keys_b, keys, data, fit_save = TRUE, fit_measures = "all",
