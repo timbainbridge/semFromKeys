@@ -109,17 +109,17 @@
 #' Evaluating the Big Five as an organizing framework for commonly used
 #' psychological trait scales.
 #' Journal of Personality and Social Psychology, 122(4), 749-777.
-#' doi.org/10.1037/pspp0000395.
+#' https://doi.org/10.1037/pspp0000395.
 #'
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
 #' Models. Sociological Methods & Research, 5(1), 3-52.
-#' doi.org/10.1177/004912417600500101.
+#' https://doi.org/10.1177/004912417600500101.
 #'
 #' Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
 #' Anomalous results in G-factor models: Explanations and alternatives.
 #' Psychological Methods, 22(3), 541-562.
-#' doi.org/10.1037/met0000083.
+#' https://doi.org/10.1037/met0000083.
 #'
 #' @importFrom lavaan summary
 #' @export
