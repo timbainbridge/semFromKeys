@@ -8,25 +8,33 @@
 #'
 #' @inheritParams sem.check
 #' @param keys
-#' A named list of keys. Names should be scale names, elements should a list of
-#' items included in each scale.
+#' A named list of keys.
+#' Names should be scale names,
+#' elements should a list of items included in each scale.
 #' @param data
-#' The data. This must include all observed variables in any of the keys.
+#' A dataframe or object coercible to a dataframe.
+#' Data must include all observed variables in any of the keys.
 #' @param name
-#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
+#' A string indicating a subdirectory where model outputs will be saved when
+#' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to 'cfa'.
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' The name should be unique for each set of models or outputs from other
-#' calls will be overwritten.
+#' The name should be unique for each set of models or outputs from calls with
+#' the same name will be overwritten.
 #' @param std.lv
-#' Sets the `std.lv` param, as per lavaan (see [lavaan::lavOptions()]).
+#' Logical.
+#' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' `TRUE` indicates that factor variances should be fixed to 1.
+#' `FALSE` indicates that loadings of the first items of factors should be fixed
+#' to 1.
 #' Defaults to `TRUE`.
 #'
 #' @return
-#' Returns a list of lists.
-#' The elements are a list of lavaan CFA model output objects;
-#' a list of parameter estimates from the models;
-#' and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
+#' Returns a list of length 2 (if `fit_save = FALSE`) or
+#' 3 (if `fit_save = TRUE`).
+#' The elements of the list are: a list of lavaan model output objects;
+#' a list of parameter estimates from the models (standardized if `std = TRUE`);
+#' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
 #' The model relies on [sem.check()] for the back-end of running the models.
@@ -51,6 +59,7 @@
 #' [sem.check()], which `cfa.from.keys()` uses for all the back-end, and
 #' [lavaan::sem()], which is used to estimate the models.
 #'
+#' @importFrom lavaan summary
 #' @export
 #'
 #' @examples
@@ -62,14 +71,13 @@
 #' # Run models
 #' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
 #' # Examine some results
-#' summary(cfa_fit$fit$grit_c)  # Standard lavaan summary
-#' cfa_fit$par$grit_c           # Parameter estimates
-#' cfa_fit$fit_measures         # Fit measures
+#' summary(cfa_fit$fit$grit_c)                # Standard lavaan summary
+#' cfa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 
 cfa.from.keys <- function(
-    keys, data, name = "cfa", out_dir = "output", std.lv = TRUE,
-    fit_save = TRUE, fit_measures = "all", miss = "ML", est = "default",
-    check = FALSE, save_out = FALSE
+    keys, data, fit_save = TRUE, fit_measures = "all",
+    std.lv = TRUE, miss = "ML", est = "default",
+    name = "cfa", check = FALSE, save_out = FALSE
 ) {
   mods <- mapply(
     function(y, z) {
@@ -96,7 +104,6 @@ cfa.from.keys <- function(
     fit_save = fit_save,
     fit_measures = fit_measures,
     std.lv = std.lv,
-    out_dir = out_dir,
     miss = miss,
     est = est,
     check = check,

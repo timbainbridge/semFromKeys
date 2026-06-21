@@ -11,32 +11,45 @@
 #'
 #' @inheritParams sem.check
 #' @param keys_g
-#' A named list of general factors. Names must be the names of the general
-#' factors, elements are vectors of items that will load on the general factor.
+#' A named list of items in general factors.
+#' Names must be the names of the general factors.
+#' Each list element must be a vector of items that load on the general factors.
+#' Must be the same length as `keys_b`.
 #' @param keys_b
-#' A named list of group factors. Names must be the general factors.
-#' Elements must be the group factor names.
+#' A named list of group factors in general factors.
+#' Names must be the names of the general factors.
+#' Each list element must be a vector of group factors that load on the general
+#' factors.
+#' Must be the same length as `keys_g`.
 #' @param keys
-#' A named list of items of group factors. Names must be group factor names.
-#' Elements must be items that load on the group factors.
-#' Elements must include group factors across all bifactor models.
+#' A named list of items in group factors.
+#' Names must be the names of the group factors.
+#' Each list element must be a vector of items that load on the group factors.
+#' Need not be the same length as `keys_g` and `keys_b`.
 #' @param data
-#' The data. This must include all observed variables in any of the keys.
+#' A dataframe or object coercible to a dataframe.
+#' Data must include all observed variables in any of the keys.
 #' @param name
-#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
+#' A string indicating a subdirectory where model outputs will be saved when
+#' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to 'bifactor'.
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' The name should be unique for each set of models or outputs from other
-#' calls will be overwritten.
+#' The name should be unique for each set of models or outputs from calls with
+#' the same name will be overwritten.
 #' @param std.lv
+#' Logical.
 #' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' `TRUE` indicates that factor variances should be fixed to 1.
+#' `FALSE` indicates that loadings of the first items of factors should be fixed
+#' to 1.
 #' Defaults to `TRUE`.
 #'
 #' @return
-#' Returns a list of lists.
-#' The elements are a list of lavaan bifactor model output objects;
+#' Returns a list of length 2 (if `fit_save = FALSE`) or
+#' 3 (if `fit_save = TRUE`).
+#' The elements of the list are: a list of lavaan model output objects;
 #' a list of parameter estimates from the models (standardized if `std = TRUE`);
-#' and, if `fit_measures` is not FALSE, a matrix of fit measures for each model.
+#' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
 #' The model relies on [sem.check()] for the back-end of running the models.
@@ -78,17 +91,18 @@
 #' Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
 #' Anomalous results in G-factor models: Explanations and alternatives.
 #' Psychological Methods, 22(3), 541-562.
-#' doi.org/10.1037/met0000083.
+#' https://doi.org/10.1037/met0000083.
 #'
 #' Murray, A. L. & Johnson, W. (2013).
 #' The limitations of model fit in comparing the bi-factor versus higher-order
 #' models of human cognitive ability structure. Intelligence, 41(5), 407-422.
-#' doi.org/10.1016/j.intell.2013.06.004.
+#' https://doi.org/10.1016/j.intell.2013.06.004.
 #'
 #' @seealso
 #' [sem.check()], which `bifactor.from.keys()` uses for all the back-end, and
 #' [lavaan::sem()], which is used to estimate the models.
 #'
+#' @importFrom lavaan summary
 #' @export
 #'
 #' @examples
@@ -114,14 +128,13 @@
 #'   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
 #' )
 #' # Examine some results
-#' summary(bif_fit$fit$grit)  # Standard lavaan summary
-#' bif_fit$par$grit           # Parameter estimates
-#' bif_fit$fit_measures       # Fit measures
+#' summary(bif_fit$fit$grit)                  # Standard lavaan summary
+#' bif_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 
 bifactor.from.keys <- function(
-  keys_g, keys_b, keys, data, name = "bifactor", out_dir = "output",
-  std.lv = TRUE, fit_save = TRUE, fit_measures = "all", miss = "ML",
-  est = "default", check = FALSE, save_out = FALSE
+  keys_g, keys_b, keys, data, fit_save = TRUE, fit_measures = "all",
+  std.lv = TRUE, miss = "ML", est = "default",
+  name = "bifactor", check = FALSE, save_out = FALSE
 ) {
   if (!is.list(keys_g)) {
     stop("`keys_g` is not a list.")
@@ -230,7 +243,6 @@ bifactor.from.keys <- function(
     fit_save = fit_save,
     fit_measures = fit_measures,
     std.lv = std.lv,
-    out_dir = out_dir,
     miss = miss,
     est = est,
     orthogonal = TRUE,  # Must be TRUE for bifactor models.

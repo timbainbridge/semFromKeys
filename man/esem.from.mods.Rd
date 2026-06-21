@@ -9,12 +9,11 @@ esem.from.mods(
   cfa_fit = NULL,
   bif_fit = NULL,
   data,
-  name = "esem",
-  out_dir = "output",
   fit_save = FALSE,
   fit_measures = "all",
   miss = "ML",
   est = "default",
+  name = "esem",
   check = FALSE,
   save_out = FALSE
 )
@@ -25,74 +24,70 @@ esem.from.mods(
 \item{cfa_fit}{A named list of fitted lavaan objects of CFA models.
 Can be \code{NULL} if \code{bif_fit} is not \code{NULL}.}
 
-\item{bif_fit}{A list of fitted lavaan objects of bifactor models.
+\item{bif_fit}{A named list of fitted lavaan objects of bifactor models.
 Can be \code{NULL} if \code{cfa_fit} is not \code{NULL}.}
 
-\item{data}{The data. This must include all observed variables used in any of the models.}
+\item{data}{A dataframe or object coercible to a dataframe.
+Data must include all observed variables used in any of the models.}
 
-\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
-Defaults to "esem".
-Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
-The name should be unique for each set of models or outputs from other
-calls will be overwritten.}
-
-\item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
-when \code{save_out = TRUE}.
-Defaults to 'output'.
-Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.}
-
-\item{fit_save}{\code{TRUE} to include model fit measures in the output. \code{FALSE} otherwise.
-\code{FALSE} may be desirable when you do not care about fit measures and where
+\item{fit_save}{Logical.
+\code{TRUE} indicates model fit measures should be included in the output;
+\code{FALSE} indicates model fit measures should not be included in the output.
+\code{FALSE} may be desirable when fit measures are of little interest and when
 they may take a long time to estimate.
-Fit can still be examined for individual models with something like,
-\code{lavaan::fitMeasures(fit$fit$model)}.}
+Fit can still be examined for individual models with,
+\verb{lavaan::fitMeasures(fit$fit$[model name])}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
 as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{miss}{Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{miss}{A string.
+Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to 'ML'.}
 
-\item{est}{Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{est}{A string.
+Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
 
-\item{check}{Should the code check to see if previous outputs have been saved?
-If \code{TRUE}, the model will not run if model code, parameters, and a data hash
-exist and have not changed and output is of the correct class.
-If \code{FALSE}, the model will run regardless of the existence of previous
-outputs.}
+\item{name}{A string indicating a subdirectory where model outputs will be saved when
+\code{save_out = TRUE} and checked against when \code{check = TRUE}.
+Defaults to "esem".
+Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
+The name should be unique for each set of models or outputs from calls with
+the same name will be overwritten.}
 
-\item{save_out}{Should outputs be saved to enable checking next time?
-If \code{TRUE}, model code, a hash of the data, important input parameter values,
-and output will be saved.
-If \code{check = TRUE} the next time the code is run,
-then saved inputs will be checked against current values to determine whether
-the code needs to be rerun.
-If not (and the outputs are the correct class),
-then the outputs from the previous run will be returned.
-If \code{FALSE}, nothing will be saved, the output will simply be returned as per
-normal R functioning. Next time the code is run, models will be re-estimated
-regardless of changes to code or data.}
+\item{check}{Logical.
+\code{TRUE} indicates that current inputs should be compared to previous inputs
+if they exist and that the model should not be rerun if nothing has changed;
+\code{FALSE} indicates that these checks should not be made and the model should
+be run regardless of the existence of previous inputs.}
+
+\item{save_out}{Logical.
+\code{TRUE} indicates that model code, a hash of the data, important input
+parameter values, and output will be saved;
+\code{FALSE} indicates that nothing will be saved.
+Selecting \code{save_out = TRUE} enables the function to not rerun models next
+time if \code{check = TRUE} the next time the code is run and nothing has changed
+in the meantime.}
 }
 \value{
-Returns a length 2 or 3 list of lists.
-The first elements of the list is a list of fitted lavaan esem model output
-objects.
-The second element of the list is a list of parameter estimates from the
-models (standardized if \code{std = TRUE}).
-If \code{fit_save = TRUE}, then the list will have a third element, which will be
-a matrix of fit measures for each model.
-All elements are the length of \code{cfa_keys} plus the length of \code{bif_keys}.
+Returns a list of length 4 (if \code{fit_save = FALSE}) or
+5 (if \code{fit_save = TRUE}).
+The elements of the list are: a list of lavaan model output objects;
+a list of parameter estimates from the models (standardized if \code{std = TRUE});
+if \code{fit_save = TRUE}, a matrix of fit measures for each model;
+a list of regression beta parameters from each model;
+and a dataframe of R-squared values from each model.
 }
 \description{
-\code{esem.from.keys} runs an exploratory structural equation model (ESEM) in lavaan
-where the exploratory factor analysis (EFA) factors predict either
-confirmatory factor analysis (CFA) factors in separate models for each CFA
-factor OR bifactor factors in separate models for each bifactor model.
+\code{esem.from.keys} runs exploratory structural equation models (ESEM) in lavaan
+where the exploratory factor analysis (EFA) factors predict confirmatory
+factor analysis (CFA) factors and/or bifactor factors in separate models
+for each CFA or bifactor model.
 The function takes a fitted lavaan object from an EFA and lists of fitted
-CFA or bifactor lavaan model objects as inputs so will typically
+CFA and/or bifactor lavaan model objects as inputs so will typically
 use outputs from \code{\link[=efa.from.keys]{efa.from.keys()}}, and \code{\link[=cfa.from.keys]{cfa.from.keys()}} or
 \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}.
 }
@@ -174,14 +169,14 @@ keys_g <- sapply(
 keys_b1 <- sapply(
   keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
 )
+# Avoid fit problems with an S-1 model (Eid et al., 2017)
 keys_b <- keys_b1
 keys_b$hope <- keys_b1$hope[-1]
 # Create EFA keys
-# Using only 3 factors to save time
-keys_e0 <- paste0("bfi_", c("e", "a", "c"))
-# Using less than all items to save time on checks
+# Using only 3 factors and fewer items to save time for a simple example
 # (This results in a less than ideal solution but it doesn't matter for an
 # example)
+keys_e0 <- paste0("bfi_", c("e", "a", "c"))
 keys_e <- sapply(
   keys_e0,
   function(x) {
@@ -190,11 +185,10 @@ keys_e <- sapply(
   simplify = FALSE
 )
 # Create fitted objects to use as inputs
-cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
-efa_fit <-
-  efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = FALSE)
+cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)
+efa_fit <- efa.from.keys(keys_e, BFIGritHope, fit_save = FALSE)
 bif_fit <- bifactor.from.keys(
-  keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = FALSE
+  keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE
 )
 # Run models
 esem_fit <- esem.from.mods(
@@ -203,7 +197,6 @@ esem_fit <- esem.from.mods(
 )
 # Examine results
 summary(esem_fit$fit$grit_c)  # Standard lavaan summary
-esem_fit$par$grit_c           # Parameter estimates
 esem_fit$r2                   # R-squareds
 esem_fit$b                    # Betas
 }
@@ -212,12 +205,17 @@ Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).
 Evaluating the Big Five as an organizing framework for commonly used
 psychological trait scales.
 Journal of Personality and Social Psychology, 122(4), 749-777.
-doi.org/10.1037/pspp0000395.
+https://doi.org/10.1037/pspp0000395.
 
 Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation
 Models. Sociological Methods & Research, 5(1), 3-52.
-doi.org/10.1177/004912417600500101.
+https://doi.org/10.1177/004912417600500101.
+
+Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
+Anomalous results in G-factor models: Explanations and alternatives.
+Psychological Methods, 22(3), 541-562.
+https://doi.org/10.1037/met0000083.
 }
 \seealso{
 \code{\link[=sem.check]{sem.check()}}, which this function uses for all the back-end;

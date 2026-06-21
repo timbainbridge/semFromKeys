@@ -7,14 +7,13 @@
 efa.from.keys(
   keys,
   data,
-  name = "efa",
-  out_dir = "output",
   orthogonal = FALSE,
-  std.lv = TRUE,
   fit_save = TRUE,
   fit_measures = "all",
+  std.lv = TRUE,
   miss = "ML",
   est = "default",
+  name = "efa",
   check = FALSE,
   save_out = FALSE
 )
@@ -23,58 +22,61 @@ efa.from.keys(
 \item{keys}{A named list of keys. Names must be factor names, elements must be
 vectors of items that should be targeted to load on the factor.}
 
-\item{data}{The data. This must include all observed variables in any of the keys.}
+\item{data}{A dataframe or object coercible to a dataframe.
+Data must include all observed variables in any of the keys.}
 
-\item{name}{A subdirectory where model outputs will be saved when \code{save_out = TRUE}.
-Defaults to 'efa'. Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
-The name should be unique for each set of models or outputs from other
-calls will be overwritten.}
-
-\item{out_dir}{A parent directory for collecting outputs from \code{semFromKeys} function calls
-when \code{save_out = TRUE}.
-Defaults to 'output'.
-Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.}
-
-\item{orthogonal}{Sets the \code{orthogonal} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{orthogonal}{Logical.
+Sets the \code{orthogonal} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\code{TRUE} indicates that unspecified latent variable correlations should be
+fixed at 0;
+\code{FALSE} indicates that unspecified latent variable correlations should be
+freely estimated.
 Defaults to \code{FALSE}.}
 
-\item{std.lv}{Sets the \code{std.lv} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
-Defaults to \code{TRUE}.}
-
-\item{fit_save}{\code{TRUE} to include model fit measures in the output. \code{FALSE} otherwise.
-\code{FALSE} may be desirable when you do not care about fit measures and where
+\item{fit_save}{Logical.
+\code{TRUE} indicates model fit measures should be included in the output;
+\code{FALSE} indicates model fit measures should not be included in the output.
+\code{FALSE} may be desirable when fit measures are of little interest and when
 they may take a long time to estimate.
-Fit can still be examined for individual models with something like,
-\code{lavaan::fitMeasures(fit$fit$model)}.}
+Fit can still be examined for individual models with,
+\verb{lavaan::fitMeasures(fit$fit$[model name])}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
 as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{miss}{Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{std.lv}{Sets the \code{std.lv} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to \code{TRUE}.}
+
+\item{miss}{A string.
+Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 Defaults to 'ML'.}
 
-\item{est}{Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{est}{A string.
+Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
 
-\item{check}{Should the code check to see if previous outputs have been saved?
-If \code{TRUE}, the model will not run if model code, parameters, and a data hash
-exist and have not changed and output is of the correct class.
-If \code{FALSE}, the model will run regardless of the existence of previous
-outputs.}
+\item{name}{A string indicating a subdirectory where model outputs will be saved when
+\code{save_out = TRUE} and checked against when \code{check = TRUE}.
+Defaults to 'efa'.
+Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
+The name should be unique for each set of models or outputs from calls with
+the same name will be overwritten.}
 
-\item{save_out}{Should outputs be saved to enable checking next time?
-If \code{TRUE}, model code, a hash of the data, important input parameter values,
-and output will be saved.
-If \code{check = TRUE} the next time the code is run,
-then saved inputs will be checked against current values to determine whether
-the code needs to be rerun.
-If not (and the outputs are the correct class),
-then the outputs from the previous run will be returned.
-If \code{FALSE}, nothing will be saved, the output will simply be returned as per
-normal R functioning. Next time the code is run, models will be re-estimated
-regardless of changes to code or data.}
+\item{check}{Logical.
+\code{TRUE} indicates that current inputs should be compared to previous inputs
+if they exist and that the model should not be rerun if nothing has changed;
+\code{FALSE} indicates that these checks should not be made and the model should
+be run regardless of the existence of previous inputs.}
+
+\item{save_out}{Logical.
+\code{TRUE} indicates that model code, a hash of the data, important input
+parameter values, and output will be saved;
+\code{FALSE} indicates that nothing will be saved.
+Selecting \code{save_out = TRUE} enables the function to not rerun models next
+time if \code{check = TRUE} the next time the code is run and nothing has changed
+in the meantime.}
 }
 \value{
 Returns a list of lists.
@@ -123,15 +125,14 @@ keys_e <- sapply(
 # Run model
 efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = TRUE)
 # Examine results
-summary(efa_fit$fit$efa)  # Standard lavaan summary
-efa_fit$par$efa           # Parameter estimates
-efa_fit$fit_measures      # Fit measures
+summary(efa_fit$fit$efa)                   # Standard lavaan summary
+efa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 }
 \references{
 Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation
 Models. Sociological Methods & Research, 5(1), 3-52.
-doi.org/10.1177/004912417600500101.
+https://doi.org/10.1177/004912417600500101.
 }
 \seealso{
 \code{\link[=sem.check]{sem.check()}}, which \code{efa.from.keys()} uses for all the back-end, and

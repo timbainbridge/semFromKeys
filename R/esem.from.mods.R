@@ -1,11 +1,11 @@
 #' Runs ESEM based on CFA and EFA model outputs.
 #'
-#' `esem.from.keys` runs an exploratory structural equation model (ESEM) in lavaan
-#' where the exploratory factor analysis (EFA) factors predict either
-#' confirmatory factor analysis (CFA) factors in separate models for each CFA
-#' factor OR bifactor factors in separate models for each bifactor model.
+#' `esem.from.keys` runs exploratory structural equation models (ESEM) in lavaan
+#' where the exploratory factor analysis (EFA) factors predict confirmatory
+#' factor analysis (CFA) factors and/or bifactor factors in separate models
+#' for each CFA or bifactor model.
 #' The function takes a fitted lavaan object from an EFA and lists of fitted
-#' CFA or bifactor lavaan model objects as inputs so will typically
+#' CFA and/or bifactor lavaan model objects as inputs so will typically
 #' use outputs from [efa.from.keys()], and [cfa.from.keys()] or
 #' [bifactor.from.keys()].
 #'
@@ -15,24 +15,24 @@
 #' A named list of fitted lavaan objects of CFA models.
 #' Can be `NULL` if `bif_fit` is not `NULL`.
 #' @param bif_fit
-#' A list of fitted lavaan objects of bifactor models.
+#' A named list of fitted lavaan objects of bifactor models.
 #' Can be `NULL` if `cfa_fit` is not `NULL`.
 #' @param name
-#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
+#' A string indicating a subdirectory where model outputs will be saved when
+#' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to "esem".
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' The name should be unique for each set of models or outputs from other
-#' calls will be overwritten.
+#' The name should be unique for each set of models or outputs from calls with
+#' the same name will be overwritten.
 #'
 #' @return
-#' Returns a length 2 or 3 list of lists.
-#' The first elements of the list is a list of fitted lavaan esem model output
-#' objects.
-#' The second element of the list is a list of parameter estimates from the
-#' models (standardized if `std = TRUE`).
-#' If `fit_save = TRUE`, then the list will have a third element, which will be
-#' a matrix of fit measures for each model.
-#' All elements are the length of `cfa_keys` plus the length of `bif_keys`.
+#' Returns a list of length 4 (if `fit_save = FALSE`) or
+#' 5 (if `fit_save = TRUE`).
+#' The elements of the list are: a list of lavaan model output objects;
+#' a list of parameter estimates from the models (standardized if `std = TRUE`);
+#' if `fit_save = TRUE`, a matrix of fit measures for each model;
+#' a list of regression beta parameters from each model;
+#' and a dataframe of R-squared values from each model.
 #'
 #' @details
 #' The function was designed to streamline running exploratory structural
@@ -109,13 +109,19 @@
 #' Evaluating the Big Five as an organizing framework for commonly used
 #' psychological trait scales.
 #' Journal of Personality and Social Psychology, 122(4), 749-777.
-#' doi.org/10.1037/pspp0000395.
+#' https://doi.org/10.1037/pspp0000395.
 #'
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
 #' Models. Sociological Methods & Research, 5(1), 3-52.
-#' doi.org/10.1177/004912417600500101.
+#' https://doi.org/10.1177/004912417600500101.
 #'
+#' Eid, M., Geiser, C., Koch, T., & Heene, M. (2017).
+#' Anomalous results in G-factor models: Explanations and alternatives.
+#' Psychological Methods, 22(3), 541-562.
+#' https://doi.org/10.1037/met0000083.
+#'
+#' @importFrom lavaan summary
 #' @export
 #'
 #' @examples
@@ -132,14 +138,14 @@
 #' keys_b1 <- sapply(
 #'   keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
 #' )
+#' # Avoid fit problems with an S-1 model (Eid et al., 2017)
 #' keys_b <- keys_b1
 #' keys_b$hope <- keys_b1$hope[-1]
 #' # Create EFA keys
-#' # Using only 3 factors to save time
-#' keys_e0 <- paste0("bfi_", c("e", "a", "c"))
-#' # Using less than all items to save time on checks
+#' # Using only 3 factors and fewer items to save time for a simple example
 #' # (This results in a less than ideal solution but it doesn't matter for an
 #' # example)
+#' keys_e0 <- paste0("bfi_", c("e", "a", "c"))
 #' keys_e <- sapply(
 #'   keys_e0,
 #'   function(x) {
@@ -148,11 +154,10 @@
 #'   simplify = FALSE
 #' )
 #' # Create fitted objects to use as inputs
-#' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
-#' efa_fit <-
-#'   efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = FALSE)
+#' cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)
+#' efa_fit <- efa.from.keys(keys_e, BFIGritHope, fit_save = FALSE)
 #' bif_fit <- bifactor.from.keys(
-#'   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = FALSE
+#'   keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE
 #' )
 #' # Run models
 #' esem_fit <- esem.from.mods(
@@ -161,15 +166,13 @@
 #' )
 #' # Examine results
 #' summary(esem_fit$fit$grit_c)  # Standard lavaan summary
-#' esem_fit$par$grit_c           # Parameter estimates
 #' esem_fit$r2                   # R-squareds
 #' esem_fit$b                    # Betas
 
 esem.from.mods <- function(
-    efa_fit, cfa_fit = NULL, bif_fit = NULL,
-    data, name = "esem", out_dir = "output",
-    fit_save = FALSE, fit_measures = "all",
-    miss = "ML", est = "default", check = FALSE, save_out = FALSE
+    efa_fit, cfa_fit = NULL, bif_fit = NULL, data,
+    fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
+    name = "esem", check = FALSE, save_out = FALSE
 ) {
   if (is.null(cfa_fit) & is.null(bif_fit)) {
     stop("At least one of `cfa_fit` and `bif_fit` must be specified.")
@@ -390,7 +393,6 @@ esem.from.mods <- function(
     name = name,
     keys_s = keys_s,
     keys_e = efa_keys,
-    out_dir = out_dir,
     std = TRUE,  # For r2 calcs.
     fit_save = fit_save,
     fit_measures = fit_measures,

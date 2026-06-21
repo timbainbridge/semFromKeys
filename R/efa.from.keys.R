@@ -8,12 +8,15 @@
 #' A named list of keys. Names must be factor names, elements must be
 #' vectors of items that should be targeted to load on the factor.
 #' @param data
-#' The data. This must include all observed variables in any of the keys.
+#' A dataframe or object coercible to a dataframe.
+#' Data must include all observed variables in any of the keys.
 #' @param name
-#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
-#' Defaults to 'efa'. Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' The name should be unique for each set of models or outputs from other
-#' calls will be overwritten.
+#' A string indicating a subdirectory where model outputs will be saved when
+#' `save_out = TRUE` and checked against when `check = TRUE`.
+#' Defaults to 'efa'.
+#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
+#' The name should be unique for each set of models or outputs from calls with
+#' the same name will be overwritten.
 #' @param std.lv
 #' Sets the `std.lv` param, as per lavaan (see [lavaan::lavOptions()]).
 #' Defaults to `TRUE`.
@@ -52,8 +55,9 @@
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
 #' Models. Sociological Methods & Research, 5(1), 3-52.
-#' doi.org/10.1177/004912417600500101.
+#' https://doi.org/10.1177/004912417600500101.
 #'
+#' @importFrom lavaan summary
 #' @export
 #'
 #' @examples
@@ -73,14 +77,13 @@
 #' # Run model
 #' efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = TRUE)
 #' # Examine results
-#' summary(efa_fit$fit$efa)  # Standard lavaan summary
-#' efa_fit$par$efa           # Parameter estimates
-#' efa_fit$fit_measures      # Fit measures
+#' summary(efa_fit$fit$efa)                   # Standard lavaan summary
+#' efa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 
 efa.from.keys <- function(
-    keys, data, name = "efa", out_dir = "output",
-    orthogonal = FALSE, std.lv = TRUE, fit_save = TRUE, fit_measures = "all",
-    miss = "ML", est = "default", check = FALSE, save_out = FALSE
+    keys, data, orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
+    std.lv = TRUE, miss = "ML", est = "default",
+    name = "efa", check = FALSE, save_out = FALSE
 ) {
   target <- sapply(keys, function(y) ifelse(!unlist(keys) %in% y, 0, NA))
   mod <- list(
@@ -104,7 +107,6 @@ efa.from.keys <- function(
     fit_measures = fit_measures,
     orthogonal = orthogonal,
     std.lv = std.lv,
-    out_dir = out_dir,
     target = target,
     miss = miss,
     est = est,

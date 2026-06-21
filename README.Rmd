@@ -19,9 +19,13 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The semFromKeys package was designed to streamline running exploratory structural equation models (ESEM) where EFA factors predict a series of latent variables in separate models using Burt's (1976) 2-stage procedure to prevent interpretational confounding. The package is designed to run analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
+The semFromKeys package was designed to streamline running lavaan models with similar structures using keys lists to generate model code instead of writing out the code for models manually. For confirmatory factor analyses (CFAs) and bifactor models, the code creates and runs a series of models based on keys indicating each of the factors in the models. For exploratory factor analyses (EFAs) keys list are used to create a target rotation for a single EFA. For exploratory structural equation models (ESEM), the code takes a fitted EFA model and fitted CFA and/or bifactor models and runs an ESEM for each CFA or bifactor model input. In the ESEM, the EFA factors predict a series of latent variables in separate models using Burt's (1976) 2-stage procedure to prevent interpretational confounding. The ESEM models were designed to run analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 
-To enable ESEM models to be run with the 2-stage procedure, the package also had to facilitate running multiple confirmatory factor analyses (CFAs) to feed into the ESEM. Thus, the package may also be of use to anyone who simply wants to run a CFA for each scale in a dataset.
+Although the package might be of most use to those running ESEM similar to those of Bainbridge and colleagues (2022), it could also be very helpful to anyone wanting to estimate a CFA measurement model for each scale in a sample to either check measurement characteristics before proceding with further analyses or to simply compute measurement model based reliability statistics.
+
+For more sets of models that take a long time to run, code has been included to allow the first run to save output that can be checked against in subsequent runs. If nothing has changed, then the previous outputs are returned, saving the time (and energy) of running them again. To get this feature to work, a cache directory will have to be set with the `cache.setup()` function, which, by default, configures a cache directory in the users' cache as determined by the operating system. It can alternatively be set as a subdirectory within the current project or, if not using a project, the current working directory. Once the cache is set, `save_out = TRUE` can be included in function calls to save the relevant outputs, and `check = TRUE` can be included to look for previous outputs and only run models where something has changed.
+
+Given that the package enables creating files in a cache directory, the `cache.clean()` function has also been included to help clean up files.
 
 ## Installation
 
@@ -34,17 +38,51 @@ pak::pak("timbainbridge/semFromKeys")
 
 ## Example
 
-The following example generates keys; runs an exploratory factor analysis (EFA) and 4 CFAs using these keys, and uses outputs from these to run four ESEMs.
+The following example generates keys, runs CFAs and an EFA using these keys, and uses outputs from these to run ESEMs.
 
-First, the keys need to be created. In this case, it can be done from names in the dataset but they can also be created with simple code to generate a list.
+### CFAs
 
-```{r example-keys1}
+In this case, keys can be created from names in the dataset but they can also be created with simple code to generate a list.
+
+```{r cfa-keys}
 library(semFromKeys)
-#Create CFA keys
 keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
 keys <- sapply(
   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
 )
+```
+
+The lists should look something like this:
+
+```{r cfa-keys2}
+keys
+```
+
+Once keys are created, the CFAs can be run. The function produces messages of progress. These can help identify which models produced errors or warnings or to keep track of progress for collections of models with long run times.
+
+```{r cfa-fit}
+cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = TRUE)
+```
+
+Results can be examined. For example, standard lavaan summaries: 
+
+```{r example-cfa2}
+lavaan::summary(cfa_fit$fit$grit_c)
+```
+
+And selected fit measures:
+
+```{r example-cfa3}
+cfa_fit$fit_measures[, c("cfi", "rmsea")]
+```
+
+These models can be used to examine the measurement characteristics of the scales or to calculate latent variable model-based reliability scores (e.g., with `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for composite reliability).
+
+### EFAs
+
+As for CFAs, an EFA can be run from a keys list. In this case, the keys list indicates factor that items are expected to load on rather than separate models. These are used to generate a target rotation to help ensure the EFA matches expectations.
+
+```{r ex}
 keys_e0 <- paste0("bfi_", c("e", "a", "c", "n", "o"))
 keys_e <- sapply(
   keys_e0,
@@ -53,44 +91,16 @@ keys_e <- sapply(
 )
 ```
 
-The lists should look something like this:
-
-```{r example-keys2}
-keys
-keys_e
-```
-
-Once keys are created, the CFA can be run. The function produces messages of progress. These can help identify which models produced errors or warnings or to keep track of progress for collections of models with long run times.
-
-```{r example-cfa}
-cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
-```
-
-Results can be examined. For example:
-
-```{r example-cfa2}
-# Examine some results
-lavaan::summary(cfa_fit$fit$grit_c)        # Standard lavaan summary
-cfa_fit$fit_measures[, c("cfi", "rmsea")]  # Selected fit measures
-```
-
-These models can be used to examine the measurement characteristics of the scales or to calculate latent variable model-based reliability scores (e.g., with `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` as recommended by Cho, 2021).
-
-To run the ESEM, an EFA model must first be run. Fit measures can be restricted to speed up estimation if not all are required (as for lavaan's `lavaan::fitMeasures()` function).
+After the keys list has been created, the model can be run similarly to the CFAs. When running the model, fit measures can be restricted to speed up estimation if not all are required (as for lavaan's `lavaan::fitMeasures()` function).
 
 ```{r example-efa}
 efa_fit <- efa.from.keys(
   keys_e, BFIGritHope, check = FALSE, fit_save = TRUE,
-  fit_measures = c(
-    "chisq", "df", "pvalue", "bic"
-    # CFI and RMSEA are slow with 60 items.
-    # , "cfi", "rmsea",
-    # "rmsea.ci.lower", "rmsea.ci.upper", "rmsea.ci.level", "rmsea.pvalue"
-  )
+  fit_measures = c("chisq", "df", "pvalue", "bic")
 )
 ```
 
-The EFA can be examined in a similar way to the CFAs.
+EFA results can be examined in a similar way to the CFAs.
 
 ```{r example-efa2}
 # Not run due to length
@@ -98,11 +108,13 @@ The EFA can be examined in a similar way to the CFAs.
 efa_fit$fit_measures                # Fit measures
 ```
 
-Finally, outputs from these models can be used as inputs into an ESEM where the scales of the CFAs are regressed on the EFA factors.
+### ESEM
+
+Finally, outputs from these models can be used as inputs into ESEMs where the scales of the CFAs are regressed on the EFA factors.
 
 ```{r example-esem}
 esem_fit <- esem.from.mods(
-  efa_fit$fit$efa, cfa_fit$fit, d = BFIGritHope, check = FALSE
+  efa_fit$fit$efa, cfa_fit$fit, data = BFIGritHope, fit_save = FALSE
 )
 ```
 
@@ -112,15 +124,18 @@ The function provides standard lavaan outputs, as well as r-squared values and r
 # Not run due to length
 # lavaan::summary(esem_fit$fit$grit_c)  # Standard lavaan summary
 round(esem_fit$r2, 3)
+```
+
+```{r example-esem3}
 esem_fit$b$grit_c
 ```
+
+To take advantage of functions' time-saving `check = TRUE` for subsequent running of code, a cache directory will need to be set. To see how to do this, see `?cache.setup`.
 
 <!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
 
 ## References
 
-Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating the Big Five as an organizing framework for commonly used psychological trait scales. Journal of Personality and Social Psychology, 122(4), 749-777. http://doi.apa.org/getdoi.cfm?doi=10.1037/pspp0000395.
+Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating the Big Five as an organizing framework for commonly used psychological trait scales. Journal of Personality and Social Psychology, 122(4), 749-777. https://doi.org/10.1037/pspp0000395.
 
-Burt, R. S. (1976). Interpretational confounding of unobserved variables in Structural Equation Models. Sociological Methods & Research, 5(1), 3-52. http://journals.sagepub.com/doi/10.1177/004912417600500101.
-
-Cho, E. (2021). Neither Cronbach’s Alpha nor McDonald’s Omega: A Commentary on Sijtsma and Pfadt. Psychometrika, 86(4), 877-886. https://doi.org/10.1007/s11336-021-09801-1.
+Burt, R. S. (1976). Interpretational confounding of unobserved variables in Structural Equation Models. Sociological Methods & Research, 5(1), 3-52. https://doi.org/10.1177/004912417600500101.

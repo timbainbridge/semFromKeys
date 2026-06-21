@@ -10,128 +10,156 @@
 #' important parameter inputs have change, or any of these do not exist,
 #' then the models are run as normal.
 #'
-#' @param mods Named list of lavaan models to run.
+#' @param mods A named list of lavaan models to run.
 #' @param data
-#' The data. This must include all observed variables used in any of the models.
+#' A dataframe or object coercible to a dataframe.
+#' Data must include all observed variables used in any of the models.
 #' @param keys_s A named keys list matching the names and length of mod.
 #' @param keys_e A named keys list of the factors in an ESEM to be included.
 #' @param std
-#' `TRUE` to save standardised parameter estimates;
-#' `FALSE` to save unstandardised parameters estimates.
+#' Logical.
+#' `TRUE` indicates that standardised parameter estimates should be saved;
+#' `FALSE` indicates that unstandardised parameters estimates should be saved.
 #' @param fit_save
-#' `TRUE` to include model fit measures in the output. `FALSE` otherwise.
-#' `FALSE` may be desirable when you do not care about fit measures and where
+#' Logical.
+#' `TRUE` indicates model fit measures should be included in the output;
+#' `FALSE` indicates model fit measures should not be included in the output.
+#' `FALSE` may be desirable when fit measures are of little interest and when
 #' they may take a long time to estimate.
-#' Fit can still be examined for individual models with something like,
-#' `lavaan::fitMeasures(fit$fit$model)`.
+#' Fit can still be examined for individual models with,
+#' `lavaan::fitMeasures(fit$fit$[model name])`.
 #' @param fit_measures
 #' A vector of fit measures to save or 'all' to select all fit measures,
 #' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
 #' function.
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param target
-#' A rotation target as used in `rotation.args` in lavaan (see [lavaan::efa()].
-#' If `NULL`, target is not specified and lavaan uses default behaviour.
-#' Defaults to `NULL`.
+#' A matrix indicating a rotation target,
+#' as used in the `rotation.args` argument in lavaan (see [lavaan::efa()].
+#' If `NULL` (default),
+#' target is not specified and lavaan uses default behaviour.
 #' Irrelevant when the model does not include an EFA or ESEM.
 #' @param name
-#' A subdirectory where model outputs will be saved when `save_out = TRUE`.
+#' A string indicating a subdirectory where model outputs will be saved when
+#' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to "sem".
-#' The name should be unique for each set of models or outputs from other
-#' calls will be overwritten.
-#' @param out_dir
-#' A parent directory for collecting outputs from `semFromKeys` function calls
-#' when `save_out = TRUE`.
-#' Defaults to 'output'.
-#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
+#' The name should be unique for each set of models or outputs from calls with
+#' the same name will be overwritten.
 #' @param orthogonal
+#' Logical.
 #' Sets the `orthogonal` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' `TRUE` indicates that unspecified latent variable correlations should be
+#' fixed at 0;
+#' `FALSE` indicates that unspecified latent variable correlations should be
+#' freely estimated.
 #' Defaults to `FALSE`.
 #' @param miss
+#' A string.
 #' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' Defaults to 'ML'.
 #' @param est
+#' A string.
 #' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
 #' The default ('default') uses the lavaan default for the model being run.
 #' @param std.lv
+#' Logical.
 #' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' `TRUE` indicates that factor variances should be fixed to 1.
+#' `FALSE` indicates that loadings of the first items of factors should be fixed
+#' to 1.
 #' Defaults to `FALSE`.
 #' @param check
-#' Should the code check to see if previous outputs have been saved?
-#' If `TRUE`, the model will not run if model code, parameters, and a data hash
-#' exist and have not changed and output is of the correct class.
-#' If `FALSE`, the model will run regardless of the existence of previous
-#' outputs.
+#' Logical.
+#' `TRUE` indicates that current inputs should be compared to previous inputs
+#' if they exist and that the model should not be rerun if nothing has changed;
+#' `FALSE` indicates that these checks should not be made and the model should
+#' be run regardless of the existence of previous inputs.
 #' @param save_out
-#' Should outputs be saved to enable checking next time?
-#' If `TRUE`, model code, a hash of the data, important input parameter values,
-#' and output will be saved.
-#' If `check = TRUE` the next time the code is run,
-#' then saved inputs will be checked against current values to determine whether
-#' the code needs to be rerun.
-#' If not (and the outputs are the correct class),
-#' then the outputs from the previous run will be returned.
-#' If `FALSE`, nothing will be saved, the output will simply be returned as per
-#' normal R functioning. Next time the code is run, models will be re-estimated
-#' regardless of changes to code or data.
+#' Logical.
+#' `TRUE` indicates that model code, a hash of the data, important input
+#' parameter values, and output will be saved;
+#' `FALSE` indicates that nothing will be saved.
+#' Selecting `save_out = TRUE` enables the function to not rerun models next
+#' time if `check = TRUE` the next time the code is run and nothing has changed
+#' in the meantime.
 #'
 #' @return
-#' Returns a list of lists.
-#' The elements are a list of lavaan model output objects;
+#' Returns a list of length 2 (if `fit_save = FALSE`) or
+#' 3 (if `fit_save = TRUE`).
+#' The elements of the list are: a list of lavaan model output objects;
 #' a list of parameter estimates from the models (standardized if `std = TRUE`);
-#' and, if `fit_save` is not FALSE, a matrix of fit measures for each model.
+#' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
 #' The function is largely intended to be used as a helper function to upstream
 #' functions,
 #' including [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()], and
 #' [esem.from.mods()].
+#' Although it is recommended to use the appropriate upstream function whenever
+#' possible,
+#' there are not (currently) options to do so when customised lavaan models are
+#' required;
+#' for example, when allowing two items' residuals to correlate in a CFA.
+#' `sem.check()` can be used in these cases (see example).
 #'
 #' Matching the philosophy of the package, the function is designed to run for
 #' multiple models with a similar design. If you are using the function for a
 #' single model, transform inputs into lists as appropriate.
 #'
+#' When `save_out = TRUE`, if a cache directory has been set,
+#' the model will save various inputs and outputs from the function call.
 #' When `check = TRUE`,
-#' the model looks for any previously saved outputs from earlier model runs.
-#' The check uses `out_dir` and `name` to find the location of any previous
-#' saves and saves outputs in the same location if `fit_save = TRUE`.
-#' If previous outputs exist, they are loaded and checked against current
-#' values.
-#' The comparisons are for model code;
+#' the model will look for any previously saved outputs from earlier model runs
+#' in the same cache directory and only run again if nothing has changed.
+#' In cases where something has changed for a subset of models
+#' (e.g., a data cleaning mistake might affect only a subset of variables in a
+#' subset of models), then the function will only re-run the models where
+#' something has changed.
+#' Changes to arguments that influence all lavaan model runs (e.g., miss or est)
+#' will trigger all models to be re-run.
+#'
+#' For either `save_out = TRUE` or `check = TRUE`,
+#' the function will look for a cache directory set and created by the
+#' [cache.setup()] function.
+#' If a cache directory has not been set for the current session,
+#' then the function will exit with an error suggesting that either
+#' [cache.setup()] be run or `save_out` and `check` set to FALSE.
+#'
+#' When the cache directory is found and output from previous runs are detected,
+#' the comparisons performed are for:
+#' model code;
 #' hashes of the data (using [openssl::md5()]);
-#' and values of the `miss`, `est`, `std`, `std.lv`, and `orthogonal`
-#' parameters.
-#' If these values are the same
-#' (and the previous outputs are of the correct form),
-#' then previous model outputs are loaded instead of recreating them.
-#' For most applications, this feature can be safely ignored by not saving
-#' outputs (i.e., `fit_save = FALSE`)
-#' and not checking for past saves (i.e., `check = FALSE`).
-#' The functionality is intended for a number of very slow models or a lot of
-#' faster models, such that time spent rerunning code would be onerous.
+#' values of the `miss`, `est`, `std`, `std.lv`, and `orthogonal`parameters;
+#' the class of model objects (i.e., class lavaan);
+#' and the class of parameter estimates (i.e., class lavaan.data.frame).
+#'
+#' For most applications, the checking feature can be safely ignored by not
+#' saving outputs (i.e., `fit_save = FALSE`)
+#' and not checking for past saves (i.e., `check = FALSE`, both default).
+#' The functionality is intended for a number of very slow models or a very
+#' large number of faster models,
+#' such that time spent rerunning code would be onerous.
 #' However, the functionality can be safely used for faster runs too.
 #'
 #' @seealso
 #' [cfa.from.keys()], [efa.from.keys()], [bifactor.from.keys()], and
-#' [esem.from.mods()]---all these function depend upon `sem.check()` to work---
-#' and [lavaan::sem()], which is used to estimate the models.
+#' [esem.from.mods()]---all these function depend upon `sem.check()` to work;
+#' [lavaan::sem()], which is used to estimate the models;
+#' [lavaan::parameterEstimates()], which is used to estimate parameter values;
+#' and [lavaan::fitMeasures()], which is used to estimate fit statistics when
+#' `fit_save = TRUE`.
 #'
 #' @importFrom stringr str_replace_all
 #' @importFrom lavaan sem
 #' @importFrom lavaan standardizedSolution
 #' @importFrom lavaan parameterEstimates
 #' @importFrom lavaan fitMeasures
+#' @importFrom lavaan summary
 #' @importFrom openssl md5
 #' @importFrom withr with_options
 #' @export
 #'
 #' @examples
-#' # Although it is recommended to use the appropriate upstream functions
-#' # (i.e., cfa.from.keys(), efa.from.keys(), and/or bifactor.from.keys())
-#' # whenever possible,
-#' # they are not (currently) options when customised lavaan models are
-#' # required;
-#' # for example, when allowing two items residuals to correlate in a CFA.
 #' # Create CFA keys
 #' keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
 #' keys <- sapply(
@@ -148,11 +176,11 @@
 #' cfa_fit <- sem.check(mods, BFIGritHope, keys, name = "cfa", check = FALSE)
 
 sem.check <- function(
-    mods, data, keys_s = NULL, keys_e = NULL, std = TRUE,
-    fit_save = FALSE, fit_measures = "all", target = NULL,
-    name = "sem", out_dir = "output",
-    orthogonal = FALSE, miss = "ML", est = "default", std.lv = FALSE,
-    check = FALSE, save_out = FALSE
+    mods, data, keys_s = NULL, keys_e = NULL,
+    fit_save = FALSE, fit_measures = "all",
+    miss = "ML", est = "default", std.lv = FALSE, std = TRUE,
+    orthogonal = FALSE, target = NULL,
+    name = "sem", check = FALSE, save_out = FALSE
 ) {
   if (!is.logical(fit_save)) {
     stop("`fit_save` is not logical. It should be `TRUE` or `FALSE`.")
@@ -167,11 +195,19 @@ sem.check <- function(
     stop("`save_out` is not logical. It should be `TRUE` or `FALSE`.")
   }
   if (save_out | check) {
+    cache_dir <- getOption("semFromKeys_cache_dir")
+    if (is.null(cache_dir)) {
+      stop(
+        paste(
+          "Caching is not enabled but is required for save_out = TRUE or",
+          "check = TRUE.",
+          "If you want either of these options,",
+          "a cache directory must be set with `cache.setup()` first."
+        )
+      )
+    }
     if (!is.character(name)) {
       stop("`name` is not a character string.")
-    }
-    if (!is.character(out_dir)) {
-      stop("`out_dir` is not a character string.")
     }
   }
   if (!is.logical(std)) {
@@ -277,27 +313,28 @@ sem.check <- function(
     )
   }
   if (save_out) {
-    if (!dir.exists(out_dir)) dir.create(out_dir)
-    if (!dir.exists(file.path(out_dir, name))) {
-      dir.create(file.path(out_dir, name))
+    if (!dir.exists(file.path(cache_dir, name))) {
+      dir.create(file.path(cache_dir, name))
     }
   }
   # Tell user which model set is running
   if (check) {
     # Load hashes, prior models, and critical parameters
     m0 <-
-      if (file.exists(file.path(out_dir, name, paste0(name, "_mod.rds")))) {
-        tmp <- readRDS(file.path(out_dir, name, paste0(name, "_mod.rds")))
+      if (file.exists(file.path(cache_dir, name, paste0(name, "_mod.rds")))) {
+        tmp <- readRDS(file.path(cache_dir, name, paste0(name, "_mod.rds")))
         # Remove spaces
         lapply(tmp, function(x) gsub(" ", "", x))
       } else FALSE
     params0 <-
-      if (file.exists(file.path(out_dir, name, paste0(name, "_params.rds")))) {
-        readRDS(file.path(out_dir, name, paste0(name, "_params.rds")))
+      if (
+        file.exists(file.path(cache_dir, name, paste0(name, "_params.rds")))
+      ) {
+        readRDS(file.path(cache_dir, name, paste0(name, "_params.rds")))
       } else FALSE
     hash_d0 <-
-      if (file.exists(file.path(out_dir, name, paste0(name, "_hash.rds")))) {
-        readRDS(file.path(out_dir, name, paste0(name, "_hash.rds")))
+      if (file.exists(file.path(cache_dir, name, paste0(name, "_hash.rds")))) {
+        readRDS(file.path(cache_dir, name, paste0(name, "_hash.rds")))
       } else FALSE
     # Create hashes
     hash_d <- sapply(
@@ -347,24 +384,28 @@ sem.check <- function(
     } else FALSE
     # Load old object if it exists
     fit0 <-
-      if (file.exists(file.path(out_dir, name, paste0(name, "_fit.rds")))) {
-        readRDS(file.path(out_dir, name, paste0(name, "_fit.rds")))
+      if (file.exists(file.path(cache_dir, name, paste0(name, "_fit.rds")))) {
+        readRDS(file.path(cache_dir, name, paste0(name, "_fit.rds")))
       } else FALSE
     if (std == TRUE) {
-      if (file.exists(file.path(out_dir, name, paste0(name, "_par_std.rds")))) {
-        par0 <- readRDS(file.path(out_dir, name, paste0(name, "_par_std.rds")))
+      if (
+        file.exists(file.path(cache_dir, name, paste0(name, "_par_std.rds")))
+      ) {
+        par0 <- readRDS(
+          file.path(cache_dir, name, paste0(name, "_par_std.rds"))
+        )
       } else {
         par0 <- FALSE
       }
     } else {
-      if (file.exists(file.path(out_dir, name, paste0(name, "_par.rds")))) {
-        par0 <- readRDS(file.path(out_dir, name, paste0(name, "_par.rds")))
+      if (file.exists(file.path(cache_dir, name, paste0(name, "_par.rds")))) {
+        par0 <- readRDS(file.path(cache_dir, name, paste0(name, "_par.rds")))
       } else {
         par0 <- FALSE
       }
     }
-    if (file.exists(file.path(out_dir, name, paste0(name, "_fit_m.rds")))) {
-      fit_m0 <- readRDS(file.path(out_dir, name, paste0(name, "_fit_m.rds")))
+    if (file.exists(file.path(cache_dir, name, paste0(name, "_fit_m.rds")))) {
+      fit_m0 <- readRDS(file.path(cache_dir, name, paste0(name, "_fit_m.rds")))
     } else {
       fit_m0 <- FALSE
     }
@@ -574,19 +615,19 @@ sem.check <- function(
   }
   # Save models (so they can be read in next time)
   if (save_out) {
-    saveRDS(fit, file.path(out_dir, name, paste0(name, "_fit.rds")))
+    saveRDS(fit, file.path(cache_dir, name, paste0(name, "_fit.rds")))
     if (std) {
-      saveRDS(par, file.path(out_dir, name, paste0(name, "_par_std.rds")))
+      saveRDS(par, file.path(cache_dir, name, paste0(name, "_par_std.rds")))
     } else {
-      saveRDS(par, file.path(out_dir, name, paste0(name, "_par.rds")))
+      saveRDS(par, file.path(cache_dir, name, paste0(name, "_par.rds")))
     }
     if (fit_save) {
-      saveRDS(fit_m1, file.path(out_dir, name, paste0(name, "_fit_m.rds")))
+      saveRDS(fit_m1, file.path(cache_dir, name, paste0(name, "_fit_m.rds")))
     }
     # Save mod + hash + params
-    saveRDS(mods, file.path(out_dir, name, paste0(name, "_mod.rds")))
-    saveRDS(hash_d, file.path(out_dir, name, paste0(name, "_hash.rds")))
-    saveRDS(params, file.path(out_dir, name, paste0(name, "_params.rds")))
+    saveRDS(mods, file.path(cache_dir, name, paste0(name, "_mod.rds")))
+    saveRDS(hash_d, file.path(cache_dir, name, paste0(name, "_hash.rds")))
+    saveRDS(params, file.path(cache_dir, name, paste0(name, "_params.rds")))
   }
   # Return
   if (std) {
