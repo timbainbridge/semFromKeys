@@ -55,6 +55,12 @@ You can install the development version of semFromKeys from
 pak::pak("timbainbridge/semFromKeys")
 ```
 
+You can install the stable CRAN version with:
+
+``` r
+install.packages("semFromKeys")
+```
+
 ## Example
 
 The following example generates keys, runs CFAs and an EFA using these
