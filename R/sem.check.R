@@ -154,6 +154,7 @@
 #' @importFrom lavaan standardizedSolution
 #' @importFrom lavaan parameterEstimates
 #' @importFrom lavaan fitMeasures
+#' @importFrom lavaan summary
 #' @importFrom openssl md5
 #' @importFrom withr with_options
 #' @export

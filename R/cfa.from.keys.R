@@ -59,6 +59,7 @@
 #' [sem.check()], which `cfa.from.keys()` uses for all the back-end, and
 #' [lavaan::sem()], which is used to estimate the models.
 #'
+#' @importFrom lavaan summary
 #' @export
 #'
 #' @examples

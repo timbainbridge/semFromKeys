@@ -116,6 +116,7 @@
 #' Models. Sociological Methods & Research, 5(1), 3-52.
 #' doi.org/10.1177/004912417600500101.
 #'
+#' @importFrom lavaan summary
 #' @export
 #'
 #' @examples
