@@ -19,7 +19,7 @@ sem.check(
   miss = "ML",
   est = "default",
   std.lv = FALSE,
-  check = TRUE,
+  check = FALSE,
   save_out = FALSE
 )
 }
@@ -46,7 +46,7 @@ as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMea
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{target}{A rotation target as used in rotation.args in lavaan (see \code{\link[lavaan:efa]{lavaan::efa()}}.
+\item{target}{A rotation target as used in \code{rotation.args} in lavaan (see \code{\link[lavaan:efa]{lavaan::efa()}}.
 If \code{NULL}, target is not specified and lavaan uses default behaviour.
 Defaults to \code{NULL}.
 Irrelevant when the model does not include an EFA or ESEM.}

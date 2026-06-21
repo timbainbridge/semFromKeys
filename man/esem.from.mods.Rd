@@ -15,7 +15,7 @@ esem.from.mods(
   fit_measures = "all",
   miss = "ML",
   est = "default",
-  check = TRUE,
+  check = FALSE,
   save_out = FALSE
 )
 }
@@ -87,7 +87,7 @@ a matrix of fit measures for each model.
 All elements are the length of \code{cfa_keys} plus the length of \code{bif_keys}.
 }
 \description{
-esem.from.keys runs an exploratory structural equation model (ESEM) in lavaan
+\code{esem.from.keys} runs an exploratory structural equation model (ESEM) in lavaan
 where the exploratory factor analysis (EFA) factors predict either
 confirmatory factor analysis (CFA) factors in separate models for each CFA
 factor OR bifactor factors in separate models for each bifactor model.

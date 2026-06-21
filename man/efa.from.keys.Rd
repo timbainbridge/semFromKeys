@@ -15,7 +15,7 @@ efa.from.keys(
   fit_measures = "all",
   miss = "ML",
   est = "default",
-  check = TRUE,
+  check = FALSE,
   save_out = FALSE
 )
 }
@@ -83,7 +83,7 @@ a list of parameter estimates from the models (standardized if \code{std = TRUE}
 and, if \code{fit_save = TRUE}, a matrix of fit measures for each model.
 }
 \description{
-efa.from.keys runs a exploratory factor analysis (EFA) in lavaan with a
+\code{efa.from.keys} runs a exploratory factor analysis (EFA) in lavaan with a
 rotation targeted based on a keys list.
 }
 \details{

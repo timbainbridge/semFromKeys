@@ -14,7 +14,7 @@ cfa.from.keys(
   fit_measures = "all",
   miss = "ML",
   est = "default",
-  check = TRUE,
+  check = FALSE,
   save_out = FALSE
 )
 }
@@ -80,7 +80,7 @@ a list of parameter estimates from the models;
 and, if \code{fit_measures} is not FALSE, a matrix of fit measures for each model.
 }
 \description{
-cfa.from.keys runs a confirmatory factor analysis (CFA) model for each
+\code{cfa.from.keys} runs a confirmatory factor analysis (CFA) model for each
 element of a keys list. The keys list must be a named list of scales, where
 each element is an item from the corresponding scale. The function is
 designed to streamline running CFA models for all scales in a sample and to
