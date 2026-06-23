@@ -170,7 +170,7 @@
 #' esem_fit$b                    # Betas
 
 esem.from.mods <- function(
-    efa_fit, cfa_fit = NULL, bif_fit = NULL, data,
+    data, efa_fit, cfa_fit = NULL, bif_fit = NULL,
     fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
     name = "esem", check = FALSE, save_out = FALSE
 ) {
