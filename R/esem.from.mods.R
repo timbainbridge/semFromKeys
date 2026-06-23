@@ -66,23 +66,61 @@
 #' If this matters to you, it would be worth checking the outputs of upstream
 #' functions prior to running `esem.from.mods()`.
 #'
-#' The 2-stage procedure employed mitigates some of the problems of poor fitting
-#' measurement models but, depending on your purpose and research
-#' question(s), it could nevertheless be important to update models to ensure
-#' good fit prior to running this function. There is currently no capability
-#' within `semFromKeys` to add modifications to CFA or bifactor models
-#' (beyond removing items by removing them from the keys).
+#' There is some disagreement about how to deal with interpretational
+#' confounding.
+#' The standard solution (other than ignoring it) is to create good fitting
+#' measurement models first, then freely estimate the structural model with
+#' checks to ensure adequate fit of the model and
+#' that interpretational confounding is not an issue.
+#' A problem with this is that changes to measurement models can require
+#' entirely different factors (e.g., where original authors suggested a 4-factor
+#' scale and subsequent analyses suggest a 2-factor scale) or items to be
+#' removed.
+#' How ought one to assess whether the scale measures the same thing(s) with
+#' different factors or omitted items?
+#' When a single scale is being assessed, these issues can be resolved;
+#' However, when many scales are being assessed this solution is impractical.
 #'
-#' For bifactor models predicted by ESEM factors, a complication is that fixing
-#' orthogonal relationships between general and group factors is not possible
-#' if any of the factors are regressed on any others.
-#' This is because, in SEM, fixing correlations with a factor that is an outcome
-#' fixes correlations with the residual,
-#' which is, of course, not the requirement of a bifactor model.
+#' An alternative solution is to fix measurement model parameters in a model
+#' estimating structural parameters.
+#' This method means that less than ideal fit at the measurement level does not
+#' propagate though the model as the measurement parameters are fixed.
+#' It also solves interpretational confounding because the definition of the
+#' latent variables cannot change.
+#' However, it is not a perfect solution because it underestimates uncertainty
+#' in the measurement part of the structural model (e.g., Nagy et al., 2017),
+#' which results in biased standard errors.
+#'
+#' A final option (among those noted here) was proposed by
+#' Nagy and colleagues (2017).
+#' It involves allowing item residuals to correlate with external variables
+#' (or factors) and constrains those relationships such that the model is
+#' identifiable.
+#' If the sums of squares of correlations between all combinations of factors'
+#' items and external factors are minimised,
+#' measurement parameters in isolated measurement models are preserved in the
+#' structural model without having to constrain them directly.
+#' As a result, unbiased standard errors are preserved while simultaneously
+#' eliminating interpretational confounding.
+#' Unfortunately, estimating these models becomes increasingly slow with more
+#' items and factors, such that it quickly becomes untenable,
+#' especially for ESEM and when many models have to be run.
+#'
+#' As a result of these considerations, the 2-stage procedure of fixing
+#' measurement parameters in the structural models was chosen for the current
+#' function due to its simplicity and scalability.
+#'
+#' A further complication occurs for bifactor models.
+#' Recall that bifactor models require orthogonal relationships between the
+#' general and group factors.
+#' When a factor is an outcome of a regression in a structural model,
+#' it is not possible to include such a constraint because the instructions
+#' normally used to do so will constrain residual variance instead.
 #'
 #' There are three solutions to this problem.
 #' First, avoid using bifactor models.
-#' This may be possible sometimes, but it frequently is not.
+#' This may be possible in some cases (e.g., if the scale can be modified into
+#' a unidimentional scale), but frequently it is not.
 #' Second, avoid using regressions in models with bifactor models and compute
 #' regressions based on latent variable correlations.
 #' (This can be done by, e.g., creating a correlation matrix from the factor
@@ -90,13 +128,12 @@
 #' This method produces accurate point estimates in the regressions,
 #' but standard errors are biased as the method cannot account for uncertainty
 #' in the correlations.
-#' This is an adequate solution if p-values and confidence intervals are not
-#' required.
 #' Finally, if the 2-stage procedure is employed, then there is little room for
 #' measurement models to change to allow factor correlations to change.
 #' Therefore, the parameter can be relaxed and implied correlations between the
 #' group and general factors ought to remain close to zero.
-#' This is the method employed by `esem.from.mods()`.
+#' Given that the function already uses the 2-stage procedure,
+#' this method is employed when bifactor models are used in `esem.from.mods()`.
 #'
 #' @seealso
 #' [sem.check()], which this function uses for all the back-end;
@@ -120,6 +157,11 @@
 #' Anomalous results in G-factor models: Explanations and alternatives.
 #' Psychological Methods, 22(3), 541-562.
 #' https://doi.org/10.1037/met0000083.
+#'
+#' Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
+#' Extension Procedures for Confirmatory Factor Analysis.
+#' Journal of Experimental Education, 85(4).
+#' https://doi.org/10.1080/00220973.2016.1260524.
 #'
 #' @importFrom lavaan summary
 #' @export
