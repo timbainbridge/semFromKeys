@@ -243,6 +243,15 @@ sem.check <- function(
     )
   }
   if (!is.null(keys_s)) {
+    if (length(mods) != length(keys_s)) {
+      stop(
+        paste(
+          "'keys_s' and 'mods' are not the same length.",
+          "If 'keys_s' is supposed to be specified, then it should be the same",
+          "length as 'mods'."
+        )
+      )
+    }
     if (sum(table(names(keys_s)) > 1) > 0) {
       stop(
         paste(
