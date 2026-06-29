@@ -43,7 +43,7 @@
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to "sem".
-#' The name should be unique for each set of models or outputs from calls with
+#' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
 #' @param orthogonal
 #' Logical.

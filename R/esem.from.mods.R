@@ -22,7 +22,7 @@
 #' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to "esem".
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
-#' The name should be unique for each set of models or outputs from calls with
+#' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
 #'
 #' @return
