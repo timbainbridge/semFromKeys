@@ -26,7 +26,8 @@ Imports:
     lavaan,
     openssl,
     withr,
-    tools
+    tools,
+    matrixcalc
 Suggests: 
     testthat (>= 3.0.0),
     here
