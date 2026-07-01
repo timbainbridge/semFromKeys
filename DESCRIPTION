@@ -13,6 +13,9 @@ Description: Specifying 'lavaan' models manually can be time consuming when
     multiple similar models are required. The 'semFromKeys' package streamlines
     the process of running 'lavaan' models by generating model code from simple
     keys lists and running entire collections of models at once.
+    The package was inspired by the process used in the code for
+    Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022)
+    <doi:10.1037/pspp0000395>.
     The package also optionally checks that identical models have not been run
     on the same data, which saves time when code needs to be run again.
 License: GPL (>= 3)
