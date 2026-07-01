@@ -195,17 +195,17 @@ sem.check <- function(
     stop("`save_out` is not logical. It should be `TRUE` or `FALSE`.")
   }
   if (save_out | check) {
-    cache_dir <- getOption("semFromKeys_cache_dir")
-    if (is.null(cache_dir)) {
+    if (!exists(".cache_env", mode = "environment")) {
       stop(
         paste(
-          "Caching is not enabled but is required for save_out = TRUE or",
-          "check = TRUE.",
+          "Cache is not enabled but is required for 'save_out = TRUE' and",
+          "'check = TRUE'.",
           "If you want either of these options,",
-          "a cache directory must be set with `cache.setup()` first."
+          "a cache directory must be set with 'cache.setup()' first."
         )
       )
     }
+    cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)
     if (!is.character(name)) {
       stop("`name` is not a character string.")
     }

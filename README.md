@@ -8,17 +8,17 @@
 [![R-CMD-check](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The semFromKeys package was designed to streamline running lavaan models
-with similar structures using keys lists to generate model code instead
-of writing out the code for models manually. For confirmatory factor
-analyses (CFAs) and bifactor models, the code creates and runs a series
-of models based on keys indicating each of the factors in the models.
-For exploratory factor analyses (EFAs) keys list are used to create a
-target rotation for a single EFA. For exploratory structural equation
-models (ESEM), the code takes a fitted EFA model and fitted CFA and/or
-bifactor models and runs an ESEM for each CFA or bifactor model input.
-In the ESEM, the EFA factors predict a series of latent variables in
-separate models using Burt’s (1976) 2-stage procedure to prevent
+The ‘semFromKeys’ package was designed to streamline running ‘lavaan’
+models with similar structures using keys lists to generate model code
+instead of writing out the code for models manually. For confirmatory
+factor analyses (CFAs) and bifactor models, the code creates and runs a
+series of models based on keys indicating each of the factors in the
+models. For exploratory factor analyses (EFAs) keys list are used to
+create a target rotation for a single EFA. For exploratory structural
+equation models (ESEM), the code takes a fitted EFA model and fitted CFA
+and/or bifactor models and runs an ESEM for each CFA or bifactor model
+input. In the ESEM, the EFA factors predict a series of latent variables
+in separate models using Burt’s (1976) 2-stage procedure to prevent
 interpretational confounding. The ESEM models were designed to run
 analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 
@@ -26,28 +26,32 @@ Although the package might be of most use to those running ESEM similar
 to those of Bainbridge and colleagues (2022), it could also be very
 helpful to anyone wanting to estimate a CFA measurement model for each
 scale in a sample to either check measurement characteristics before
-proceding with further analyses or to simply compute measurement model
+proceeding with further analyses or to simply compute measurement model
 based reliability statistics.
 
 For more sets of models that take a long time to run, code has been
-included to allow the first run to save output that can be checked
+included to allow the first run to save outputs that can be checked
 against in subsequent runs. If nothing has changed, then the previous
 outputs are returned, saving the time (and energy) of running them
-again. To get this feature to work, a cache directory will have to be
-set with the `cache.setup()` function, which, by default, configures a
-cache directory in the users’ cache as determined by the operating
-system. It can alternatively be set as a subdirectory within the current
-project or, if not using a project, the current working directory. Once
-the cache is set, `save_out = TRUE` can be included in function calls to
-save the relevant outputs, and `check = TRUE` can be included to look
-for previous outputs and only run models where something has changed.
+again. To get this feature to work, the R version has to be 4.0 or later
+and a cache directory will have to be set with the `cache.setup()`
+function, which, by default, configures a cache directory in the users’
+cache as determined by the operating system. It can alternatively be set
+as a subdirectory within the current project or, if not using a project,
+the current working directory. Once the cache is set, `save_out = TRUE`
+can be included in function calls to save the relevant outputs, and
+`check = TRUE` can be included to look for previous outputs and only run
+models where something has changed.
 
 Given that the package enables creating files in a cache directory, the
 `cache.clean()` function has also been included to help clean up files.
+To comply with CRAN policies, the cache directory is set as a temporary
+environment variables, so it has to be set for each session when
+required.
 
 ## Installation
 
-You can install the development version of semFromKeys from
+You can install the development version of ‘semFromKeys’ from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -120,7 +124,7 @@ cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = TRUE)
 #> 4 / 4   hope_p
 ```
 
-Results can be examined. For example, standard lavaan summaries:
+Results can be examined. For example, standard ‘lavaan’ summaries:
 
 ``` r
 lavaan::summary(cfa_fit$fit$grit_c)
@@ -190,7 +194,7 @@ These models can be used to examine the measurement characteristics of
 the scales or to calculate latent variable model-based reliability
 scores (e.g., with
 `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for
-composite reliability).
+composite reliability, Jöreskog, 1971).
 
 ### EFAs
 
@@ -210,7 +214,7 @@ keys_e <- sapply(
 
 After the keys list has been created, the model can be run similarly to
 the CFAs. When running the model, fit measures can be restricted to
-speed up estimation if not all are required (as for lavaan’s
+speed up estimation if not all are required (as for ‘lavaan’s’
 `lavaan::fitMeasures()` function).
 
 ``` r
@@ -257,7 +261,7 @@ esem_fit <- esem.from.mods(
 #> 4 / 4   hope_p
 ```
 
-The function provides standard lavaan outputs, as well as r-squared
+The function provides standard ‘lavaan’ outputs, as well as r-squared
 values and regression parameters.
 
 ``` r
@@ -297,3 +301,7 @@ trait scales. Journal of Personality and Social Psychology, 122(4),
 Burt, R. S. (1976). Interpretational confounding of unobserved variables
 in Structural Equation Models. Sociological Methods & Research, 5(1),
 3-52. <https://doi.org/10.1177/004912417600500101>.
+
+Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric
+Tests. Psychometrika, 36(2), 109-133.
+<https://doi.org/10.1007/BF02291393>.

@@ -17,23 +17,36 @@
 #' If any other string is used a folder will be created within either the
 #' [getwd()] directory or,
 #' if available, within the directory identified by [here::here()].
+#' @param interactive
+#' Logical.
+#' `TRUE` indicates that confirmation will be required before a cache directory
+#' is set *if* the default location is not used.
+#' `FALSE` indicates that a cache directory will be set without confirmation.
+#' Irrelevant if `location = "user"`.
+#' It is recommended to use `TRUE`.
+#' Defaults to `TRUE`.
 #'
 #' @return
 #' The cache directory path (invisibly).
 #' Primarily called to set up the cache configuration.
 #'
 #' @details
-#' To avoid writing to users' computers without permission,
-#' users are required to run this function first to ensure that they know *that*
+#' To avoid writing to your computer without your permission,
+#' you are required to run this function first to ensure that you know *that*
 #' files are being saved and *where* files are being saved.
-#' The function temporarily sets the option `semFromKeys_cache_dir`,
-#' which is used by other functions from the package as the cache directory.
+#' The function temporarily sets the environment variable '.cache_env', with
+#' `.cache_env <- new.env(parent = emptyenv())` (if empty) and
+#' `assign("cache_dir", cache_dir, envir = .cache_env)`,
+#' which will be removed whenever the R session ends.
+#' '.cache_env' is used by other functions from the package as the cache
+#' directory.
 #' As a result, the function needs to be run once per session whenever a cache
 #' directory is required.
-#' All functions that utilise the cache directory will look for an
-#' option (`getOption("semFromKeys_cache_dir")`) and if it is not set will
-#' request that users either change options to not require the cache directory
-#' or run this function first.
+#' All functions that utilise the cache directory will look for the
+#' environment variable
+#' (with `cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)`)
+#' and if it is not set will request that users either change options to not
+#' require the cache directory or run this function first.
 #'
 #' Functions that directly or indirectly might require a cache directory are:
 #' [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()],
@@ -49,7 +62,7 @@
 #' @export
 #'
 #' @examples
-#' \donttest{  # Avoid creating a cache directory for tests of examples
+#' \donttest{
 #'   # Setup a cache directory
 #'   cache.setup()
 #'   # Now code with check = TRUE or save_out = TRUE will work, e.g.,
@@ -62,34 +75,63 @@
 #'   cfa_fit <- cfa.from.keys(
 #'     keys, BFIGritHope, fit_save = TRUE, check = TRUE, save_out = TRUE
 #'   )
-#'   # Check that they are not estimated again.
+#'   # Check that models are not run again.
 #'   cfa_fit <- cfa.from.keys(
 #'     keys, BFIGritHope, fit_save = TRUE, check = TRUE, save_out = TRUE
 #'   )
 #' }
 
-cache.setup <- function(location = "user") {
+cache.setup <- function(location = "user", interactive = TRUE) {
+  if (getRversion() < "4.0") {
+    stop(
+      paste0(
+        "Setting up cache requires R >= 4.0. ",
+        "Your system is currently running version ",
+        getRversion(),
+        "."
+      )
+    )
+  }
   if (location == "user") {
     cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
-    if (!dir.exists(cache_dir)) {
-      dir.create(cache_dir, recursive = TRUE)
-    }
-    options(semFromKeys_cache_dir = cache_dir)
-    message(paste0("The cache directory is set as: '", cache_dir, "'."))
   } else {
     if (!is.character(location)) {
       stop("`location` is not a length 1 character vector")
+    }
+    if (interactive & interactive()) {
+      if (requireNamespace("here")) {
+        message(
+          paste0(
+            "The cache director will be set as: ",
+            paste0(here::here(), "/", location), "."
+          )
+        )
+        response <- readline("Continue? (y/n): ")
+      } else {
+        message(
+          paste0(
+            "The cache director will be set as: ",
+            paste0(getwd(), "/", location), "."
+          )
+        )
+        response <- readline("Continue? (y/n): ")
+      }
+      if (tolower(substr(response, 1, 1)) != "y") {
+        message("Cancelled. Cache director not set.")
+        return(invisible(NULL))
+      }
     }
     if (requireNamespace("here")) {
       cache_dir <- paste0(here::here(), "/", location)
     } else {
       cache_dir <- paste0(getwd(), "/", location)
     }
-    if (!dir.exists(cache_dir)) {
-      dir.create(cache_dir, recursive = TRUE)
-    }
-    options(semFromKeys_cache_dir = cache_dir)
-    message(paste0("The cache directory is set as: '", cache_dir, "'."))
   }
+  if (!dir.exists(cache_dir)) dir.create(cache_dir, recursive = TRUE)
+  if (!exists(".cache_env", mode = "environment")) {
+    .cache_env <<- new.env(parent = emptyenv())
+  }
+  assign("cache_dir", cache_dir, envir = .cache_env)
+  message(paste0("The cache directory is set as: '", cache_dir, "'."))
   return(invisible(cache_dir))
 }
