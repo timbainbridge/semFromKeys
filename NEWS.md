@@ -1,3 +1,5 @@
+# semFromKeys 0.2.1
+
 # semFromKeys 0.2.0
 
 * Initial CRAN version.
