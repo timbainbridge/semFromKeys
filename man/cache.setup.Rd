@@ -19,8 +19,7 @@ if available, within the directory identified by \code{\link[here:here]{here::he
 is set \emph{if} the default location is not used.
 \code{FALSE} indicates that a cache directory will be set without confirmation.
 Irrelevant if \code{location = "user"}.
-It is recommended to use \code{TRUE} except for carefully checked automated
-processes.
+It is recommended to use \code{TRUE}.
 Defaults to \code{TRUE}.}
 }
 \value{
