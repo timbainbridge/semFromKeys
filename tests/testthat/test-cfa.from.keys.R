@@ -151,11 +151,11 @@ test_that(
   {
     expect_error(
       cfa.from.keys(keys, BFIGritHope, check = TRUE, fit_save = FALSE),
-      "Caching is not enabled"
+      "Cache is not enabled"
     )
     expect_error(
       cfa.from.keys(keys, BFIGritHope, save_out = TRUE, fit_save = FALSE),
-      "Caching is not enabled"
+      "Cache is not enabled"
     )
   }
 )
