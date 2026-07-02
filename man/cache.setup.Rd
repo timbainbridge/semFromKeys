@@ -4,7 +4,7 @@
 \alias{cache.setup}
 \title{Sets up a cache directory for storing model inputs and outputs}
 \usage{
-cache.setup(location = "user")
+cache.setup(location = "user", interactive = TRUE)
 }
 \arguments{
 \item{location}{The cache location to save model objects to to enable checking.
@@ -13,6 +13,14 @@ then the system's default cache location is used.
 If any other string is used a folder will be created within either the
 \code{\link[=getwd]{getwd()}} directory or,
 if available, within the directory identified by \code{\link[here:here]{here::here()}}.}
+
+\item{interactive}{Logical.
+\code{TRUE} indicates that confirmation will be required before a cache directory
+is set \emph{if} the default location is not used.
+\code{FALSE} indicates that a cache directory will be set without confirmation.
+Irrelevant if \code{location = "user"}.
+It is recommended to use \code{TRUE}.
+Defaults to \code{TRUE}.}
 }
 \value{
 The cache directory path (invisibly).
@@ -30,24 +38,29 @@ The function needs to be run once per session whenever a cache directory is
 required.
 }
 \details{
-To avoid writing to users' computers without permission,
-users are required to run this function first to ensure that they know \emph{that}
+To avoid writing to your computer without your permission,
+you are required to run this function first to ensure that you know \emph{that}
 files are being saved and \emph{where} files are being saved.
-The function temporarily sets the option \code{semFromKeys_cache_dir},
-which is used by other functions from the package as the cache directory.
+The function temporarily sets the environment variable '.cache_env', with
+\code{.cache_env <- new.env(parent = emptyenv())} (if empty) and
+\code{assign("cache_dir", cache_dir, envir = .cache_env)},
+which will be removed whenever the R session ends.
+'.cache_env' is used by other functions from the package as the cache
+directory.
 As a result, the function needs to be run once per session whenever a cache
 directory is required.
-All functions that utilise the cache directory will look for an
-option (\code{getOption("semFromKeys_cache_dir")}) and if it is not set will
-request that users either change options to not require the cache directory
-or run this function first.
+All functions that utilise the cache directory will look for the
+environment variable
+(with \code{cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)})
+and if it is not set will request that users either change options to not
+require the cache directory or run this function first.
 
 Functions that directly or indirectly might require a cache directory are:
 \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}},
 \code{\link[=esem.from.mods]{esem.from.mods()}}, and \code{\link[=sem.check]{sem.check()}}.
 }
 \examples{
-\donttest{  # Avoid creating a cache directory for tests of examples
+\donttest{
   # Setup a cache directory
   cache.setup()
   # Now code with check = TRUE or save_out = TRUE will work, e.g.,
@@ -60,7 +73,7 @@ Functions that directly or indirectly might require a cache directory are:
   cfa_fit <- cfa.from.keys(
     keys, BFIGritHope, fit_save = TRUE, check = TRUE, save_out = TRUE
   )
-  # Check that they are not estimated again.
+  # Check that models are not run again.
   cfa_fit <- cfa.from.keys(
     keys, BFIGritHope, fit_save = TRUE, check = TRUE, save_out = TRUE
   )

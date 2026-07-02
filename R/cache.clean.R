@@ -1,7 +1,7 @@
 #' Cleans selected files from the current cache directory
 #'
 #' Functions in the package include options to write files to a cache directory,
-#' setup with the [cache.setup()] function.
+#' set up with the [cache.setup()] function.
 #' Obsoletely files might be created if the `name` parameter in a function call
 #' is changed or if a function call is no longer being used.
 #' The `cache.clean()` function provides a way to find files that have not be
@@ -10,7 +10,8 @@
 #'
 #' @param older_than
 #' A positive number indicating number of days (fractions allowed).
-#' Files with older modification times than this will be deleted.
+#' Files with older modification times than this will be deleted
+#' after confirmation if `interactive = TRUE`.
 #' @param interactive
 #' Logical.
 #' `TRUE` indicates that confirmation will be required before files are deleted.
@@ -32,14 +33,17 @@
 #'
 #' One way to clean only unused files is to run all current code and then
 #' run `cache.clean()` with `older_than` set to something greater than the
-#' number of days it takes for the code to run.
+#' number of days it takes for the code to run and less than when the code was
+#' previously run. For example, if your code takes 5 minutes to run and you
+#' previously ran it 2 days ago, you could run all your code and, when it has
+#' finished, use `cache.clean(older_than = 1)`.
 #'
 #' @seealso [cache.setup()]
 #'
 #' @export
 #'
 #' @examples
-#' \donttest{  # Avoid creating a cache directory for tests of examples
+#' \donttest{
 #'   # Setup a cache directory
 #'   cache.setup()
 #'   # Now code with check = TRUE or save_out = TRUE will work, e.g.,
@@ -56,7 +60,7 @@
 #'   cfa_fit <- cfa.from.keys(
 #'     keys, BFIGritHope, fit_save = TRUE, check = TRUE, save_out = TRUE
 #'   )
-#'   cache.clean(1/86400)  # Only delete files not created in the last second.
+#'   cache.clean(60/86400)  # Delete files not modified in the last minute.
 #' }
 
 cache.clean <- function(older_than = NULL, interactive = TRUE) {
@@ -65,15 +69,23 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
       "Please specify a value for `older_than`. To delete all files, set to 0."
     )
   }
-  if (is.null(getOption("semFromKeys_cache_dir"))) {
+  found <- FALSE
+  for (i in 1:5) {
+    env <- parent.frame(i)
+    if (exists(".cache_env", envir = env)) {
+      found <- TRUE
+      break
+    }
+  }
+  if (!found) {
     stop(
       paste(
         "A cache directory is not configured so cannot be cleaned.",
-        "Use `cache.setup()` to configure a directory to clean."
+        "Use the `cache.setup()` function to configure a directory to clean."
       )
     )
   }
-  cache_dir <- getOption("semFromKeys_cache_dir")
+  cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
   files <- file.info(
     list.files(cache_dir, full.names = TRUE, recursive = TRUE)
   )
@@ -91,8 +103,8 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
       message(
         paste0(
           "About to delete the following ", length(files_del),
-          " file(s) from:\n",
-          cache_dir, "\n\n  ",
+          " file(s), older than ", older_than, " from\n '",
+          cache_dir, "':\n\n  ",
           paste0(
             sub(paste0(cache_dir, ".*/"), "", files_del), collapse = "\n  "
           )
@@ -123,15 +135,15 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
       message(
         paste0(
           "\nAbout to delete the following ", length(dirs_del) - 1,
-          " empty directories from:\n",
-          cache_dir, "\n\n  ",
+          " empty directories from\n '",
+          cache_dir, "':\n\n  ",
           paste0(
             sub(paste0(cache_dir, ".*/"), "", dirs_del[-1]), collapse = "\n  "
           )
         )
       )
-      response2 <- readline("Continue? (y/n): ")
-      if (tolower(substr(response2, 1, 1)) != "y") {
+      response <- readline("Continue? (y/n): ")
+      if (tolower(substr(response, 1, 1)) != "y") {
         message("Cancelled.")
         return(invisible(NULL))
       }
@@ -143,27 +155,26 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
     return(invisible(NULL))
   }
   if (interactive & interactive()) {
-    message(paste0("The top cache directory, `", cache_dir, "` is empty."))
-    response3 <- readline(
+    message(paste0("The top cache directory, '", cache_dir, "', is empty."))
+    response <- readline(
       paste(
         "Do you want to delete it?",
         "Doing so will unset the cache directory (y/n): "
       )
     )
-    if (tolower(substr(response3, 1, 1)) != "y") {
+    if (tolower(substr(response, 1, 1)) != "y") {
       message("Cancelled.")
       return(invisible(NULL))
-    } else {
-      unlink(cache_dir)
-      options(semFromKeys_cache_dir = NULL)
-      message(
-        paste(
-          cache_dir, "has been deleted.",
-          "To use `check = TRUE` or `save_out = TRUE`,",
-          "`cache.setup()` will have to be reinitiated."
-        )
-      )
-      return(invisible(NULL))
     }
+    unlink(cache_dir)
+    rm(.cache_env, envir = .GlobalEnv)
+    message(
+      paste0(
+        "'", cache_dir, "' has been deleted.\n",
+        "To use 'check = TRUE' or 'save_out = TRUE',",
+        "'cache.setup()' will have to be reinitiated."
+      )
+    )
+    return(invisible(NULL))
   } else invisible(NULL)
 }

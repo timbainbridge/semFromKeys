@@ -8,7 +8,8 @@ cache.clean(older_than = NULL, interactive = TRUE)
 }
 \arguments{
 \item{older_than}{A positive number indicating number of days (fractions allowed).
-Files with older modification times than this will be deleted.}
+Files with older modification times than this will be deleted
+after confirmation if \code{interactive = TRUE}.}
 
 \item{interactive}{Logical.
 \code{TRUE} indicates that confirmation will be required before files are deleted.
@@ -22,7 +23,7 @@ Defaults to \code{TRUE}.}
 }
 \description{
 Functions in the package include options to write files to a cache directory,
-setup with the \code{\link[=cache.setup]{cache.setup()}} function.
+set up with the \code{\link[=cache.setup]{cache.setup()}} function.
 Obsoletely files might be created if the \code{name} parameter in a function call
 is changed or if a function call is no longer being used.
 The \code{cache.clean()} function provides a way to find files that have not be
@@ -40,10 +41,13 @@ The latter will only be done in interactive sessions with
 
 One way to clean only unused files is to run all current code and then
 run \code{cache.clean()} with \code{older_than} set to something greater than the
-number of days it takes for the code to run.
+number of days it takes for the code to run and less than when the code was
+previously run. For example, if your code takes 5 minutes to run and you
+previously ran it 2 days ago, you could run all your code and, when it has
+finished, use \code{cache.clean(older_than = 1)}.
 }
 \examples{
-\donttest{  # Avoid creating a cache directory for tests of examples
+\donttest{
   # Setup a cache directory
   cache.setup()
   # Now code with check = TRUE or save_out = TRUE will work, e.g.,
@@ -60,7 +64,7 @@ number of days it takes for the code to run.
   cfa_fit <- cfa.from.keys(
     keys, BFIGritHope, fit_save = TRUE, check = TRUE, save_out = TRUE
   )
-  cache.clean(1/86400)  # Only delete files not created in the last second.
+  cache.clean(60/86400)  # Delete files not modified in the last minute.
 }
 }
 \seealso{

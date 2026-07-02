@@ -1,3 +1,9 @@
+# semFromKeys 0.2.1
+
+* Fixed issues in initial CRAN submission.
+* Changed setting an option for cache to using an environment variable.
+* Added a reference to Description.
+
 # semFromKeys 0.2.0
 
 * Initial CRAN version.
