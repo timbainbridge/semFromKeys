@@ -151,18 +151,18 @@ test_that(
   {
     expect_error(
       cfa.from.keys(keys, BFIGritHope, check = TRUE, fit_save = FALSE),
-      "Cache is not enabled"
+      "A cache directory is not configured"
     )
     expect_error(
       cfa.from.keys(keys, BFIGritHope, save_out = TRUE, fit_save = FALSE),
-      "Cache is not enabled"
+      "A cache directory is not configured"
     )
   }
 )
 test_that(
-  "`name` not a string (when required)",
+  "`name` not a string (but a number) when required.",
   {
-    cache.setup("tests/testthat/cache")
+    cache.setup("tests/testthat/cache", interactive = FALSE)
     expect_error(
       cfa.from.keys(
         keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = FALSE,
@@ -170,6 +170,12 @@ test_that(
       ),
       "`name` is not a character"
     )
+  }
+)
+test_that(
+  "`name` not a string (but NULL) when required.",
+  {
+    cache.setup("tests/testthat/cache", interactive = FALSE)
     expect_error(
       cfa.from.keys(
         keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = FALSE,
@@ -212,7 +218,7 @@ test_that(
 test_that(
   "Test `save_out = TRUE` file creation and `check = TRUE` correctly loading",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     name <- "cfa"
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
@@ -252,7 +258,7 @@ test_that(
 test_that(
   "Test partial running on `check = TRUE` after changes to a model",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     name <- "cfa"
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
@@ -282,7 +288,7 @@ test_that(
 test_that(
   "Test running on `check = TRUE` after changing to full `fit_measures` set",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
       fit_measures = c("chisq", "cfi", "rmsea")
@@ -303,7 +309,7 @@ test_that(
 test_that(
   "Test running on `check = TRUE` after adding fit measures (not to full set)",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
       fit_measures = "cfi"
@@ -320,7 +326,7 @@ test_that(
 test_that(
   "Test partial running on `check = TRUE` after changes to a data hash",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     name <- "cfa"
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
@@ -350,7 +356,7 @@ test_that(
 test_that(
   "Test running on `check = TRUE` after changes to miss",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE
     )
@@ -366,7 +372,7 @@ test_that(
 test_that(
   "Test running on `check = TRUE` after changes to est",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE
     )
@@ -382,7 +388,7 @@ test_that(
 test_that(
   "Test running on `check = TRUE` after changes to std.lv",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE
     )
@@ -398,7 +404,7 @@ test_that(
 test_that(
   "Test running on `check = TRUE` after selecting subset of `fit_measures`",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE
     )
@@ -417,7 +423,7 @@ test_that(
 test_that(
   "Test adding a model between saved runs",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     cfa.from.keys(
       keys[-1], BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE
     )
@@ -441,7 +447,7 @@ test_that(
 test_that(
   "Test deleting of cache files",
   {
-    cache_dir <- cache.setup("tests/testthat/cache")
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     name <- "cfa"
     cfa.from.keys(
       keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
@@ -460,39 +466,5 @@ test_that(
     expect_equal(
       length(list.files(cache_dir, full.names = TRUE, recursive = TRUE)), 0
     )
-  }
-)
-test_that(
-  "Test `older_than` not set",
-  {
-    cache_dir <- cache.setup("tests/testthat/cache")
-    name <- "cfa"
-    cfa.from.keys(
-      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
-      name = name
-    )
-    expect_error(
-      cache.clean(interactive = FALSE), "specify a value for `older_than`"
-    )
-  }
-)
-test_that(
-  "Cache directory not set",
-  {
-    # frequently fails without this due to the cache being set elsewhere that
-    # this does not correctly forget.
-    options(semFromKeys_cache_dir = NULL)
-    expect_error(
-      cache.clean(0, interactive = FALSE), "cache directory is not configured"
-    )
-  }
-)
-test_that(
-  "No files to delete",
-  {
-    cache.setup("tests/testthat/cache")
-    # Does always delete files from previous tests
-    cache.clean(0, interactive = FALSE)
-    expect_message(cache.clean(0, interactive = FALSE), "No files to delete")
   }
 )

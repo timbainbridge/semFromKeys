@@ -195,17 +195,23 @@ sem.check <- function(
     stop("`save_out` is not logical. It should be `TRUE` or `FALSE`.")
   }
   if (save_out | check) {
-    if (!exists(".cache_env", mode = "environment")) {
+    found <- FALSE
+    for (i in 1:5) {
+      env <- parent.frame(i)
+      if (exists(".cache_env", envir = env)) {
+        found <- TRUE
+        break
+      }
+    }
+    if (!found) {
       stop(
         paste(
-          "Cache is not enabled but is required for 'save_out = TRUE' and",
-          "'check = TRUE'.",
-          "If you want either of these options,",
-          "a cache directory must be set with 'cache.setup()' first."
+          "A cache directory is not configured so cannot be cleaned.",
+          "Use the `cache.setup()` function to configure a directory to clean."
         )
       )
     }
-    cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)
+    cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
     if (!is.character(name)) {
       stop("`name` is not a character string.")
     }

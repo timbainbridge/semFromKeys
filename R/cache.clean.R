@@ -69,7 +69,15 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
       "Please specify a value for `older_than`. To delete all files, set to 0."
     )
   }
-  if (!exists(".cache_env", mode = "environment")) {
+  found <- FALSE
+  for (i in 1:5) {
+    env <- parent.frame(i)
+    if (exists(".cache_env", envir = env)) {
+      found <- TRUE
+      break
+    }
+  }
+  if (!found) {
     stop(
       paste(
         "A cache directory is not configured so cannot be cleaned.",
@@ -77,7 +85,7 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
       )
     )
   }
-  cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)
+  cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
   files <- file.info(
     list.files(cache_dir, full.names = TRUE, recursive = TRUE)
   )
@@ -95,8 +103,8 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
       message(
         paste0(
           "About to delete the following ", length(files_del),
-          " file(s), older than ", older_than, " from\n",
-          cache_dir, ":\n\n  ",
+          " file(s), older than ", older_than, " from\n '",
+          cache_dir, "':\n\n  ",
           paste0(
             sub(paste0(cache_dir, ".*/"), "", files_del), collapse = "\n  "
           )
@@ -127,8 +135,8 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
       message(
         paste0(
           "\nAbout to delete the following ", length(dirs_del) - 1,
-          " empty directories from\n",
-          cache_dir, ":\n\n  ",
+          " empty directories from\n '",
+          cache_dir, "':\n\n  ",
           paste0(
             sub(paste0(cache_dir, ".*/"), "", dirs_del[-1]), collapse = "\n  "
           )
@@ -147,7 +155,7 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
     return(invisible(NULL))
   }
   if (interactive & interactive()) {
-    message(paste0("The top cache directory, `", cache_dir, "` is empty."))
+    message(paste0("The top cache directory, '", cache_dir, "', is empty."))
     response <- readline(
       paste(
         "Do you want to delete it?",
@@ -157,17 +165,16 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
     if (tolower(substr(response, 1, 1)) != "y") {
       message("Cancelled.")
       return(invisible(NULL))
-    } else {
-      unlink(cache_dir)
-      rm("cache_dir", envir = .cache_env)
-      message(
-        paste(
-          cache_dir, "has been deleted.",
-          "To use `check = TRUE` or `save_out = TRUE`,",
-          "`cache.setup()` will have to be reinitiated."
-        )
-      )
-      return(invisible(NULL))
     }
+    unlink(cache_dir)
+    rm(.cache_env, envir = .GlobalEnv)
+    message(
+      paste0(
+        "'", cache_dir, "' has been deleted.\n",
+        "To use 'check = TRUE' or 'save_out = TRUE',",
+        "'cache.setup()' will have to be reinitiated."
+      )
+    )
+    return(invisible(NULL))
   } else invisible(NULL)
 }

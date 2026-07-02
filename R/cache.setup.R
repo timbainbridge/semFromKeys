@@ -34,14 +34,16 @@
 #' To avoid writing to your computer without your permission,
 #' you are required to run this function first to ensure that you know *that*
 #' files are being saved and *where* files are being saved.
-#' The function temporarily sets the environment variable '.cache_env', with
-#' `.cache_env <- new.env(parent = emptyenv())` (if empty) and
-#' `assign("cache_dir", cache_dir, envir = .cache_env)`,
-#' which will be removed whenever the R session ends.
+#' The function temporarily sets the environment variable '.cache_env'
+#' (with
+#' `assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(2))`
+#' , if empty, and
+#' `assign("cache_dir", cache_dir, envir = .cache_env)`),
+#' which will be removed whenever the R environment is cleared.
 #' '.cache_env' is used by other functions from the package as the cache
 #' directory.
-#' As a result, the function needs to be run once per session whenever a cache
-#' directory is required.
+#' As a result, the function needs to be run once after the environment is
+#' cleared whenever a cache directory is required.
 #' All functions that utilise the cache directory will look for the
 #' environment variable
 #' (with `cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)`)
@@ -102,8 +104,8 @@ cache.setup <- function(location = "user", interactive = TRUE) {
       if (requireNamespace("here")) {
         message(
           paste0(
-            "The cache director will be set as: ",
-            paste0(here::here(), "/", location), "."
+            "The cache director will be set as: '",
+            paste0(here::here(), "/", location), "'."
           )
         )
         response <- readline("Continue? (y/n): ")
@@ -128,10 +130,12 @@ cache.setup <- function(location = "user", interactive = TRUE) {
     }
   }
   if (!dir.exists(cache_dir)) dir.create(cache_dir, recursive = TRUE)
-  if (!exists(".cache_env", mode = "environment")) {
-    .cache_env <<- new.env(parent = emptyenv())
+  if (!exists(".cache_env", mode = "environment", envir = parent.frame(1))) {
+    assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(1))
   }
-  assign("cache_dir", cache_dir, envir = .cache_env)
+  assign(
+    "cache_dir", cache_dir, envir = get(".cache_env", envir = parent.frame(1))
+  )
   message(paste0("The cache directory is set as: '", cache_dir, "'."))
   return(invisible(cache_dir))
 }
