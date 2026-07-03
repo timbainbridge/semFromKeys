@@ -1,22 +1,14 @@
 #' Creates a latent variable correlation matrix from fitted lavaan measurement
 #' models
 #'
-#' A function to take CFA outputs and perform 2-stage procedure to for
-#' structural models and produce a correlation matrix including all variables.
-#' By default, each correlation between latent variables is calculated in a
-#' separate model and correlations with items are calculated in a separate
-#' model for each latent variable.
-#' Alternatively, all variables can be included in the same model.
-#' The default approach is to save time for longer lists of variables.
+#' sem.cor takes CFA outputs and produces a latent variable correlation matrix
+#' including all variables.
 #'
 #' @inheritParams sem.check
 #' @param fit_y A named list of CFA fitted objects.
 #' @param fit_x
-#' A named list of CFA fitted objects or 'NULL'.
-#' If 'NULL', all 'fit_y' latent variables will be correlated with all other
-#' 'fit_y' latent variables.
-#' If a list of CFA fitted objects, 'fit_y' latent variables will be correlated
-#' with 'fix_x' latent variables.
+#' A named list of CFA fitted objects to be correlated with fit_y variables
+#' or 'NULL'.
 #' @param items
 #' A vector of single-item variables to correlate with 'fit_y' latent variables.
 #' @param name
@@ -26,11 +18,70 @@
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
+#'
+#' @return
+#' Returns a list of length 4.
+#' The first element is the fitted lavaan models ('fit').
+#' The second element is the correlation matrix ('cor_mat').
+#' The third and fourth elements are the upper and lower confidence intervals
+#' from the models ('ci_lower' and 'ci_upper', respectively).
+#'
+#' @details
+#' By default, each correlation between latent variables is calculated in a
+#' separate model and correlations with items are calculated in a separate
+#' model for each latent variable.
+#' Alternatively, all variables can be included in the same model.
+#' The default approach is to save time for longer lists of variables.
+#' The function uses Burt's 2-stage procedure to control for interpretational
+#' confounding.
+#' If `fit_x = NULL`, all `fit_y` latent variables will be correlated with all
+#' other `fit_y` latent variables.
+#' If `fit_x` is a list of CFA fitted objects, then `fit_y` latent variables
+#' will be correlated with `fix_x` latent variables only.
+#'
+#' @seealso
+#' [sem.check()], which `sem.cor()` uses for all the back-end;
+#' [lavaan::sem()], which is used to estimate the models; and
+#' [matrixcalc::is.positive.definite], which is used to assess whether the
+#' correlation matrix between `fit_y` constructs is positive definite.
+#'
+#' @importFrom matrixcalc is.positive.definite
+#' @export
+#'
+#' @references
+#' Burt, R. S. (1976).
+#' Interpretational confounding of unobserved variables in Structural Equation
+#' Models. Sociological Methods & Research, 5(1), 3-52.
+#' https://doi.org/10.1177/004912417600500101.
+#'
+#' @examples
+#' # Create CFA keys
+#' keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
+#' keys <- sapply(
+#'   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+#' )
+#' # Run CFA models
+#' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
+#' # Find correlations between all cfa_fit constructs.
+#' cors <- sem.cor(BFIGritHope, cfa_fit)
+#' # View the correlation matrix
+#' cors$cor_mat
+#'
+#' # Correlations of grit facets with hope facets and the first item from each
+#' # Big Five factor.
+#' items <- names(BFIGritHope)[grep("bfi_.*1_1", names(BFIGritHope))]
+#' cors2 <- sem.cor(BFIGritHope, cfa_fit[1:2], cfa_fit[3:4], items)
+#' # View correlations
+#' cors2$cor_mat
 
 # TODO: Think about: Should overlapping items in 'items' and factors be an error?
 # Given more than 1 factor, it could be reasonable to include an item's
 # correlations with all other latent variables (it will mean a hole in the
 # correlation matrix though).
+
+# TODO: Add everything in 1 model.
+
+# TODO: Add Nagy.
 
 sem.cor <- function(
     data, fit_y, fit_x = NULL, items = NULL, miss = "ML", est = "default",
@@ -92,10 +143,6 @@ sem.cor <- function(
     }
   }
   par1 <- lapply(fit_y, parameterEstimates)
-  # A version that computes correlations in bivariate models, puts them all
-  # together and then checks the resultant matrix is positive definite.
-  # If it's not, the matrix is iteratively multiplied by 0.995, diagonals set
-  # back to 1, and checked again until the matrix is positive definite.
   if (is.null(fit_x)) {
     mod_key <- lapply(
       seq_along(par1[-length(par1)]),
@@ -446,9 +493,9 @@ sem.cor <- function(
     )
   }
   if (is.null(fit_x)) {
-    if (!matrixcalc::is.positive.definite(cor_mat_y)) {
+    if (!is.positive.definite(cor_mat_y)) {
       multi <- 1
-      while (!matrixcalc::is.positive.definite(cor_mat_y)) {
+      while (!is.positive.definite(cor_mat_y)) {
         cor_mat_y <- cor_mat_y * .995
         ci_lower_y <- ci_lower_y * .995
         ci_upper_y <- ci_upper_y * .995
