@@ -1,9 +1,13 @@
 #' Runs lavaan models after checking for code or data changes.
 #'
 #' @description
-#' sem.check produces outputs from a series of lavaan models. For each model,
-#' the code checks for previously saved model code, a hash of data, and
-#' important parameter inputs.
+#' sem.check takes a model list, keys lists, and data, and
+#' produces outputs from a series of lavaan models.
+#' The function is primarily used as a function to be called by other function
+#' within the package but it can also be run independently.
+#'
+#' For each model, the code optionally checks for previously saved model code,
+#' a hash of data, and important parameter inputs.
 #' If they exist and match values for the current code and data,
 #' the model is not run, the previous output is loaded instead.
 #' If either the code has changed, the hash of the data has changed, or
@@ -104,17 +108,19 @@
 #'
 #' Matching the philosophy of the package, the function is designed to run for
 #' multiple models with a similar design. If you are using the function for a
-#' single model, transform inputs into lists as appropriate.
+#' single model, transform inputs into lists as appropriate or simply use lavaan
+#' without the assistance of semFromKeys.
 #'
-#' When `save_out = TRUE`, if a cache directory has been set,
-#' the model will save various inputs and outputs from the function call.
-#' When `check = TRUE`,
-#' the model will look for any previously saved outputs from earlier model runs
-#' in the same cache directory and only run again if nothing has changed.
-#' In cases where something has changed for a subset of models
-#' (e.g., a data cleaning mistake might affect only a subset of variables in a
-#' subset of models), then the function will only re-run the models where
-#' something has changed.
+#' The function includes functionality designed to save time re-running code
+#' when lots of slow models are included.
+#' To do this, when `save_out = TRUE` and a cache directory has been set,
+#' the model will save various inputs and outputs from the function call, and,
+#' when `check = TRUE`, the model will look for any previously saved outputs
+#' from earlier model runs in the same cache directory and
+#' only run again if nothing has changed.
+#' In cases where something has changed,
+#' then the function will re-run the models where something has changed
+#' (but it will not for those where nothing has changed).
 #' Changes to arguments that influence all lavaan model runs (e.g., miss or est)
 #' will trigger all models to be re-run.
 #'
@@ -123,22 +129,20 @@
 #' [cache.setup()] function.
 #' If a cache directory has not been set for the current session,
 #' then the function will exit with an error suggesting that either
-#' [cache.setup()] be run or `save_out` and `check` set to FALSE.
+#' [cache.setup()] be run or `save_out` and `check` set to `FALSE`.
 #'
 #' When the cache directory is found and output from previous runs are detected,
 #' the comparisons performed are for:
-#' model code;
-#' hashes of the data (using [openssl::md5()]);
-#' values of the `miss`, `est`, `std`, `std.lv`, and `orthogonal`parameters;
-#' the class of model objects (i.e., class lavaan);
-#' and the class of parameter estimates (i.e., class lavaan.data.frame).
+#' * model code;
+#' * hashes of the data (using [openssl::md5()]);
+#' * values of the `miss`, `est`, `std`, `std.lv`, and `orthogonal`parameters;
+#' * the class of model objects (i.e., class lavaan); and,
+#' * the class of parameter estimates (i.e., class lavaan.data.frame).
 #'
 #' For most applications, the checking feature can be safely ignored by not
 #' saving outputs (i.e., `fit_save = FALSE`)
-#' and not checking for past saves (i.e., `check = FALSE`, both default).
-#' The functionality is intended for a number of very slow models or a very
-#' large number of faster models,
-#' such that time spent rerunning code would be onerous.
+#' and not checking for past saves (i.e., `check = FALSE`, both default),
+#' but may be beneficial in cases with lots of models or very slow models.
 #' However, the functionality can be safely used for faster runs too.
 #'
 #' @seealso
