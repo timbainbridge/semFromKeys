@@ -11,6 +11,8 @@
 #' or 'NULL'.
 #' @param items
 #' A vector of single-item variables to correlate with 'fit_y' latent variables.
+#' Must not include any items contributing to the measurement of a `fit_y`
+#' latent variable.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
@@ -27,17 +29,18 @@
 #' from the models ('ci_lower' and 'ci_upper', respectively).
 #'
 #' @details
-#' By default, each correlation between latent variables is calculated in a
+#' Each correlation between latent variables is calculated in a
 #' separate model and correlations with items are calculated in a separate
 #' model for each latent variable.
-#' Alternatively, all variables can be included in the same model.
-#' The default approach is to save time for longer lists of variables.
+#' This approach saves time for longer lists of variables.
 #' The function uses Burt's 2-stage procedure to control for interpretational
 #' confounding.
 #' If `fit_x = NULL`, all `fit_y` latent variables will be correlated with all
 #' other `fit_y` latent variables.
-#' If `fit_x` is a list of CFA fitted objects, then `fit_y` latent variables
-#' will be correlated with `fix_x` latent variables only.
+#' If `fit_x` is a list of fitted CFA objects, then `fit_y` latent variables
+#' will be correlated with `fit_x` latent variables only.
+#' If `items` is a list of items, then all items will be correlated with all
+#' `fit_y` latent variables.
 #'
 #' @seealso
 #' [sem.check()], which `sem.cor()` uses for all the back-end;
@@ -73,11 +76,6 @@
 #' cors2 <- sem.cor(BFIGritHope, cfa_fit[1:2], cfa_fit[3:4], items)
 #' # View correlations
 #' cors2$cor_mat
-
-# TODO: Think about: Should overlapping items in 'items' and factors be an error?
-# Given more than 1 factor, it could be reasonable to include an item's
-# correlations with all other latent variables (it will mean a hole in the
-# correlation matrix though).
 
 # TODO: Add everything in 1 model.
 
@@ -218,16 +216,6 @@ sem.cor <- function(
     # Correlations with single items
     # TODO: Warning is not quite right. It should not worry about overlap with
     # items from fit_x.
-    item_overlap <- items[items %in% unlist(keys)]
-    # if (!is.null(items) & length(item_overlap) > 0) {
-    #   warning(
-    #     paste0(
-    #       "The following items in 'items' are also in a latent variable. ",
-    #       "They will not be included in correlations with their factor.\n    ",
-    #       paste(item_overlap, collapse = "\n    ")
-    #     )
-    #   )
-    # }
     mod_key_i <- lapply(
       par1,
       function(y) {
@@ -239,7 +227,21 @@ sem.cor <- function(
               "The model including", paste(yn, collapse = " and "),
               "includes more than one latent variable.",
               "These models are not currently supported by 'sem.cor()'.",
-              "Please include them separately or "
+              "Please include them separately."
+            )
+          )
+        }
+        item_overlap <- items[items %in% y1$rhs]
+        if (length(item_overlap) > 0) {
+          stop(
+            paste0(
+              "The following item(s) is in both 'items' and contributes to ",
+              "the measurement of the '", yn, "' latent variable.",
+              "\n  This is not supported.\n  ",
+              "Please either remove the item(s) from 'items' or ",
+              "(if appropriate) remove the item(s) from the latent ",
+              "measurement of '", yn, "'.\n    ",
+              paste(item_overlap, collapse = "\n    ")
             )
           )
         }
@@ -538,142 +540,4 @@ sem.cor <- function(
       fit = fit$fit, cor_mat = cor_mat, ci_lower = ci_lower, ci_upper = ci_upper
     )
   )
-#   else {
-#     fit <- sem.check(
-#       mods, data, keys_s = key, miss = miss, est = est, name = name,
-#       check = check, save_out = save_out
-#     )
-#     cors <- sapply(
-#       fit$par_std, function(x) x$est.std[x$lhs != x$rhs & x$op == "~~"]
-#     )
-#     cor_mat <- sapply(
-#       names(fit_y),
-#       function(y) {
-#         sapply(
-#           names(fit_x),
-#           function(x) {
-#             ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-#             tmp <- cors[grep(ptn, names(cors))]
-#             if (length(tmp) == 0) {
-#               tmp <- 1
-#             }
-#             tmp
-#           },
-#           USE.NAMES = FALSE
-#         )
-#       }
-#     )
-#     rownames(cor_mat) <- names(fit_x)
-#     ci_lower0 <- sapply(
-#       fit$par_std, function(x) x$ci.lower[x$lhs != x$rhs & x$op == "~~"]
-#     )
-#     ci_lower <- sapply(
-#       names(fit_y),
-#       function(y) {
-#         sapply(
-#           names(fit_x),
-#           function(x) {
-#             ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-#             tmp <- ci_lower0[grep(ptn, names(ci_lower0))]
-#             if (length(tmp) == 0) {
-#               tmp <- 1
-#             }
-#             tmp
-#           },
-#           USE.NAMES = FALSE
-#         )
-#       }
-#     )
-#     rownames(ci_lower) <- names(fit_x)
-#     ci_upper0 <- sapply(
-#       fit$par_std, function(x) x$ci.upper[x$lhs != x$rhs & x$op == "~~"]
-#     )
-#     ci_upper <- sapply(
-#       names(fit_y),
-#       function(y) {
-#         sapply(
-#           names(fit_x),
-#           function(x) {
-#             ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-#             tmp <- ci_upper0[grep(ptn, names(ci_upper0))]
-#             if (length(tmp) == 0) {
-#               tmp <- 1
-#             }
-#             tmp
-#           },
-#           USE.NAMES = FALSE
-#         )
-#       }
-#     )
-#   }
-#   if (is.null(items)) {
-#     return(
-#       list(
-#         fit = fit$fit,
-#         cor_mat = cor_mat, ci_lower = ci_lower, ci_upper = ci_upper
-#       )
-#     )
-#   } else {
-#     fit_s <- sem.check(
-#       mod,
-#       function(i) sem(i, data, std.lv = TRUE, missing = miss1, estimator = est1)
-#     )
-#     cor_mat1 <- mapply(
-#       function(i, ni) {
-#         tmp <- standardizedSolution(i)
-#         tmp1 <- setNames(
-#           tmp$est.std[
-#             (tmp$lhs == ni & tmp$rhs %in% items) |
-#               (tmp$lhs %in% items & tmp$rhs == ni)
-#           ],
-#           items
-#         )
-#         tmp2 <- tmp$rhs[tmp$op == "=~"]
-#         tmp1[tmp1 %in% tmp2] <- NA
-#         return(tmp1)
-#       },
-#       i = fit_s, ni = names(fit_s)
-#     )
-#     ci_lower1 <- mapply(
-#       function(i, ni) {
-#         tmp <- standardizedSolution(i)
-#         tmp1 <- setNames(
-#           tmp$ci.lower[
-#             (tmp$lhs == ni & tmp$rhs %in% items) |
-#               (tmp$lhs %in% items & tmp$rhs == ni)
-#           ],
-#           items
-#         )
-#         tmp2 <- tmp$rhs[tmp$op == "=~"]
-#         tmp1[tmp1 %in% tmp2] <- NA
-#         return(tmp1)
-#       },
-#       i = fit_s, ni = names(fit_s)
-#     )
-#     ci_upper1 <- mapply(
-#       function(i, ni) {
-#         tmp <- standardizedSolution(i)
-#         tmp1 <- setNames(
-#           tmp$ci.upper[
-#             (tmp$lhs == ni & tmp$rhs %in% items) |
-#               (tmp$lhs %in% items & tmp$rhs == ni)
-#           ],
-#           items
-#         )
-#         tmp2 <- tmp$rhs[tmp$op == "=~"]
-#         tmp1[tmp1 %in% tmp2] <- NA
-#         return(tmp1)
-#       },
-#       i = fit_s, ni = names(fit_s)
-#     )
-#     cor_mat_f <- rbind(cor_mat, cor_mat1)
-#     ciLower_f <- rbind(ci_lower, ci_lower1)
-#     ciUpper_f <- rbind(ci_upper, ci_upper1)
-#     return(
-#       list(
-#         fit = fit, fit_s = fit_s, cor_mat = cor_mat_f,
-#         ci_lower = ciLower_f, ci_upper = ciUpper_f
-#       )
-#     )
-#   }
 }
