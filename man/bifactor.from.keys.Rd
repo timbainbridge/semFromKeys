@@ -71,7 +71,7 @@ The default ('default') uses the lavaan default for the model being run.}
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.
 Defaults to 'bifactor'.
 Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
-The name should be unique for each set of models or outputs from calls with
+The name should be unique for each set of models, or outputs from calls with
 the same name will be overwritten.}
 
 \item{check}{Logical.

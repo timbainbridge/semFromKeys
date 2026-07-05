@@ -81,7 +81,7 @@ Irrelevant when the model does not include an EFA or ESEM.}
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.
 Defaults to "sem".
-The name should be unique for each set of models or outputs from calls with
+The name should be unique for each set of models, or outputs from calls with
 the same name will be overwritten.}
 
 \item{check}{Logical.
@@ -106,9 +106,13 @@ a list of parameter estimates from the models (standardized if \code{std = TRUE}
 and, if \code{fit_save = TRUE}, a matrix of fit measures for each model.
 }
 \description{
-sem.check produces outputs from a series of lavaan models. For each model,
-the code checks for previously saved model code, a hash of data, and
-important parameter inputs.
+sem.check takes a model list, keys lists, and data, and
+produces outputs from a series of lavaan models.
+The function is primarily used as a function to be called by other function
+within the package but it can also be run independently.
+
+For each model, the code optionally checks for previously saved model code,
+a hash of data, and important parameter inputs.
 If they exist and match values for the current code and data,
 the model is not run, the previous output is loaded instead.
 If either the code has changed, the hash of the data has changed, or
@@ -129,17 +133,19 @@ for example, when allowing two items' residuals to correlate in a CFA.
 
 Matching the philosophy of the package, the function is designed to run for
 multiple models with a similar design. If you are using the function for a
-single model, transform inputs into lists as appropriate.
+single model, transform inputs into lists as appropriate or simply use lavaan
+without the assistance of semFromKeys.
 
-When \code{save_out = TRUE}, if a cache directory has been set,
-the model will save various inputs and outputs from the function call.
-When \code{check = TRUE},
-the model will look for any previously saved outputs from earlier model runs
-in the same cache directory and only run again if nothing has changed.
-In cases where something has changed for a subset of models
-(e.g., a data cleaning mistake might affect only a subset of variables in a
-subset of models), then the function will only re-run the models where
-something has changed.
+The function includes functionality designed to save time re-running code
+when lots of slow models are included.
+To do this, when \code{save_out = TRUE} and a cache directory has been set,
+the model will save various inputs and outputs from the function call, and,
+when \code{check = TRUE}, the model will look for any previously saved outputs
+from earlier model runs in the same cache directory and
+only run again if nothing has changed.
+In cases where something has changed,
+then the function will re-run the models where something has changed
+(but it will not for those where nothing has changed).
 Changes to arguments that influence all lavaan model runs (e.g., miss or est)
 will trigger all models to be re-run.
 
@@ -148,22 +154,22 @@ the function will look for a cache directory set and created by the
 \code{\link[=cache.setup]{cache.setup()}} function.
 If a cache directory has not been set for the current session,
 then the function will exit with an error suggesting that either
-\code{\link[=cache.setup]{cache.setup()}} be run or \code{save_out} and \code{check} set to FALSE.
+\code{\link[=cache.setup]{cache.setup()}} be run or \code{save_out} and \code{check} set to \code{FALSE}.
 
 When the cache directory is found and output from previous runs are detected,
 the comparisons performed are for:
-model code;
-hashes of the data (using \code{\link[openssl:md5]{openssl::md5()}});
-values of the \code{miss}, \code{est}, \code{std}, \code{std.lv}, and \code{orthogonal}parameters;
-the class of model objects (i.e., class lavaan);
-and the class of parameter estimates (i.e., class lavaan.data.frame).
+\itemize{
+\item model code;
+\item hashes of the data (using \code{\link[openssl:md5]{openssl::md5()}});
+\item values of the \code{miss}, \code{est}, \code{std}, \code{std.lv}, and \code{orthogonal}parameters;
+\item the class of model objects (i.e., class lavaan); and,
+\item the class of parameter estimates (i.e., class lavaan.data.frame).
+}
 
 For most applications, the checking feature can be safely ignored by not
 saving outputs (i.e., \code{fit_save = FALSE})
-and not checking for past saves (i.e., \code{check = FALSE}, both default).
-The functionality is intended for a number of very slow models or a very
-large number of faster models,
-such that time spent rerunning code would be onerous.
+and not checking for past saves (i.e., \code{check = FALSE}, both default),
+but may be beneficial in cases with lots of models or very slow models.
 However, the functionality can be safely used for faster runs too.
 }
 \examples{

@@ -41,14 +41,16 @@ required.
 To avoid writing to your computer without your permission,
 you are required to run this function first to ensure that you know \emph{that}
 files are being saved and \emph{where} files are being saved.
-The function temporarily sets the environment variable '.cache_env', with
-\code{.cache_env <- new.env(parent = emptyenv())} (if empty) and
-\code{assign("cache_dir", cache_dir, envir = .cache_env)},
-which will be removed whenever the R session ends.
+The function temporarily sets the environment variable '.cache_env'
+(with
+\code{assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(2))}
+, if empty, and
+\code{assign("cache_dir", cache_dir, envir = .cache_env)}),
+which will be removed whenever the R environment is cleared.
 '.cache_env' is used by other functions from the package as the cache
 directory.
-As a result, the function needs to be run once per session whenever a cache
-directory is required.
+As a result, the function needs to be run once after the environment is
+cleared whenever a cache directory is required.
 All functions that utilise the cache directory will look for the
 environment variable
 (with \code{cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)})
