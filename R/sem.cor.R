@@ -519,13 +519,20 @@ sem.cor <- function(
   }
   if (is.null(fit_x)) {
     if (!is.positive.definite(cor_mat_y)) {
-      cor_mat_y <- nearPD(cor_mat_y, corr = TRUE)
-    }
-    if (!is.positive.definite(ci_lower_y)) {
-      ci_lower_y <- nearPD(ci_lower_y, corr = TRUE)
-    }
-    if (!is.positive.definite(ci_upper_y)) {
-      ci_upper_y <- nearPD(ci_upper_y, corr = TRUE)
+      cor_mat_y0 <- nearPD(cor_mat_y, corr = TRUE, only.values = TRUE)
+      dif_mat <- cor_mat_y - cor_mat_y0
+      cor_mat_y <- cor_mat_y0
+      ci_lower_y <- ci_lower_y - dif_mat
+      ci_upper_y <- ci_upper_y - dif_mat
+      warning(
+        paste(
+          "The correlation matrix between 'fit_y' constructs has been adjusted",
+          "from initial estimates with the 'Matrix::nearPD()' function",
+          "to ensure it is positive definite.",
+          "'ci_lower' and 'ci_upper' were adjusted by the same amount as the",
+          "primary correlation matrix."
+        )
+      )
     }
   }
   if (is.null(items)) {
