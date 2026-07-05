@@ -71,18 +71,34 @@ sem.cor takes CFA outputs and produces a latent variable correlation matrix
 including all variables.
 }
 \details{
+The function allows for all correlations between latent variables to be
+calculated by including all fitted CFA models in \code{fit_y}.
+Alternatively, if you only want to correlated a set of depenedant variables
+with a set of independent variables, then use \code{fit_y} for the dependent
+variables and \code{fit_x} for the independent variables.
+Correlations between the y latent variables and items can also be optionally
+included by including \code{items} as a vector of item names.
+Thus, if \code{fit_x = NULL}, all \code{fit_y} latent variables will be correlated with
+all other \code{fit_y} latent variables;
+if \code{fit_x} is a list of fitted CFA objects, then \code{fit_y} latent variables
+will be correlated with \code{fit_x} latent variables only; and
+if \code{items} is a list of items, then all items will be correlated with all
+\code{fit_y} latent variables.
+
 Each correlation between latent variables is calculated in a
 separate model and correlations with items are calculated in a separate
 model for each latent variable.
-This approach saves time for longer lists of variables.
+This approach saves time for longer lists of variables compared to including
+everything in one model and
+it also means that excluding a variable cannot change correlations between
+other variables (which is possible when all are included together).
 The function uses Burt's 2-stage procedure to control for interpretational
 confounding.
-If \code{fit_x = NULL}, all \code{fit_y} latent variables will be correlated with all
-other \code{fit_y} latent variables.
-If \code{fit_x} is a list of fitted CFA objects, then \code{fit_y} latent variables
-will be correlated with \code{fit_x} latent variables only.
-If \code{items} is a list of items, then all items will be correlated with all
-\code{fit_y} latent variables.
+
+If the matrix of latent variables included in \code{fit_y} is not positive
+definite, then the matrix will be adjusted to the nearest positive definite
+matrix using the \verb{[Matrix::nearPD()]} function, which employs the method
+developed by Higham (2002).
 }
 \examples{
 # Create CFA keys
@@ -109,10 +125,17 @@ Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation
 Models. Sociological Methods & Research, 5(1), 3-52.
 https://doi.org/10.1177/004912417600500101.
+
+Higham, N. J. (2002).
+Computing the nearest correlation matrix—a problem from finance.
+IMA Journal of Numerical Analysis, 22(3), 329-343.
+https://doi.org/10.1093/imanum/22.3.329.
 }
 \seealso{
 \code{\link[=sem.check]{sem.check()}}, which \code{sem.cor()} uses for all the back-end;
-\code{\link[lavaan:sem]{lavaan::sem()}}, which is used to estimate the models; and
+\code{\link[lavaan:sem]{lavaan::sem()}}, which is used to estimate the models;
 \link[matrixcalc:is.positive.definite]{matrixcalc::is.positive.definite}, which is used to assess whether the
-correlation matrix between \code{fit_y} constructs is positive definite.
+correlation matrix between \code{fit_y} constructs is positive definite; and
+\code{\link[Matrix:nearPD]{Matrix::nearPD()}} for the function used to transform non-positive definite
+matrices into positive definite matrices.
 }

@@ -29,24 +29,42 @@
 #' from the models ('ci_lower' and 'ci_upper', respectively).
 #'
 #' @details
+#' The function allows for all correlations between latent variables to be
+#' calculated by including all fitted CFA models in `fit_y`.
+#' Alternatively, if you only want to correlated a set of depenedant variables
+#' with a set of independent variables, then use `fit_y` for the dependent
+#' variables and `fit_x` for the independent variables.
+#' Correlations between the y latent variables and items can also be optionally
+#' included by including `items` as a vector of item names.
+#' Thus, if `fit_x = NULL`, all `fit_y` latent variables will be correlated with
+#' all other `fit_y` latent variables;
+#' if `fit_x` is a list of fitted CFA objects, then `fit_y` latent variables
+#' will be correlated with `fit_x` latent variables only; and
+#' if `items` is a list of items, then all items will be correlated with all
+#' `fit_y` latent variables.
+#'
 #' Each correlation between latent variables is calculated in a
 #' separate model and correlations with items are calculated in a separate
 #' model for each latent variable.
-#' This approach saves time for longer lists of variables.
+#' This approach saves time for longer lists of variables compared to including
+#' everything in one model and
+#' it also means that excluding a variable cannot change correlations between
+#' other variables (which is possible when all are included together).
 #' The function uses Burt's 2-stage procedure to control for interpretational
 #' confounding.
-#' If `fit_x = NULL`, all `fit_y` latent variables will be correlated with all
-#' other `fit_y` latent variables.
-#' If `fit_x` is a list of fitted CFA objects, then `fit_y` latent variables
-#' will be correlated with `fit_x` latent variables only.
-#' If `items` is a list of items, then all items will be correlated with all
-#' `fit_y` latent variables.
+#'
+#' If the matrix of latent variables included in `fit_y` is not positive
+#' definite, then the matrix will be adjusted to the nearest positive definite
+#' matrix using the `[Matrix::nearPD()]` function, which employs the method
+#' developed by Higham (2002).
 #'
 #' @seealso
 #' [sem.check()], which `sem.cor()` uses for all the back-end;
-#' [lavaan::sem()], which is used to estimate the models; and
+#' [lavaan::sem()], which is used to estimate the models;
 #' [matrixcalc::is.positive.definite], which is used to assess whether the
-#' correlation matrix between `fit_y` constructs is positive definite.
+#' correlation matrix between `fit_y` constructs is positive definite; and
+#' [Matrix::nearPD()] for the function used to transform non-positive definite
+#' matrices into positive definite matrices.
 #'
 #' @importFrom matrixcalc is.positive.definite
 #' @export
@@ -56,6 +74,11 @@
 #' Interpretational confounding of unobserved variables in Structural Equation
 #' Models. Sociological Methods & Research, 5(1), 3-52.
 #' https://doi.org/10.1177/004912417600500101.
+#'
+#' Higham, N. J. (2002).
+#' Computing the nearest correlation matrix—a problem from finance.
+#' IMA Journal of Numerical Analysis, 22(3), 329-343.
+#' https://doi.org/10.1093/imanum/22.3.329.
 #'
 #' @examples
 #' # Create CFA keys
@@ -496,22 +519,13 @@ sem.cor <- function(
   }
   if (is.null(fit_x)) {
     if (!is.positive.definite(cor_mat_y)) {
-      multi <- 1
-      while (!is.positive.definite(cor_mat_y)) {
-        cor_mat_y <- cor_mat_y * .995
-        ci_lower_y <- ci_lower_y * .995
-        ci_upper_y <- ci_upper_y * .995
-        multi <- multi * .995
-        diag(cor_mat) <- 1
-      }
-      warning(
-        paste(
-          "The correlation matrix between 'fit_y' constructs has been adjusted",
-          "from initial estimates to ensure it is positive definite.",
-          "All off-diagonal corelations were multiplied by", multi,
-          "to achieve this."
-        )
-      )
+      cor_mat_y <- nearPD(cor_mat_y, corr = TRUE)
+    }
+    if (!is.positive.definite(ci_lower_y)) {
+      ci_lower_y <- nearPD(ci_lower_y, corr = TRUE)
+    }
+    if (!is.positive.definite(ci_upper_y)) {
+      ci_upper_y <- nearPD(ci_upper_y, corr = TRUE)
     }
   }
   if (is.null(items)) {

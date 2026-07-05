@@ -30,7 +30,8 @@ Imports:
     openssl,
     withr,
     tools,
-    matrixcalc
+    matrixcalc,
+    Matrix
 Suggests: 
     testthat (>= 3.0.0),
     here
