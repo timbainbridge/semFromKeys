@@ -43,19 +43,24 @@ you are required to run this function first to ensure that you know \emph{that}
 files are being saved and \emph{where} files are being saved.
 The function temporarily sets the environment variable '.cache_env'
 (with
-\code{assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(2))}
+\code{assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(1))}
 , if empty, and
-\code{assign("cache_dir", cache_dir, envir = .cache_env)}),
-which will be removed whenever the R environment is cleared.
+\code{assign("cache_dir", cache_dir, envir = get(".cache_env", envir = parent.frame(1)))}
+), which will be removed whenever the R environment is cleared.
 '.cache_env' is used by other functions from the package as the cache
 directory.
 As a result, the function needs to be run once after the environment is
 cleared whenever a cache directory is required.
 All functions that utilise the cache directory will look for the
-environment variable
-(with \code{cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)})
-and if it is not set will request that users either change options to not
-require the cache directory or run this function first.
+environment variable and, if it is not set, will request that users either
+change options to not require the cache directory or run this function first.
+
+\code{semFromKeys} has no way to know what directories you have specified as the
+cache in the past and cannot clean up unknown former cache directories.
+Therefore, it is recommended that you use either the default location or
+the same location for all models within the same project.
+Either of these will enable easy detection, so that unneeded cached files
+can be found and deleted.
 
 Functions that directly or indirectly might require a cache directory are:
 \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}},

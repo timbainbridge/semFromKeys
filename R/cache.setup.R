@@ -36,19 +36,24 @@
 #' files are being saved and *where* files are being saved.
 #' The function temporarily sets the environment variable '.cache_env'
 #' (with
-#' `assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(2))`
+#' `assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(1))`
 #' , if empty, and
-#' `assign("cache_dir", cache_dir, envir = .cache_env)`),
-#' which will be removed whenever the R environment is cleared.
+#' `assign("cache_dir", cache_dir, envir = get(".cache_env", envir = parent.frame(1)))`
+#' ), which will be removed whenever the R environment is cleared.
 #' '.cache_env' is used by other functions from the package as the cache
 #' directory.
 #' As a result, the function needs to be run once after the environment is
 #' cleared whenever a cache directory is required.
 #' All functions that utilise the cache directory will look for the
-#' environment variable
-#' (with `cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)`)
-#' and if it is not set will request that users either change options to not
-#' require the cache directory or run this function first.
+#' environment variable and, if it is not set, will request that users either
+#' change options to not require the cache directory or run this function first.
+#'
+#' `semFromKeys` has no way to know what directories you have specified as the
+#' cache in the past and cannot clean up unknown former cache directories.
+#' Therefore, it is recommended that you use either the default location or
+#' the same location for all models within the same project.
+#' Either of these will enable easy detection, so that unneeded cached files
+#' can be found and deleted.
 #'
 #' Functions that directly or indirectly might require a cache directory are:
 #' [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()],
@@ -82,6 +87,9 @@
 #'     keys, BFIGritHope, fit_save = TRUE, check = TRUE, save_out = TRUE
 #'   )
 #' }
+
+# TODO: Change cache directory to semFromKeys/[ProjectName] using rstudioapi
+# package.
 
 cache.setup <- function(location = "user", interactive = TRUE) {
   if (getRversion() < "4.0") {

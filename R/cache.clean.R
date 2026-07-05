@@ -38,6 +38,13 @@
 #' previously ran it 2 days ago, you could run all your code and, when it has
 #' finished, use `cache.clean(older_than = 1)`.
 #'
+#' `semFromKeys` has no way to know what directories you have specified as the
+#' cache in the past and cannot clean up unknown former cache directories.
+#' Therefore, it is recommended that you use either the default location or
+#' the same location for all models within the same project.
+#' Either of these will enable easy detection, so that unneeded cached files
+#' can be found and deleted.
+#'
 #' @seealso [cache.setup()]
 #'
 #' @export
