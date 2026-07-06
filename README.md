@@ -10,24 +10,24 @@
 
 The ‘semFromKeys’ package was designed to streamline running ‘lavaan’
 models with similar structures using keys lists to generate model code
-instead of writing out the code for models manually. For confirmatory
-factor analyses (CFAs) and bifactor models, the code creates and runs a
-series of models based on keys indicating each of the factors in the
-models. For exploratory factor analyses (EFAs) keys list are used to
-create a target rotation for a single EFA. For exploratory structural
-equation models (ESEM), the code takes a fitted EFA model and fitted CFA
-and/or bifactor models and runs an ESEM for each CFA or bifactor model
-input. In the ESEM, the EFA factors predict a series of latent variables
-in separate models using Burt’s (1976) 2-stage procedure to prevent
+instead of writing out the code for models manually. Currently, the code
+can run confirmatory factor analyses (CFAs), bifactor models,
+exploratory factor analyses (EFAs), latent variable correlations, and
+exploratory structural equation models (ESEMs). For CFAs and bifactor
+models, the code creates and runs a series of models based on keys
+indicating each of the factors in the models. For EFAs, keys list are
+used to create a target rotation for a single EFA. For latent variable
+correlations, the code takes fitted CFA models and runs models with
+correlations between all combinations or latent variables or selected
+latent variables with other selected latent variables. For ESEMs, the
+code takes a fitted EFA model and fitted CFA and/or bifactor models and
+runs an ESEM for each CFA or bifactor model input where the EFA factors
+predict the series of CFA/bifactor factors.
+
+In the structural models (i.e., the latent variable correlations and the
+ESEM), Burt’s (1976) 2-stage procedure is used to prevent
 interpretational confounding. The ESEM models were designed to run
 analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
-
-Although the package might be of most use to those running ESEM similar
-to those of Bainbridge and colleagues (2022), it could also be very
-helpful to anyone wanting to estimate a CFA measurement model for each
-scale in a sample to either check measurement characteristics before
-proceeding with further analyses or to simply compute measurement model
-based reliability statistics.
 
 For more sets of models that take a long time to run, code has been
 included to allow the first run to save outputs that can be checked
@@ -46,8 +46,8 @@ models where something has changed.
 Given that the package enables creating files in a cache directory, the
 `cache.clean()` function has also been included to help clean up files.
 To comply with CRAN policies, the cache directory is set as a temporary
-environment variables, so it has to be set for each session when
-required.
+environment variable, so it has to be set each time the global
+environment is cleared.
 
 ## Installation
 
@@ -195,6 +195,35 @@ the scales or to calculate latent variable model-based reliability
 scores (e.g., with
 `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for
 composite reliability, Jöreskog, 1971).
+
+### Latent variable correlations
+
+It is also possible to examine correlations between the latent variables
+calculated above.
+
+``` r
+latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit)
+#> Fitting models
+#> 1 / 6   grit_c.grit_p
+#> 2 / 6   grit_c.hope_a
+#> 3 / 6   grit_c.hope_p
+#> 4 / 6   grit_p.hope_a
+#> 5 / 6   grit_p.hope_p
+#> 6 / 6   hope_a.hope_p
+#> Generating parameter estimates
+#> 1 / 6   grit_c.grit_p
+#> 2 / 6   grit_c.hope_a
+#> 3 / 6   grit_c.hope_p
+#> 4 / 6   grit_p.hope_a
+#> 5 / 6   grit_p.hope_p
+#> 6 / 6   hope_a.hope_p
+latent_cors$cor_mat
+#>           grit_c    grit_p    hope_a    hope_p
+#> grit_c 1.0000000 0.4962176 0.3724859 0.3002280
+#> grit_p 0.4962176 1.0000000 0.8993154 0.8325711
+#> hope_a 0.3724859 0.8993154 1.0000000 0.9276052
+#> hope_p 0.3002280 0.8325711 0.9276052 1.0000000
+```
 
 ### EFAs
 

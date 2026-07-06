@@ -19,13 +19,13 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The 'semFromKeys' package was designed to streamline running 'lavaan' models with similar structures using keys lists to generate model code instead of writing out the code for models manually. For confirmatory factor analyses (CFAs) and bifactor models, the code creates and runs a series of models based on keys indicating each of the factors in the models. For exploratory factor analyses (EFAs) keys list are used to create a target rotation for a single EFA. For exploratory structural equation models (ESEM), the code takes a fitted EFA model and fitted CFA and/or bifactor models and runs an ESEM for each CFA or bifactor model input. In the ESEM, the EFA factors predict a series of latent variables in separate models using Burt's (1976) 2-stage procedure to prevent interpretational confounding. The ESEM models were designed to run analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
+The 'semFromKeys' package was designed to streamline running 'lavaan' models with similar structures using keys lists to generate model code instead of writing out the code for models manually. Currently, the code can run confirmatory factor analyses (CFAs), bifactor models, exploratory factor analyses (EFAs), latent variable correlations, and exploratory structural equation models (ESEMs). For CFAs and bifactor models, the code creates and runs a series of models based on keys indicating each of the factors in the models. For EFAs, keys list are used to create a target rotation for a single EFA. For latent variable correlations, the code takes fitted CFA models and runs models with correlations between all combinations or latent variables or selected latent variables with other selected latent variables. For ESEMs, the code takes a fitted EFA model and fitted CFA and/or bifactor models and runs an ESEM for each CFA or bifactor model input where the EFA factors predict the series of CFA/bifactor factors.
 
-Although the package might be of most use to those running ESEM similar to those of Bainbridge and colleagues (2022), it could also be very helpful to anyone wanting to estimate a CFA measurement model for each scale in a sample to either check measurement characteristics before proceeding with further analyses or to simply compute measurement model based reliability statistics.
+In the structural models (i.e., the latent variable correlations and the ESEM), Burt's (1976) 2-stage procedure is used to prevent interpretational confounding. The ESEM models were designed to run analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 
 For more sets of models that take a long time to run, code has been included to allow the first run to save outputs that can be checked against in subsequent runs. If nothing has changed, then the previous outputs are returned, saving the time (and energy) of running them again. To get this feature to work, the R version has to be 4.0 or later and a cache directory will have to be set with the `cache.setup()` function, which, by default, configures a cache directory in the users' cache as determined by the operating system. It can alternatively be set as a subdirectory within the current project or, if not using a project, the current working directory. Once the cache is set, `save_out = TRUE` can be included in function calls to save the relevant outputs, and `check = TRUE` can be included to look for previous outputs and only run models where something has changed.
 
-Given that the package enables creating files in a cache directory, the `cache.clean()` function has also been included to help clean up files. To comply with CRAN policies, the cache directory is set as a temporary environment variables, so it has to be set for each session when required.
+Given that the package enables creating files in a cache directory, the `cache.clean()` function has also been included to help clean up files. To comply with CRAN policies, the cache directory is set as a temporary environment variable, so it has to be set each time the global environment is cleared.
 
 ## Installation
 
@@ -83,6 +83,15 @@ cfa_fit$fit_measures[, c("cfi", "rmsea")]
 ```
 
 These models can be used to examine the measurement characteristics of the scales or to calculate latent variable model-based reliability scores (e.g., with `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for composite reliability, Jöreskog, 1971).
+
+### Latent variable correlations
+
+It is also possible to examine correlations between the latent variables calculated above.
+
+```{r example-lavaco}
+latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit)
+latent_cors$cor_mat
+```
 
 ### EFAs
 
@@ -146,5 +155,4 @@ Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating the Big Fi
 
 Burt, R. S. (1976). Interpretational confounding of unobserved variables in Structural Equation Models. Sociological Methods & Research, 5(1), 3-52. https://doi.org/10.1177/004912417600500101.
 
-Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric Tests.
-Psychometrika, 36(2), 109-133. https://doi.org/10.1007/BF02291393.
+Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric Tests. Psychometrika, 36(2), 109-133. https://doi.org/10.1007/BF02291393.
