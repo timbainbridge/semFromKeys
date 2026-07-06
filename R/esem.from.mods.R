@@ -228,7 +228,7 @@ esem.from.mods <- function(
     }
   }
   if (!is.null(bif_fit)) {
-    if (sum(sapply(bif_fit, function(x) class(x) != "lavaan")) > 0) {
+    if (sum(sapply(bif_fit, function(x) !inherits(x, "lavaan"))) > 0) {
       paste0(
         names(bif_fit)[sapply(bif_fit, function(x) !inherits(x, "lavaan"))],
         stop("The above elements of `bif_fit` are not objects of type lavaan.")

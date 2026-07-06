@@ -96,9 +96,8 @@ cache.setup <- function(location = "user", interactive = TRUE) {
     stop(
       paste0(
         "Setting up cache requires R >= 4.0. ",
-        "Your system is currently running version ",
-        getRversion(),
-        "."
+        "Your system is currently running version ", getRversion(), ". ",
+        "To use caching, please update R."
       )
     )
   }
