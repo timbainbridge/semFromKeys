@@ -67,6 +67,7 @@
 #' matrices into positive definite matrices.
 #'
 #' @importFrom matrixcalc is.positive.definite
+#' @importFrom Matrix nearPD
 #' @export
 #'
 #' @references
@@ -89,7 +90,7 @@
 #' # Run CFA models
 #' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
 #' # Find correlations between all cfa_fit constructs.
-#' cors <- sem.cor(BFIGritHope, cfa_fit)
+#' cors <- sem.cor(BFIGritHope, cfa_fit$fit)
 #' # View the correlation matrix
 #' cors$cor_mat
 #'
@@ -99,8 +100,6 @@
 #' cors2 <- sem.cor(BFIGritHope, cfa_fit[1:2], cfa_fit[3:4], items)
 #' # View correlations
 #' cors2$cor_mat
-
-# TODO: Add everything in 1 model.
 
 # TODO: Add Nagy.
 
@@ -119,33 +118,50 @@ sem.cor <- function(
   if (is.null(names(fit_y))) {
     stop("'fit_y' names must not be 'NULL'.")
   }
-  if ("items" %in% names(fit_y)) {
-    stop(
-      paste(
-        "'items' is included as a name of a fitted model in 'fit_y'.",
-        "'items' is reserved for the 'items' argument in the function.",
-        "Please select an alternative name for the model."
+  if (!is.null(items)) {
+    if (sum(!items %in% names(data)) > 0) {
+      item_miss <- items[!items %in% names(data)]
+      stop(
+        paste0(
+          "The following item(s) in 'items' are not in 'data':\n  ",
+          paste(item_miss, collapse = "\n  ")
+        )
       )
-    )
+    }
+    if (sum(items %in% names(fit_y)) > 0) {
+      item_overlap <- items[items %in% names(fit_y)]
+      stop(
+        paste0(
+          "The following item(s) in 'items' are included as a name of a fitted",
+          " model in 'fit_y'. ",
+          "Please ensure item names do not conflict with latent variable ",
+          "names.\n    ",
+          paste(item_overlap, collapse = "\n    ")
+        )
+      )
+    }
   }
   if (!is.null(fit_x)) {
     if (sum(sapply(fit_x, function(x) !inherits(x, "lavaan"))) > 0) {
       stop(
         paste(
-          "At least one of the elements of 'fit_x' is an object of class",
+          "At least one of the elements of 'fit_x' is not an object of class",
           "lavaan."
         )
       )
     }
     if (is.null(names(fit_x))) {
-      stop("If 'fit_x' is specified, it elements must be named.")
+      stop("If specified, 'fit_x' names must not be 'NULL'.")
     }
-    if ("items" %in% names(fit_x)) {
+    if (sum(items %in% names(fit_x)) > 0) {
+      item_overlap <- items[items %in% names(fit_x)]
       stop(
-        paste(
-          "'items' is included as a name of a fitted model in 'fit_x'.",
-          "'items' is reserved for the 'items' argument in the function.",
-          "Please select an alternative name for the model."
+        paste0(
+          "The following item(s) in 'items' are included as a name of a fitted",
+          " model in 'fit_x'. ",
+          "Please ensure item names do not conflict with latent variable ",
+          "names.\n    ",
+          paste(item_overlap, collapse = "\n    ")
         )
       )
     }
@@ -164,6 +180,23 @@ sem.cor <- function(
     }
   }
   par1 <- lapply(fit_y, parameterEstimates)
+  sapply(
+    par1,
+    function(y) {
+      y1 <- y[y$op %in% c("~~", "=~"), ]
+      yn <- unique(y$lhs[y$op == "=~"])
+      if (length(yn) > 1) {
+        stop(
+          paste0(
+            "The 'fit_y' model including '", paste(yn, collapse = "' and '"),
+            "' includes more than one latent variable. ",
+            "These models are not currently supported by 'sem.cor()'. ",
+            "Please include them separately."
+          )
+        )
+      }
+    }
+  )
   if (is.null(fit_x)) {
     mod_key <- lapply(
       seq_along(par1[-length(par1)]),
@@ -207,6 +240,23 @@ sem.cor <- function(
   } else {
     # Correlations between constructs in fit_y and constructs in fit_x
     par2 <- lapply(fit_x, parameterEstimates)
+    sapply(
+      par2,
+      function(x) {
+        x1 <- x[x$op %in% c("~~", "=~"), ]
+        xn <- unique(x$lhs[x$op == "=~"])
+        if (length(xn) > 1) {
+          stop(
+            paste0(
+              "The 'fit_x' model including '", paste(xn, collapse = "' and '"),
+              "' includes more than one latent variable. ",
+              "These models are not currently supported by 'sem.cor()'. ",
+              "Please include them separately."
+            )
+          )
+        }
+      }
+    )
     mod_key <- lapply(
       par1,
       function(y) {
@@ -237,23 +287,11 @@ sem.cor <- function(
   }
   if (!is.null(items)) {
     # Correlations with single items
-    # TODO: Warning is not quite right. It should not worry about overlap with
-    # items from fit_x.
     mod_key_i <- lapply(
       par1,
       function(y) {
         y1 <- y[y$op %in% c("~~", "=~"), ]
         yn <- unique(y$lhs[y$op == "=~"])
-        if (length(yn) > 1) {
-          stop(
-            paste(
-              "The model including", paste(yn, collapse = " and "),
-              "includes more than one latent variable.",
-              "These models are not currently supported by 'sem.cor()'.",
-              "Please include them separately."
-            )
-          )
-        }
         item_overlap <- items[items %in% y1$rhs]
         if (length(item_overlap) > 0) {
           stop(
@@ -519,17 +557,22 @@ sem.cor <- function(
   }
   if (is.null(fit_x)) {
     if (!is.positive.definite(cor_mat_y)) {
-      cor_mat_y0 <- nearPD(cor_mat_y, corr = TRUE, only.values = TRUE)
+      cor_mat_y0 <- as.matrix(nearPD(cor_mat_y, corr = TRUE)$mat)
       dif_mat <- cor_mat_y - cor_mat_y0
       cor_mat_y <- cor_mat_y0
       ci_lower_y <- ci_lower_y - dif_mat
       ci_upper_y <- ci_upper_y - dif_mat
+      max_adj <- round(max(abs(dif_mat)), 3)
+      max_adj <- ifelse(
+        max_adj == 0, "< .001", format(max_adj, scientific = FALSE)
+      )
       warning(
-        paste(
+        paste0(
           "The correlation matrix between 'fit_y' constructs has been adjusted",
-          "from initial estimates with the 'Matrix::nearPD()' function",
-          "to ensure it is positive definite.",
-          "'ci_lower' and 'ci_upper' were adjusted by the same amount as the",
+          " from initial estimates with the 'Matrix::nearPD()' function ",
+          "to ensure it is positive definite.\n  ",
+          "The maximum adjustment to any cell was ", max_adj, ".\n  ",
+          "'ci_lower' and 'ci_upper' were adjusted by the same amount as the ",
           "primary correlation matrix."
         )
       )

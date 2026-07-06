@@ -109,7 +109,7 @@ keys <- sapply(
 # Run CFA models
 cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
 # Find correlations between all cfa_fit constructs.
-cors <- sem.cor(BFIGritHope, cfa_fit)
+cors <- sem.cor(BFIGritHope, cfa_fit$fit)
 # View the correlation matrix
 cors$cor_mat
 
