@@ -224,6 +224,37 @@ test_that(
   }
 )
 test_that(
+  "Handling of length 1 fit_y",
+  {
+    expect_equal(
+      ncol(sem.cor(BFIGritHope, cfa_fit[1], cfa_fit[3:4])$cor_mat), 1
+    )
+  }
+)
+test_that(
+  "Handling of length 1 fit_x",
+  {
+    expect_equal(
+      ncol(sem.cor(BFIGritHope, cfa_fit[1:2], cfa_fit[3])$cor_mat), 2
+    )
+  }
+)
+test_that(
+  "Handling of length 1 'items'",
+  {
+    items <- "bfi_e1_1"
+    expect_identical(
+      tail(
+        rownames(
+          sem.cor(BFIGritHope, cfa_fit[1], cfa_fit[3:4], items)$cor_mat
+        ),
+        1
+      ),
+      items
+    )
+  }
+)
+test_that(
   "Less than all items shared in different factors",
   {
     fit_x <- cfa.from.keys(

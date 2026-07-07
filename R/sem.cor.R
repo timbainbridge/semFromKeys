@@ -504,11 +504,7 @@ sem.cor <- function(
           names(fit_x),
           function(x) {
             ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-            tmp <- cors_y[grep(ptn, names(cors_y))]
-            if (length(tmp) == 0) {
-              tmp <- 1
-            }
-            tmp
+            cors_y[grep(ptn, names(cors_y))]
           },
           USE.NAMES = FALSE
         )
@@ -521,11 +517,7 @@ sem.cor <- function(
           names(fit_x),
           function(x) {
             ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-            tmp <- ci_lower_y0[[grep(ptn, names(ci_lower_y0))]]
-            if (length(tmp) == 0) {
-              tmp <- 1
-            }
-            tmp
+            ci_lower_y0[[grep(ptn, names(ci_lower_y0))]]
           },
           USE.NAMES = FALSE
         )
@@ -538,11 +530,7 @@ sem.cor <- function(
           names(fit_x),
           function(x) {
             ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-            tmp <- ci_upper_y0[[grep(ptn, names(ci_upper_y0))]]
-            if (length(tmp) == 0) {
-              tmp <- 1
-            }
-            tmp
+            ci_upper_y0[[grep(ptn, names(ci_upper_y0))]]
           },
           USE.NAMES = FALSE
         )
@@ -610,53 +598,78 @@ sem.cor <- function(
         )
       }
     )
+    if (is.vector(cor_mat_yi) & length(items) == 1) {
+      cor_mat_yi <- matrix(cor_mat_yi, nrow = 1)
+      colnames(cor_mat_yi) <- names(fit_y)
+      ci_lower_yi <- matrix(ci_lower_yi, nrow = 1)
+      colnames(ci_lower_yi) <- names(fit_y)
+      ci_upper_yi <- matrix(ci_upper_yi, nrow = 1)
+      colnames(ci_upper_y) <- names(fit_y)
+    }
+    if (is.vector(cor_mat_yi) & length(fit_y) == 1) {
+      cor_mat_yi <- matrix(cor_mat_yi, ncol = 1)
+      colnames(cor_mat_yi) <- names(fit_y)
+      ci_lower_yi <- matrix(ci_lower_yi, ncol = 1)
+      colnames(ci_lower_yi) <- names(fit_y)
+      ci_upper_yi <- matrix(ci_upper_yi, ncol = 1)
+      colnames(ci_upper_yi) <- names(fit_y)
+    }
+    rownames(cor_mat_yi) <- items
+    rownames(ci_lower_yi) <- items
+    rownames(ci_upper_yi) <- items
     tmp <- fit$par_std[grep("items", names(fit$par_std))][[1]]
     cors_i <- tmp[
       tmp$lhs %in% items & tmp$rhs %in% items & tmp$op == "~~",
       c("lhs", "rhs", "est.std", "ci.lower", "ci.upper")
     ]
-    cor_mat_i <- sapply(
-      items,
-      function(x) {
-        sapply(
-          items,
-          function(y) {
-            cors_i$est.std[
-              (cors_i$lhs == x & cors_i$rhs == y) |
-                (cors_i$lhs == y & cors_i$rhs == x)
-            ]
-          }
-        )
-      }
-    )
-    ci_lower_i <- sapply(
-      items,
-      function(x) {
-        sapply(
-          items,
-          function(y) {
-            cors_i$ci.lower[
-              (cors_i$lhs == x & cors_i$rhs == y) |
-                (cors_i$lhs == y & cors_i$rhs == x)
-            ]
-          }
-        )
-      }
-    )
-    ci_upper_i <- sapply(
-      items,
-      function(x) {
-        sapply(
-          items,
-          function(y) {
-            cors_i$ci.upper[
-              (cors_i$lhs == x & cors_i$rhs == y) |
-                (cors_i$lhs == y & cors_i$rhs == x)
-            ]
-          }
-        )
-      }
-    )
+    if (length(items) > 1) {
+      cor_mat_i <- sapply(
+        items,
+        function(x) {
+          sapply(
+            items,
+            function(y) {
+              cors_i$est.std[
+                (cors_i$lhs == x & cors_i$rhs == y) |
+                  (cors_i$lhs == y & cors_i$rhs == x)
+              ]
+            }
+          )
+        }
+      )
+      ci_lower_i <- sapply(
+        items,
+        function(x) {
+          sapply(
+            items,
+            function(y) {
+              cors_i$ci.lower[
+                (cors_i$lhs == x & cors_i$rhs == y) |
+                  (cors_i$lhs == y & cors_i$rhs == x)
+              ]
+            }
+          )
+        }
+      )
+      ci_upper_i <- sapply(
+        items,
+        function(x) {
+          sapply(
+            items,
+            function(y) {
+              cors_i$ci.upper[
+                (cors_i$lhs == x & cors_i$rhs == y) |
+                  (cors_i$lhs == y & cors_i$rhs == x)
+              ]
+            }
+          )
+        }
+      )
+    } else {
+      cor_mat_i <- matrix(1, dimnames = list(items, items))
+      ci_lower_i <- matrix(1, dimnames = list(items, items))
+      ci_upper_i <- matrix(1, dimnames = list(items, items))
+    }
   }
   if (is.null(fit_x)) {
     if (!is.positive.definite(cor_mat_y)) {
