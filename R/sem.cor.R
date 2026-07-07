@@ -208,10 +208,51 @@ sem.cor <- function(
             y1 <- par1[[y]]
             x2 <- x1[x1$op == "~~" | x1$op == "=~", ]
             y2 <- y1[y1$op == "~~" | y1$op == "=~", ]
+            key_x <- unique(x1$rhs[x1$op == "=~"])
+            key_y <- unique(y1$rhs[y1$op == "=~"])
             key0 <- c(x2$rhs[x2$op == "=~"], y2$rhs[y2$op == "=~"])
             # Any shared items. Need to unfix residual variance for these.
             i <- x1$lhs[x1$lhs %in% y1$lhs]
             if (length(i) != 0) {
+              xf <- unique(x2$lhs[x2$op == "=~"])
+              yf <- unique(y2$lhs[y2$op == "=~"])
+              if (length(i) >= min(length(key_x), length(key_y))) {
+                if (length(key_x) < length(key_y)) {
+                  shorter_f <- xf
+                  longer_f <- yf
+                }
+                if (length(key_x) > length(key_y)) {
+                  shorter_f <- yf
+                  longer_f <- xf
+                }
+                if (length(key_x) == length(key_y)) {
+                  stop(
+                    paste0(
+                      "All items between '", yf, "' and '", xf, "' are shared.",
+                      "\nHave you included the same latent variable twice by ",
+                      "mistake?"
+                    )
+                  )
+                }
+                stop(
+                  paste0(
+                    "All the items in '", shorter_f, "' are included in '",
+                    longer_f, "'.\n",
+                    "Such a relationship should be specified as a bifactor ",
+                    "model with a correlation of 0 between the group and ",
+                    "general factors."
+                  )
+                )
+              }
+              warning(
+                paste0(
+                  "The following item(s) are in both the '", yf, "' and '", xf,
+                  "' factors. ",
+                  "If this is not intended, please correct it and disregard ",
+                  "the correlation between these factors.\n    ",
+                  paste(i, collapse = "\n    ")
+                )
+              )
               for (j in i) {
                 x2 <- x2[!(x2$lhs == j & x2$op == "~~" & x2$rhs == j), ]
                 y2 <- y2[!(y2$lhs == j & y2$op == "~~" & y2$rhs == j), ]
@@ -265,7 +306,56 @@ sem.cor <- function(
           function(x) {
             x1 <- x[x$op == "~~" | x$op == "=~", ]
             y1 <- y[y$op == "~~" | y$op == "=~", ]
-            key0 <- c(x1$rhs[x1$op == "=~"], y1$rhs[y1$op == "=~"])
+            key_x <- unique(x1$rhs[x1$op == "=~"])
+            key_y <- unique(y1$rhs[y1$op == "=~"])
+            key0 <- unique(c(key_x, key_y))
+            # Any shared items. Need to unfix residual variance for these.
+            i <- x1$lhs[x1$lhs %in% y1$lhs]
+            if (length(i) != 0) {
+              xf <- unique(x1$lhs[x1$op == "=~"])
+              yf <- unique(y1$lhs[y1$op == "=~"])
+              if (length(i) >= min(length(key_x), length(key_y))) {
+                if (length(key_x) < length(key_y)) {
+                  shorter_f <- xf
+                  longer_f <- yf
+                }
+                if (length(key_x) > length(key_y)) {
+                  shorter_f <- yf
+                  longer_f <- xf
+                }
+                if (length(key_x) == length(key_y)) {
+                  stop(
+                    paste0(
+                      "All items between '", yf, "' and '", xf, "' are shared.",
+                      "\nHave you included the same latent variable twice by ",
+                      "mistake?"
+                    )
+                  )
+                }
+                stop(
+                  paste0(
+                    "All the items in '", shorter_f, "' are included in '",
+                    longer_f, "'.\n",
+                    "Such a relationship should be specified as a bifactor ",
+                    "model with a correlation of 0 between the group and ",
+                    "general factors."
+                  )
+                )
+              }
+              warning(
+                paste0(
+                  "The following item(s) are in both the '", yf, "' and '", xf,
+                  "' factors. ",
+                  "If this is not intended, please correct it and disregard ",
+                  "the correlation between these factors.\n    ",
+                  paste(i, collapse = "\n    ")
+                )
+              )
+              for (j in i) {
+                x1 <- x1[!(x1$lhs == j & x1$op == "~~" & x1$rhs == j), ]
+                y1 <- y1[!(y1$lhs == j & y1$op == "~~" & y1$rhs == j), ]
+              }
+            }
             mod0 <- paste0(
               # CFA1
               paste(x1$lhs, x1$op, x1$est, "*", x1$rhs, collapse = "\n"),
@@ -309,12 +399,9 @@ sem.cor <- function(
         mod0 <- paste0(
           # CFA
           paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
-          # Correlation
+          # Correlations
           "\n",
-          # Make sure items in the latent variable are not included in items
-          paste(
-            yn, "~~", paste0(items[!items %in% y1$rhs], collapse = " + "), "\n"
-          ),
+          paste(yn, "~~", paste0(items, collapse = " + "), "\n"),
           paste(
             sapply(
               seq_along(items)[-length(items)],
@@ -427,7 +514,6 @@ sem.cor <- function(
         )
       }
     )
-    rownames(cor_mat_y) <- names(fit_x)
     ci_lower_y <- sapply(
       names(fit_y),
       function(y) {
@@ -445,7 +531,6 @@ sem.cor <- function(
         )
       }
     )
-    rownames(ci_lower_y) <- names(fit_x)
     ci_upper_y <- sapply(
       names(fit_y),
       function(y) {
@@ -463,6 +548,24 @@ sem.cor <- function(
         )
       }
     )
+    if (is.vector(cor_mat_y) & length(fit_x) == 1) {
+      cor_mat_y <- matrix(cor_mat_y, nrow = 1)
+      colnames(cor_mat_y) <- names(fit_y)
+      ci_lower_y <- matrix(ci_lower_y, nrow = 1)
+      colnames(ci_lower_y) <- names(fit_y)
+      ci_upper_y <- matrix(ci_upper_y, nrow = 1)
+      colnames(ci_upper_y) <- names(fit_y)
+    }
+    if (is.vector(cor_mat_y) & length(fit_y) == 1) {
+      cor_mat_y <- matrix(cor_mat_y, ncol = 1)
+      colnames(cor_mat_y) <- names(fit_y)
+      ci_lower_y <- matrix(ci_lower_y, ncol = 1)
+      colnames(ci_lower_y) <- names(fit_y)
+      ci_upper_y <- matrix(ci_upper_y, ncol = 1)
+      colnames(ci_upper_y) <- names(fit_y)
+    }
+    rownames(cor_mat_y) <- names(fit_x)
+    rownames(ci_lower_y) <- names(fit_x)
     rownames(ci_upper_y) <- names(fit_x)
   }
   if (!is.null(items)) {

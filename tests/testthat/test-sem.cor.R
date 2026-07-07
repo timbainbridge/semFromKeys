@@ -128,6 +128,15 @@ test_that(
   }
 )
 test_that(
+  "Item not in data",
+  {
+    expect_error(
+      sem.cor(BFIGritHope, cfa_fit, items = "HelloWorld"),
+      "'items' are not in 'data'"
+    )
+  }
+)
+test_that(
   "Length 1 fit_y with no fit_x or items",
   {
     expect_error(
@@ -191,6 +200,50 @@ test_that(
         sem.cor(BFIGritHope, cfa_fit[3:4], cfa_fit[1:2], items = "grit_c_1")
       ),
       4
+    )
+  }
+)
+test_that(
+  "All items shared in a different factor",
+  {
+    fit_x <- cfa.from.keys(
+      list(grit = names(BFIGritHope)[grep("grit", names(BFIGritHope))]),
+      BFIGritHope,
+      fit_save = FALSE
+    )$fit
+    # Specifying fit_x
+    expect_error(
+      sem.cor(BFIGritHope, cfa_fit[1:2], fit_x),
+      "items in 'grit_c' are included in 'grit'"
+    )
+    # Only with fit_y
+    expect_error(
+      sem.cor(BFIGritHope, c(cfa_fit[1:2], fit_x)),
+      "items in 'grit_c' are included in 'grit'"
+    )
+  }
+)
+test_that(
+  "Less than all items shared in different factors",
+  {
+    fit_x <- cfa.from.keys(
+      list(
+        grit_c = c(
+          names(BFIGritHope)[grep("grit_c", names(BFIGritHope))], "grit_p_1"
+        )
+      ),
+      BFIGritHope,
+      fit_save = FALSE
+    )$fit
+    # Specifying fit_x
+    expect_warning(
+      sem.cor(BFIGritHope, cfa_fit[2], fit_x),
+      "in both the 'grit_p' and 'grit_c' factors"
+    )
+    # Only with fit_y
+    expect_warning(
+      sem.cor(BFIGritHope, c(cfa_fit[2], fit_x)),
+      "in both the 'grit_p' and 'grit_c' factors"
     )
   }
 )
