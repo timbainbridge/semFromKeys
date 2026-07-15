@@ -36,19 +36,22 @@
 #' files are being saved and *where* files are being saved.
 #' The function temporarily sets the environment variable '.cache_env'
 #' (with
-#' `assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(2))`
+#' `assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(1))`
 #' , if empty, and
-#' `assign("cache_dir", cache_dir, envir = .cache_env)`),
-#' which will be removed whenever the R environment is cleared.
+#' `assign("cache_dir", cache_dir, envir = get(".cache_env", envir = parent.frame(1)))`,
+#' if not), which will be removed whenever the R environment is cleared.
 #' '.cache_env' is used by other functions from the package as the cache
 #' directory.
 #' As a result, the function needs to be run once after the environment is
 #' cleared whenever a cache directory is required.
 #' All functions that utilise the cache directory will look for the
 #' environment variable
-#' (with `cache_dir <- get("cache_dir", envir = .cache_env, inherits = FALSE)`)
+#' (with `cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))`)
 #' and if it is not set will request that users either change options to not
 #' require the cache directory or run this function first.
+#' Finally, the functionality requires R version 4.0 or greater so users with
+#' an older version of R will be told to either update R or avoid using the
+#' cache.
 #'
 #' Functions that directly or indirectly might require a cache directory are:
 #' [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()],
@@ -90,7 +93,8 @@ cache.setup <- function(location = "user", interactive = TRUE) {
         "Setting up cache requires R >= 4.0. ",
         "Your system is currently running version ",
         getRversion(),
-        "."
+        ". Please update your R version or use 'check = FALSE' and",
+        "'save_out = FALSE' for all function calls with these options."
       )
     )
   }
