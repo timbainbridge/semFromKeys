@@ -84,7 +84,6 @@
 #' [here::here()] for project-based cache directory setting; and
 #' [cache.clean()] for a function to clean cache.
 #'
-#' @importFrom rstudioapi getActiveProject
 #' @export
 #'
 #' @examples
@@ -122,7 +121,7 @@ cache.setup <- function(location = "user", interactive = TRUE) {
     if (!require(rstudioapi)) {
       cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
     } else {
-      project <- getActiveProject()
+      project <- rstudioapi::getActiveProject()
       if (is.null(project)) {
         cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
       } else {
