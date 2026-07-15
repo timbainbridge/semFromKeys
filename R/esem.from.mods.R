@@ -273,8 +273,6 @@ esem.from.mods <- function(
     names(cfa_par) <- cfa_names
     if (!is.null(names(cfa_fit))) {
       if (sum(names(cfa_fit) != cfa_names) > 0) {
-        og_warn <- getOption("warn")
-        options(warn = 1)
         warning(
           paste(
             "The names of `cfa_fit` do not match the factor names.",
@@ -283,7 +281,6 @@ esem.from.mods <- function(
             "the `cfa_fit` input but will instead reflect the factor names."
           )
         )
-        options(warn = og_warn)
       }
     }
     cfa_keys <- sapply(cfa_par, function(x) x$rhs[x$op == "=~"])
@@ -301,7 +298,6 @@ esem.from.mods <- function(
   if (!is.null(bif_fit)) {
     bif_par <- sapply(bif_fit, parameterEstimates, simplify = FALSE)
     bif_keys <- sapply(bif_par, function(x) unique(x$rhs[x$op == "=~"]))
-    # TODO: What happens if there's an item that's not in the general factor?
     bif_names <- mapply(
       x = bif_par, y = bif_keys,
       FUN = function(x, y) {
@@ -333,7 +329,6 @@ esem.from.mods <- function(
     }
   }
   if (!is.null(cfa_fit) & !is.null(bif_fit)) {
-    # TODO: Have I got a test for this?
     if (sum(names(cfa_keys) %in% names(bif_keys)) > 0) {
       stop(
         paste(

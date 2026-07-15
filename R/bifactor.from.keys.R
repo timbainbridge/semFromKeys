@@ -173,9 +173,9 @@ bifactor.from.keys <- function(
             "The following group factor(s) in `keys_b` are not in `keys`:",
             "\n    ",
             paste(grps, collapse = "\n    "),
-            "\n\n(If these are items, not group factors, ",
+            "\n\nIf these are items, not group factors, ",
             "and you are using bifactor.from.keys, ",
-            "check that keys_b only contains group factor names.)"
+            "check that keys_b only contains group factor names."
           )
         )
       }

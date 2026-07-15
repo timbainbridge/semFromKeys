@@ -38,8 +38,8 @@
 #' (with
 #' `assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(1))`
 #' , if empty, and
-#' `assign("cache_dir", cache_dir, envir = get(".cache_env", envir = parent.frame(1)))`
-#' ), which will be removed whenever the R environment is cleared.
+#' `assign("cache_dir", cache_dir, envir = get(".cache_env", envir = parent.frame(1)))`,
+#' if not), which will be removed whenever the R environment is cleared.
 #' '.cache_env' is used by other functions from the package as the cache
 #' directory.
 #' As a result, the function needs to be run once after the environment is
@@ -47,9 +47,13 @@
 #' All functions that utilise the cache directory will look for the
 #' environment variable and, if it is not set, will request that users either
 #' change options to not require the cache directory or run this function first.
+#' Finally, the functionality requires R version 4.0 or greater so users with
+#' an older version of R will be told to either update R or avoid using options
+#' that require the cache.
 #'
-#' `semFromKeys` has no way to know what directories you have specified as the
-#' cache in the past and cannot clean up unknown former cache directories.
+#' Note that `semFromKeys` has no way to know what directories you have
+#' specified as the cache in the past and cannot clean up unknown former cache
+#' directories.
 #' Therefore, it is recommended that you use either the default location or
 #' the same location for all models within the same project.
 #' Either of these will enable easy detection, so that unneeded cached files
@@ -97,7 +101,8 @@ cache.setup <- function(location = "user", interactive = TRUE) {
       paste0(
         "Setting up cache requires R >= 4.0. ",
         "Your system is currently running version ", getRversion(), ". ",
-        "To use caching, please update R."
+        "Please update your R version or use 'check = FALSE' and ",
+        "'save_out = FALSE' for all function calls with these options."
       )
     )
   }
