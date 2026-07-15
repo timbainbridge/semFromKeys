@@ -1,3 +1,5 @@
+# semFromKeys 0.2.2
+
 # semFromKeys 0.2.1
 
 * Fixed issues in initial CRAN submission.
