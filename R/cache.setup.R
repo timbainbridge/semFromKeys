@@ -118,17 +118,21 @@ cache.setup <- function(location = "user", interactive = TRUE) {
     )
   }
   if (location == "user") {
-    if (!require(rstudioapi)) {
+    if (!requireNamespace("rstudioapi")) {
       cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
     } else {
-      project <- rstudioapi::getActiveProject()
-      if (is.null(project)) {
-        cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
+      if (rstudioapi::isAvailable()) {
+        project <- rstudioapi::getActiveProject()
+        if (is.null(project)) {
+          cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
+        } else {
+          project <- sub(".*/", "", project)
+          cache_dir <- tools::R_user_dir(
+            paste0("semFromKeys/", project), which = "cache"
+          )
+        }
       } else {
-        project <- sub(".*/", "", project)
-        cache_dir <- tools::R_user_dir(
-          paste0("semFromKeys/", project), which = "cache"
-        )
+        cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
       }
     }
   } else {
