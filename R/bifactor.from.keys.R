@@ -118,11 +118,14 @@
 #' keys_b1 <- sapply(
 #'   keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
 #' )
-#' keys_b <- keys_b1
+#' # The following produces a negative residual variance for hope.
+#' \donttest{
 #' bif_fit0 <- bifactor.from.keys(
-#'   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
+#'   keys_g, keys_b1, keys, BFIGritHope, check = FALSE, fit_save = TRUE
 #' )
+#' }
 #' # Fix negative residual variance
+#' keys_b <- keys_b1
 #' keys_b$hope <- keys_b1$hope[-1]
 #' bif_fit <- bifactor.from.keys(
 #'   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
