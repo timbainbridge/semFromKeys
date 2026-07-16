@@ -6,8 +6,8 @@
 #' The keys list must be named appropriately
 #' (i.e., general factor names, group factor names, and general factor names
 #' for the three lists respectively).
-#' The function is designed to streamline running CFA models for all scales in a
-#' sample and to input model outputs into downstream functions.
+#' The function is designed to streamline running measurement models for all
+#' scales in a sample and to input model outputs into downstream functions.
 #'
 #' @inheritParams sem.check
 #' @param keys_g
@@ -119,11 +119,9 @@
 #'   keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
 #' )
 #' # The following produces a negative residual variance for hope.
-#' \donttest{
-#' bif_fit0 <- bifactor.from.keys(
+#' \donttest{bif_fit0 <- bifactor.from.keys(
 #'   keys_g, keys_b1, keys, BFIGritHope, check = FALSE, fit_save = TRUE
-#' )
-#' }
+#' )}
 #' # Fix negative residual variance
 #' keys_b <- keys_b1
 #' keys_b$hope <- keys_b1$hope[-1]
