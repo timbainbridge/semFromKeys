@@ -82,7 +82,7 @@
 #' (perhaps based on which one should theoretically be most 'central' to the
 #' general factor)
 #' or after examining the fully specified bifactor model and dropping the worst
-#' performing factor.
+#' performing factor (see the example).
 #' When more than one group factor is poor, I am not aware of any specific
 #' advice on which to remove, so use your judgment if previous research has not
 #' got any advice for your case.
@@ -118,11 +118,12 @@
 #' keys_b1 <- sapply(
 #'   keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
 #' )
-#' # The following produces a negative residual variance for hope.
+#' # Including all factors produces a negative residual variance for hope.
 #' \donttest{bif_fit0 <- bifactor.from.keys(
 #'   keys_g, keys_b1, keys, BFIGritHope, check = FALSE, fit_save = TRUE
-#' )}
-#' # Fix negative residual variance
+#' )
+#' summary(bif_fit0$fit$hope)}
+#' # Fix negative residual variance by removing the first group factor.
 #' keys_b <- keys_b1
 #' keys_b$hope <- keys_b1$hope[-1]
 #' bif_fit <- bifactor.from.keys(
