@@ -187,16 +187,16 @@ sem.check <- function(
     name = "sem", check = FALSE, save_out = FALSE
 ) {
   if (!is.logical(fit_save)) {
-    stop("`fit_save` is not logical. It should be `TRUE` or `FALSE`.")
+    stop("'fit_save' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (fit_save & !is.character(fit_measures)) {
-    stop("`fit_measures` is not a character vector.")
+    stop("'fit_measures' is not a character vector.")
   }
   if (!is.logical(check)) {
-    stop("`check` is not logical. It should be `TRUE` or `FALSE`.")
+    stop("'check' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (!is.logical(save_out)) {
-    stop("`save_out` is not logical. It should be `TRUE` or `FALSE`.")
+    stop("'save_out' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (save_out | check) {
     found <- FALSE
@@ -211,42 +211,42 @@ sem.check <- function(
       stop(
         paste(
           "A cache directory is not configured so cannot be cleaned.",
-          "Use the `cache.setup()` function to configure a directory to clean."
+          "Use the 'cache.setup()' function to configure a directory to clean."
         )
       )
     }
     cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
     if (!is.character(name)) {
-      stop("`name` is not a character string.")
+      stop("'name' is not a character string.")
     }
   }
   if (!is.logical(std)) {
-    stop("`std` is not logical. It should be `TRUE` or `FALSE`.")
+    stop("'std' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (!is.logical(orthogonal)) {
-    stop("`orthogonal` is not logical. It should be `TRUE` or `FALSE`.")
+    stop("'orthogonal' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (!is.logical(std.lv)) {
-    stop("`std.lv` is not logical. It should be `TRUE` or `FALSE`.")
+    stop("'std.lv' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (!is.list(mods)) {
     stop(
       paste(
-        "`mods` is not a list.",
+        "'mods' is not a list.",
         "If you are trying to run a single model, you will have to make a",
         "length 1 list",
-        "(e.g., `mods = list(mod_name = mod)`)"
+        "(e.g., 'mods = list(mod_name = mod)')"
       )
     )
   }
   data <- as.data.frame(data)
   if (is.null(keys_s) & is.null(keys_e)) {
-    stop("At least one of `keys_s` or `keys_e` must be specified.")
+    stop("At least one of 'keys_s' or 'keys_e' must be specified.")
   }
   if (!is.list(keys_s) & !is.null(keys_s)) {
     stop(
       paste(
-        "`keys_s` is not a list.",
+        "'keys_s' is not a list.",
         "Please ensure that keys_s is specified correctly.",
         "See the function's help for further information."
       )
@@ -265,7 +265,7 @@ sem.check <- function(
     if (sum(table(names(keys_s)) > 1) > 0) {
       stop(
         paste(
-          "At least two elements of `keys_s` share the same name.",
+          "At least two elements of 'keys_s' share the same name.",
           "Please ensure that all model names are unique."
         )
       )
@@ -274,7 +274,7 @@ sem.check <- function(
   if (!is.list(keys_e) & !is.null(keys_e)) {
     stop(
       paste(
-        "`keys_e` is not a list.",
+        "'keys_e' is not a list.",
         "Please ensure that keys_s is specified correctly.",
         "See the function's help for further information."
       )
@@ -284,7 +284,7 @@ sem.check <- function(
     if (sum(table(names(keys_e)) > 1) > 0) {
       stop(
         paste(
-          "At least two elements of `keys_e` share the same name.",
+          "At least two elements of 'keys_e' share the same name.",
           "Please ensure that all model names are unique."
         )
       )
@@ -307,12 +307,12 @@ sem.check <- function(
     una_items <- unlist(keys_s)[!(unlist(keys_s)) %in% colnames(data)]
     stop(
       paste0(
-        "The following items are in `keys_s` but they are not in `data`:",
+        "The following items are in 'keys_s' but they are not in 'data':",
         "\n      ",
         paste0(una_items, collapse = "\n      "),
         paste0(
-          "\n\nEnsure that the column names of `data` and keys list item ",
-          "names match and that `data` is a dataframe or coercible to a ",
+          "\n\nEnsure that the column names of 'data' and keys list item ",
+          "names match and that 'data' is a dataframe or coercible to a ",
           "dataframe.\n",
           "If using bifactor.from.keys, ensure that you have not swapped keys ",
           "inadvertently (e.g., keys_g for keys_b)."
@@ -325,9 +325,9 @@ sem.check <- function(
     message(paste0("  ", una_items, collapse = "  \n"))
     stop(
       paste(
-        "The above items are in `keys_e` but they are not in `data`.",
+        "The above items are in 'keys_e' but they are not in 'data'.",
         "Ensure that data is a data frame (or coercible into a data frame)",
-        "and that column names of `data` and keys list item names match."
+        "and that column names of 'data' and keys list item names match."
       )
     )
   }

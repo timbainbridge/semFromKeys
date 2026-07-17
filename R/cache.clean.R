@@ -73,7 +73,7 @@
 cache.clean <- function(older_than = NULL, interactive = TRUE) {
   if (is.null(older_than)) {
     stop(
-      "Please specify a value for `older_than`. To delete all files, set to 0."
+      "Please specify a value for 'older_than'. To delete all files, set to 0."
     )
   }
   found <- FALSE
@@ -88,7 +88,7 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
     stop(
       paste(
         "A cache directory is not configured so cannot be cleaned.",
-        "Use the `cache.setup()` function to configure a directory to clean."
+        "Use the 'cache.setup()' function to configure a directory to clean."
       )
     )
   }

@@ -139,19 +139,19 @@ bifactor.from.keys <- function(
   name = "bifactor", check = FALSE, save_out = FALSE
 ) {
   if (!is.list(keys_g)) {
-    stop("`keys_g` is not a list.")
+    stop("'keys_g' is not a list.")
   }
   if (!is.list(keys_b)) {
-    stop("`keys_b` is not a list.")
+    stop("'keys_b' is not a list.")
   }
   if (!is.list(keys)) {
-    stop("`keys` is not a list.")
+    stop("'keys' is not a list.")
   }
   if (length(keys_g) != length(keys_b)) {
     stop(
       paste(
-        "`keys_g` is not the same length as `keys_b`.",
-        "Check that you have not mixed up `keys` with `keys_g` or `keys_b`,",
+        "'keys_g' is not the same length as 'keys_b'.",
+        "Check that you have not mixed up 'keys' with 'keys_g' or 'keys_b',",
         "or otherwise misspecified one of these keys lists."
       )
     )
@@ -159,9 +159,9 @@ bifactor.from.keys <- function(
   if (sum(names(keys_g) != names(keys_b)) > 0) {
     stop(
       paste(
-        "Names of `keys_g` do not match names of `keys_b`.",
+        "Names of 'keys_g' do not match names of 'keys_b'.",
         "Check keys are correctly specified and that they have not been mixed",
-        "up with `keys`."
+        "up with 'keys'."
       )
     )
   }
@@ -172,7 +172,7 @@ bifactor.from.keys <- function(
         grps <- x[!x %in% names(keys)]
         stop(
           paste0(
-            "The following group factor(s) in `keys_b` are not in `keys`:",
+            "The following group factor(s) in 'keys_b' are not in 'keys':",
             "\n    ",
             paste(grps, collapse = "\n    "),
             "\n\nIf these are items, not group factors, ",
@@ -193,11 +193,11 @@ bifactor.from.keys <- function(
             if (sum(!keys[[z]] %in% x) == length(keys[[z]])) {
               stop(
                 paste0(
-                  "All the items in the `",
+                  "All the items in the '",
                   z,
-                  "` group factor are not in the `",
+                  "' group factor are not in the '",
                   xn,
-                  "` general factor."
+                  "' general factor."
                 )
               )
             }

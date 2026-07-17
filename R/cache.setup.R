@@ -113,9 +113,6 @@
 #'   )
 #' }
 
-# TODO: Change cache directory to semFromKeys/[ProjectName] using rstudioapi
-# package.
-
 cache.setup <- function(location = "user", interactive = TRUE) {
   if (getRversion() < "4.0") {
     stop(
@@ -147,7 +144,7 @@ cache.setup <- function(location = "user", interactive = TRUE) {
     }
   } else {
     if (!is.character(location)) {
-      stop("`location` is not a length 1 character vector")
+      stop("'location' is not a length 1 character vector")
     }
     if (interactive & interactive()) {
       if (requireNamespace("here")) {
