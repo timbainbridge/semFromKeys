@@ -107,6 +107,10 @@ sem.cor <- function(
     data, fit_y, fit_x = NULL, items = NULL, miss = "ML", est = "default",
     name = "cors", check = FALSE, save_out = FALSE
 ) {
+  # Single model instead of list.
+  if (!is.list(fit_y) & inherits(fit_y, "lavaan")) {
+    fit_y <- list(factor = fit_y)
+  }
   if (sum(sapply(fit_y, function(x) !inherits(x, "lavaan"))) > 0) {
     stop(
       paste(
@@ -114,9 +118,6 @@ sem.cor <- function(
         "lavaan."
       )
     )
-  }
-  if (is.null(names(fit_y))) {
-    stop("'fit_y' names must not be 'NULL'.")
   }
   if (!is.null(items)) {
     if (sum(!items %in% names(data)) > 0) {
@@ -142,6 +143,10 @@ sem.cor <- function(
     }
   }
   if (!is.null(fit_x)) {
+    # Single model instead of list.
+    if (!is.list(fit_x) & inherits(fit_x, "lavaan")) {
+      fit_x <- list(factor = fit_x)
+    }
     if (sum(sapply(fit_x, function(x) !inherits(x, "lavaan"))) > 0) {
       stop(
         paste(
@@ -149,9 +154,6 @@ sem.cor <- function(
           "lavaan."
         )
       )
-    }
-    if (is.null(names(fit_x))) {
-      stop("If specified, 'fit_x' names must not be 'NULL'.")
     }
     if (sum(items %in% names(fit_x)) > 0) {
       item_overlap <- items[items %in% names(fit_x)]
@@ -180,7 +182,8 @@ sem.cor <- function(
     }
   }
   par1 <- lapply(fit_y, parameterEstimates)
-  sapply(
+  # Rename y objects to match factors
+  names(fit_y) <- names(par1) <- sapply(
     par1,
     function(y) {
       y1 <- y[y$op %in% c("~~", "=~"), ]
@@ -194,6 +197,8 @@ sem.cor <- function(
             "Please include them separately."
           )
         )
+      } else {
+        yn
       }
     }
   )
@@ -281,7 +286,7 @@ sem.cor <- function(
   } else {
     # Correlations between constructs in fit_y and constructs in fit_x
     par2 <- lapply(fit_x, parameterEstimates)
-    sapply(
+    names(fit_x) <- names(par2) <- sapply(
       par2,
       function(x) {
         x1 <- x[x$op %in% c("~~", "=~"), ]
@@ -295,6 +300,8 @@ sem.cor <- function(
               "Please include them separately."
             )
           )
+        } else {
+          xn
         }
       }
     )
@@ -386,7 +393,7 @@ sem.cor <- function(
         if (length(item_overlap) > 0) {
           stop(
             paste0(
-              "The following item(s) is in both 'items' and contributes to ",
+              "The following item(s) are in both 'items' and contributes to ",
               "the measurement of the '", yn, "' latent variable.",
               "\n  This is not supported.\n  ",
               "Please either remove the item(s) from 'items' or ",
