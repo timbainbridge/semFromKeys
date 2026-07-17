@@ -12,9 +12,11 @@ sem.cor(
   items = NULL,
   miss = "ML",
   est = "default",
+  item_reliability = 0.7,
   name = "cors",
   check = FALSE,
-  save_out = FALSE
+  save_out = FALSE,
+  nagy = FALSE
 )
 }
 \arguments{
@@ -37,6 +39,12 @@ Defaults to 'ML'.}
 \item{est}{A string.
 Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
+
+\item{item_reliability}{When single items are specified, \code{item_reliability} sets an estimate of how
+reliably they meausre their construct.
+It can be a single number to set all reliabilities equal or a vector of
+length equal to the length of items.
+Defaults to 0.7. Irrelevant if \code{items = NULL}.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.
@@ -67,27 +75,25 @@ The third and fourth elements are the upper and lower confidence intervals
 from the models ('ci_lower' and 'ci_upper', respectively).
 }
 \description{
-sem.cor takes CFA outputs and produces a latent variable correlation matrix
-including all variables.
+sem.cor takes CFA outputs and produces a correlation matrix between latent
+variables and/or single items.
 }
 \details{
-The function allows for all correlations between latent variables to be
-calculated by including all fitted CFA models in \code{fit_y}.
-Alternatively, if you only want to correlated a set of depenedant variables
-with a set of independent variables, then use \code{fit_y} for the dependent
-variables and \code{fit_x} for the independent variables.
-Correlations between the y latent variables and items can also be optionally
-included by including \code{items} as a vector of item names.
-Thus, if \code{fit_x = NULL}, all \code{fit_y} latent variables will be correlated with
-all other \code{fit_y} latent variables;
-if \code{fit_x} is a list of fitted CFA objects, then \code{fit_y} latent variables
-will be correlated with \code{fit_x} latent variables only; and
-if \code{items} is a list of items, then all items will be correlated with all
-\code{fit_y} latent variables.
+The function computes correlations between latent variables from fitted CFA
+models, including either all latent variables, or between two sets of latent
+variables.
+To compute a full correlation matrix include all CFA models in a list as
+\code{fit_y}, alternatively,
+to correlate a set of dependant variables with a set of independent
+variables,
+set \code{fit_y} as a list of fitted CFA models of dependant variables and
+set \code{fit_x} as a list of fitted CFA models of independent variables.
+Correlations between the \code{fit_y} latent variables and single items can also
+be optionally included by setting \code{items} as a vector of item names.
+In this case, items will be treated as single item latent variables with
+reliability = \code{item_reliability}.
 
-Each correlation between latent variables is calculated in a
-separate model and correlations with items are calculated in a separate
-model for each latent variable.
+Each correlation is calculated in a separate model.
 This approach saves time for longer lists of variables compared to including
 everything in one model and
 it also means that excluding a variable cannot change correlations between
@@ -99,6 +105,18 @@ If the matrix of latent variables included in \code{fit_y} is not positive
 definite, then the matrix will be adjusted to the nearest positive definite
 matrix using the \verb{[Matrix::nearPD()]} function, which employs the method
 developed by Higham (2002).
+
+The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models,
+which enables saving inputs and outputs from model runs
+(with \code{save_out = TRUE}) and checking to see if anything has changed from
+prior runs before running again (with \code{check = TRUE}).
+The functionality was included for a number of very slow models or a lot of
+faster models, such that time spent rerunning them would be onerous.
+In the case of \code{sem.cor()}, the number of correlations can add up quickly,
+so the functionality may be useful
+(e.g., with 20 scales there are 19 + 18 + 17 + ... + 1 = 190 correlations).
+For further details on how this works, see the \code{\link[=sem.check]{sem.check()}} function
+documentation.
 }
 \examples{
 # Create CFA keys

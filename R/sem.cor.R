@@ -1,8 +1,8 @@
 #' Creates a latent variable correlation matrix from fitted lavaan measurement
 #' models
 #'
-#' sem.cor takes CFA outputs and produces a latent variable correlation matrix
-#' including all variables.
+#' sem.cor takes CFA outputs and produces a correlation matrix between latent
+#' variables and/or single items.
 #'
 #' @inheritParams sem.check
 #' @param fit_y A named list of CFA fitted objects.
@@ -13,6 +13,12 @@
 #' A vector of single-item variables to correlate with 'fit_y' latent variables.
 #' Must not include any items contributing to the measurement of a `fit_y`
 #' latent variable.
+#' @param item_reliability
+#' When single items are specified, `item_reliability` sets an estimate of how
+#' reliably they meausre their construct.
+#' It can be a single number to set all reliabilities equal or a vector of
+#' length equal to the length of items.
+#' Defaults to 0.7. Irrelevant if `items = NULL`.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
@@ -29,23 +35,21 @@
 #' from the models ('ci_lower' and 'ci_upper', respectively).
 #'
 #' @details
-#' The function allows for all correlations between latent variables to be
-#' calculated by including all fitted CFA models in `fit_y`.
-#' Alternatively, if you only want to correlated a set of depenedant variables
-#' with a set of independent variables, then use `fit_y` for the dependent
-#' variables and `fit_x` for the independent variables.
-#' Correlations between the y latent variables and items can also be optionally
-#' included by including `items` as a vector of item names.
-#' Thus, if `fit_x = NULL`, all `fit_y` latent variables will be correlated with
-#' all other `fit_y` latent variables;
-#' if `fit_x` is a list of fitted CFA objects, then `fit_y` latent variables
-#' will be correlated with `fit_x` latent variables only; and
-#' if `items` is a list of items, then all items will be correlated with all
-#' `fit_y` latent variables.
+#' The function computes correlations between latent variables from fitted CFA
+#' models, including either all latent variables, or between two sets of latent
+#' variables.
+#' To compute a full correlation matrix include all CFA models in a list as
+#' `fit_y`, alternatively,
+#' to correlate a set of dependant variables with a set of independent
+#' variables,
+#' set `fit_y` as a list of fitted CFA models of dependant variables and
+#' set `fit_x` as a list of fitted CFA models of independent variables.
+#' Correlations between the `fit_y` latent variables and single items can also
+#' be optionally included by setting `items` as a vector of item names.
+#' In this case, items will be treated as single item latent variables with
+#' reliability = `item_reliability`.
 #'
-#' Each correlation between latent variables is calculated in a
-#' separate model and correlations with items are calculated in a separate
-#' model for each latent variable.
+#' Each correlation is calculated in a separate model.
 #' This approach saves time for longer lists of variables compared to including
 #' everything in one model and
 #' it also means that excluding a variable cannot change correlations between
@@ -57,6 +61,18 @@
 #' definite, then the matrix will be adjusted to the nearest positive definite
 #' matrix using the `[Matrix::nearPD()]` function, which employs the method
 #' developed by Higham (2002).
+#'
+#' The model relies on [sem.check()] for the back-end of running the models,
+#' which enables saving inputs and outputs from model runs
+#' (with `save_out = TRUE`) and checking to see if anything has changed from
+#' prior runs before running again (with `check = TRUE`).
+#' The functionality was included for a number of very slow models or a lot of
+#' faster models, such that time spent rerunning them would be onerous.
+#' In the case of `sem.cor()`, the number of correlations can add up quickly,
+#' so the functionality may be useful
+#' (e.g., with 20 scales there are 19 + 18 + 17 + ... + 1 = 190 correlations).
+#' For further details on how this works, see the [sem.check()] function
+#' documentation.
 #'
 #' @seealso
 #' [sem.check()], which `sem.cor()` uses for all the back-end;
@@ -105,7 +121,8 @@
 
 sem.cor <- function(
     data, fit_y, fit_x = NULL, items = NULL, miss = "ML", est = "default",
-    name = "cors", check = FALSE, save_out = FALSE
+    item_reliability = .7,
+    name = "cors", check = FALSE, save_out = FALSE, nagy = FALSE
 ) {
   # Single model instead of list.
   if (!is.list(fit_y) & inherits(fit_y, "lavaan")) {
@@ -319,6 +336,16 @@ sem.cor <- function(
             # Any shared items. Need to unfix residual variance for these.
             i <- x1$lhs[x1$lhs %in% y1$lhs]
             if (length(i) != 0) {
+              if (nagy) {
+                stop(
+                  paste0(
+                    "The following item(s) are in both the '", yf, "' and '",
+                    xf, "' factors. ",
+                    "This is not supported when 'nagy = TRUE'.\n    ",
+                    paste(i, collapse = "\n    ")
+                  )
+                )
+              }
               xf <- unique(x1$lhs[x1$op == "=~"])
               yf <- unique(y1$lhs[y1$op == "=~"])
               if (length(i) >= min(length(key_x), length(key_y))) {
@@ -363,15 +390,98 @@ sem.cor <- function(
                 y1 <- y1[!(y1$lhs == j & y1$op == "~~" & y1$rhs == j), ]
               }
             }
-            mod0 <- paste0(
-              # CFA1
-              paste(x1$lhs, x1$op, x1$est, "*", x1$rhs, collapse = "\n"),
-              "\n",
-              # CFA2
-              paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
-              collapse = "\n"
-            )
-            return(list(mod = mod0, key = key0))
+            if (!nagy) {
+              mod0 <- paste0(
+                # CFA1
+                paste(x1$lhs, x1$op, x1$est, "*", x1$rhs, collapse = "\n"),
+                "\n",
+                # CFA2
+                paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
+                collapse = "\n"
+              )
+              return(list(mod = mod0, key = key0))
+            } else {
+              xn <- unique(x1$lhs[x1$op == "=~"])
+              yn <- unique(y1$lhs[y1$op == "=~"])
+              x1l <- x1[x1$op == "=~", ]
+              y1l <- y1[y1$op == "=~", ]
+              x1u <- x1[x1$op == "~~" & x1$lhs != xn, ]
+              y1u <- y1[y1$op == "~~" & y1$lhs != yn, ]
+              x1v <- x1[x1$lhs == x1$rhs & x1$lhs == xn, ]
+              y1v <- y1[y1$lhs == y1$rhs & y1$lhs == yn, ]
+              mod0 <- paste0(
+                # CFA1
+                paste0(
+                  x1l$lhs, x1l$op, "lx", seq_along(key_x), "*", x1l$rhs,
+                  collapse = "\n"
+                ),
+                "\n",
+                paste0(
+                  x1u$lhs, x1u$op, "dx", seq_along(key_x), "*", x1u$rhs,
+                  collapse = "\n"
+                ),
+                "\n",
+                paste0(x1v$lhs, x1v$op, x1v$est, "*", x1v$rhs),
+                "\n",
+                # CFA2
+                paste0(
+                  y1l$lhs, y1l$op, "ly", seq_along(key_y), "*", y1l$rhs,
+                  collapse = "\n"
+                ),
+                "\n",
+                paste0(
+                  y1u$lhs, y1u$op, "dy", seq_along(key_y), "*", y1u$rhs,
+                  collapse = "\n"
+                ),
+                "\n",
+                paste0(y1v$lhs, y1v$op, y1v$est, "*", y1v$rhs),
+                "\n",
+                # Extension parameters
+                paste0(
+                  mapply(
+                    ye = key_y, yes = seq_along(key_y),
+                    FUN = function(ye, yes) paste0(ye, "~~pxy", yes, "*", xn)
+                  ),
+                  collapse = "\n"
+                ),
+                "\n",
+                paste0(
+                  mapply(
+                    xe = key_x, xes = seq_along(key_x),
+                    FUN = function(xe, xes) paste0(xe, "~~pyx", xes, "*", yn)
+                  ),
+                  collapse = "\n"
+                ),
+                "\n",
+                # Model constraints
+                paste0(
+                  "0==",
+                  paste0(
+                    sapply(
+                      seq_along(key_y),
+                      function(ys) {
+                        paste0("ly", ys, "*pxy", ys, "/dy", ys)
+                      }
+                    ),
+                    collapse = "+"
+                  )
+                ),
+                "\n",
+                paste0(
+                  "0==",
+                  paste0(
+                    sapply(
+                      seq_along(key_x),
+                      function(xs) {
+                        paste0("lx", xs, "*pyx", xs, "/dx", xs)
+                      }
+                    ),
+                    collapse = "+"
+                  )
+                )
+              )
+              return(list(mod = mod0, key = key0))
+            }
           }
         )
         mod1 <- lapply(tmp, function(x) x$mod)
@@ -403,29 +513,93 @@ sem.cor <- function(
             )
           )
         }
-        mod0 <- paste0(
-          # CFA
-          paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
-          # Correlations
-          "\n",
-          paste(yn, "~~", paste0(items, collapse = " + "), "\n"),
-          paste(
-            sapply(
-              seq_along(items)[-length(items)],
-              function(i) {
-                paste(
-                  items[i],
-                  "~~",
-                  paste(items[i:length(items)], collapse = " + ")
-                )
-              }
+        if (!nagy) {
+          i_l <- paste0(items, "_l")
+          mod0 <- paste0(
+            # CFA
+            paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
+            "\n",
+            paste(
+              sapply(
+                items,
+                function(i) {
+                  paste0(i, "_l =~ 1 * ", i)
+                }
+              ),
+              collapse = "\n"
+            ),
+            # Correlations
+            # "\n",
+            # paste(yn, "~~", paste0(items, "_l", collapse = " + "), "\n"),
+            # paste(
+            #   sapply(
+            #     seq_along(items)[-length(items)],
+            #     function(i) {
+            #       paste(
+            #         i_l[i],
+            #         "~~",
+            #         paste(i_l[i:length(i_l)], collapse = " + ")
+            #       )
+            #     }
+            #   ),
+            #   collapse = "\n"
+            # ),
+            collapse = "\n"
+          )
+          key0 <- c(y$rhs[y$op == "=~"], items)
+          return(list(mod = mod0, key = key0))
+        } else {
+          yn <- unique(y1$lhs[y1$op == "=~"])
+          y1l <- y1[y1$op == "=~", ]
+          y1u <- y1[y1$op == "~~" & y1$lhs != yn, ]
+          y1v <- y1[y1$lhs == y1$rhs & y1$lhs == yn, ]
+          i_l <- paste0(items, "_l")
+          mod0 <- paste0(
+            # CFA
+            paste0(
+              y1l$lhs, y1l$op, "ly", seq_along(key_y), "*", y1l$rhs,
+              collapse = "\n"
+            ),
+            "\n",
+            paste0(
+              y1u$lhs, y1u$op, "dy", seq_along(key_y), "*", y1u$rhs,
+              collapse = "\n"
+            ),
+            "\n",
+            paste0(y1v$lhs, y1v$op, y1v$est, "*", y1v$rhs),
+            "\n",
+            # Item latent variable
+            paste0(i_l, "=~1*", items),
+            "\n",
+            # Correlation
+            paste0(yn, "~~", paste0(i_l, collapse = "+")),
+            "\n",
+            # Extension parameters
+            paste0(
+              # TODO: Needs fixing for more than 1 item.
+              mapply(
+                ye = key_y, yes = seq_along(key_y),
+                FUN = function(ye, yes) paste0(ye, "~~piy", yes, "*", i_l)
+              ),
+              collapse = "\n"
+            ),
+            "\n",
+            # Model constraints
+            paste0(
+              "0==",
+              paste0(
+                sapply(
+                  seq_along(key_y),
+                  function(ys) {
+                    paste0("ly", ys, "*piy", ys, "/dy", ys)
+                  }
+                ),
+                collapse = "+"
+              )
             ),
             collapse = "\n"
-          ),
-          collapse = "\n"
-        )
-        key0 <- c(y$rhs[y$op == "=~"], items)
-        return(list(mod = mod0, key = key0))
+          )
+        }
       }
     )
     mods_i <- lapply(mod_key_i, function(x) x$mod)
@@ -437,131 +611,133 @@ sem.cor <- function(
   }
   fit <- sem.check(
     mods, data, keys_s = key, miss = miss, est = est, name = name,
-    check = check, save_out = save_out
+    check = check, save_out = save_out, std.lv = TRUE
   )
-  cors_y <- sapply(
-    fit$par_std[!grepl("\\.items$", names(fit$par_std))],
-    function(x) x$est.std[x$lhs != x$rhs & x$op == "~~"]
-  )
-  ci_lower_y0 <- sapply(
-    fit$par_std, function(x) x$ci.lower[x$lhs != x$rhs & x$op == "~~"]
-  )
-  ci_upper_y0 <- sapply(
-    fit$par_std, function(x) x$ci.upper[x$lhs != x$rhs & x$op == "~~"]
-  )
-  if (is.null(fit_x)) {
-    cor_mat_y <- sapply(
-      names(fit_y),
-      function(x) {
-        sapply(
-          names(fit_y),
-          function(y) {
-            ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-            tmp <- cors_y[grep(ptn, names(cors_y))]
-            if (length(tmp) == 0) {
-              tmp <- 1
-            }
-            tmp
-          },
-          USE.NAMES = FALSE
-        )
-      }
+  if (!is.null(fit_x) | length(fit_y) > 1) {
+    cors_y <- sapply(
+      fit$par_std[!grepl("\\.items$", names(fit$par_std))],
+      function(x) x$est.std[x$lhs != x$rhs & x$op == "~~"]
     )
-    rownames(cor_mat_y) <- names(fit_y)
-    ci_lower_y <- sapply(
-      names(fit_y),
-      function(x) {
-        sapply(
-          names(fit_y),
-          function(y) {
-            ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-            tmp <- ci_lower_y0[grep(ptn, names(ci_lower_y0))]
-            if (length(tmp) == 0) {
-              tmp <- 1
-            }
-            tmp
-          },
-          USE.NAMES = FALSE
-        )
-      }
+    ci_lower_y0 <- sapply(
+      fit$par_std, function(x) x$ci.lower[x$lhs != x$rhs & x$op == "~~"]
     )
-    rownames(ci_lower_y) <- names(fit_y)
-    ci_upper_y <- sapply(
-      names(fit_y),
-      function(x) {
-        sapply(
-          names(fit_y),
-          function(y) {
-            ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-            tmp <- ci_upper_y0[grep(ptn, names(ci_upper_y0))]
-            if (length(tmp) == 0) {
-              tmp <- 1
-            }
-            tmp
-          },
-          USE.NAMES = FALSE
-        )
-      }
+    ci_upper_y0 <- sapply(
+      fit$par_std, function(x) x$ci.upper[x$lhs != x$rhs & x$op == "~~"]
     )
-  } else {
-    cor_mat_y <- sapply(
-      names(fit_y),
-      function(y) {
-        sapply(
-          names(fit_x),
-          function(x) {
-            ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-            cors_y[grep(ptn, names(cors_y))]
-          },
-          USE.NAMES = FALSE
-        )
+    if (is.null(fit_x)) {
+      cor_mat_y <- sapply(
+        names(fit_y),
+        function(x) {
+          sapply(
+            names(fit_y),
+            function(y) {
+              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              tmp <- cors_y[grep(ptn, names(cors_y))]
+              if (length(tmp) == 0) {
+                tmp <- 1
+              }
+              tmp
+            },
+            USE.NAMES = FALSE
+          )
+        }
+      )
+      rownames(cor_mat_y) <- names(fit_y)
+      ci_lower_y <- sapply(
+        names(fit_y),
+        function(x) {
+          sapply(
+            names(fit_y),
+            function(y) {
+              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              tmp <- ci_lower_y0[grep(ptn, names(ci_lower_y0))]
+              if (length(tmp) == 0) {
+                tmp <- 1
+              }
+              tmp
+            },
+            USE.NAMES = FALSE
+          )
+        }
+      )
+      rownames(ci_lower_y) <- names(fit_y)
+      ci_upper_y <- sapply(
+        names(fit_y),
+        function(x) {
+          sapply(
+            names(fit_y),
+            function(y) {
+              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              tmp <- ci_upper_y0[grep(ptn, names(ci_upper_y0))]
+              if (length(tmp) == 0) {
+                tmp <- 1
+              }
+              tmp
+            },
+            USE.NAMES = FALSE
+          )
+        }
+      )
+    } else {
+      cor_mat_y <- sapply(
+        names(fit_y),
+        function(y) {
+          sapply(
+            names(fit_x),
+            function(x) {
+              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              cors_y[grep(ptn, names(cors_y))]
+            },
+            USE.NAMES = FALSE
+          )
+        }
+      )
+      ci_lower_y <- sapply(
+        names(fit_y),
+        function(y) {
+          sapply(
+            names(fit_x),
+            function(x) {
+              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              ci_lower_y0[[grep(ptn, names(ci_lower_y0))]]
+            },
+            USE.NAMES = FALSE
+          )
+        }
+      )
+      ci_upper_y <- sapply(
+        names(fit_y),
+        function(y) {
+          sapply(
+            names(fit_x),
+            function(x) {
+              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              ci_upper_y0[[grep(ptn, names(ci_upper_y0))]]
+            },
+            USE.NAMES = FALSE
+          )
+        }
+      )
+      if (is.vector(cor_mat_y) & length(fit_x) == 1) {
+        cor_mat_y <- matrix(cor_mat_y, nrow = 1)
+        colnames(cor_mat_y) <- names(fit_y)
+        ci_lower_y <- matrix(ci_lower_y, nrow = 1)
+        colnames(ci_lower_y) <- names(fit_y)
+        ci_upper_y <- matrix(ci_upper_y, nrow = 1)
+        colnames(ci_upper_y) <- names(fit_y)
       }
-    )
-    ci_lower_y <- sapply(
-      names(fit_y),
-      function(y) {
-        sapply(
-          names(fit_x),
-          function(x) {
-            ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-            ci_lower_y0[[grep(ptn, names(ci_lower_y0))]]
-          },
-          USE.NAMES = FALSE
-        )
+      if (is.vector(cor_mat_y) & length(fit_y) == 1) {
+        cor_mat_y <- matrix(cor_mat_y, ncol = 1)
+        colnames(cor_mat_y) <- names(fit_y)
+        ci_lower_y <- matrix(ci_lower_y, ncol = 1)
+        colnames(ci_lower_y) <- names(fit_y)
+        ci_upper_y <- matrix(ci_upper_y, ncol = 1)
+        colnames(ci_upper_y) <- names(fit_y)
       }
-    )
-    ci_upper_y <- sapply(
-      names(fit_y),
-      function(y) {
-        sapply(
-          names(fit_x),
-          function(x) {
-            ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-            ci_upper_y0[[grep(ptn, names(ci_upper_y0))]]
-          },
-          USE.NAMES = FALSE
-        )
-      }
-    )
-    if (is.vector(cor_mat_y) & length(fit_x) == 1) {
-      cor_mat_y <- matrix(cor_mat_y, nrow = 1)
-      colnames(cor_mat_y) <- names(fit_y)
-      ci_lower_y <- matrix(ci_lower_y, nrow = 1)
-      colnames(ci_lower_y) <- names(fit_y)
-      ci_upper_y <- matrix(ci_upper_y, nrow = 1)
-      colnames(ci_upper_y) <- names(fit_y)
+      rownames(cor_mat_y) <- names(fit_x)
+      rownames(ci_lower_y) <- names(fit_x)
+      rownames(ci_upper_y) <- names(fit_x)
     }
-    if (is.vector(cor_mat_y) & length(fit_y) == 1) {
-      cor_mat_y <- matrix(cor_mat_y, ncol = 1)
-      colnames(cor_mat_y) <- names(fit_y)
-      ci_lower_y <- matrix(ci_lower_y, ncol = 1)
-      colnames(ci_lower_y) <- names(fit_y)
-      ci_upper_y <- matrix(ci_upper_y, ncol = 1)
-      colnames(ci_upper_y) <- names(fit_y)
-    }
-    rownames(cor_mat_y) <- names(fit_x)
-    rownames(ci_lower_y) <- names(fit_x)
-    rownames(ci_upper_y) <- names(fit_x)
   }
   if (!is.null(items)) {
     cors_yi <- do.call(
@@ -582,7 +758,7 @@ sem.cor <- function(
       names(fit_y),
       function(x) {
         sapply(
-          items,
+          i_l,
           function(y) cors_yi$est.std[cors_yi$lhs == x & cors_yi$rhs == y]
         )
       }
@@ -591,7 +767,7 @@ sem.cor <- function(
       names(fit_y),
       function(x) {
         sapply(
-          items,
+          i_l,
           function(y) cors_yi$ci.lower[cors_yi$lhs == x & cors_yi$rhs == y]
         )
       }
@@ -678,7 +854,7 @@ sem.cor <- function(
       ci_upper_i <- matrix(1, dimnames = list(items, items))
     }
   }
-  if (is.null(fit_x)) {
+  if (is.null(fit_x) & length(fit_y) > 1) {
     if (!is.positive.definite(cor_mat_y)) {
       cor_mat_y0 <- as.matrix(nearPD(cor_mat_y, corr = TRUE)$mat)
       dif_mat <- cor_mat_y - cor_mat_y0
