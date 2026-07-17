@@ -131,7 +131,7 @@
 #' Finally, if the 2-stage procedure is employed, then there is little room for
 #' measurement models to change to allow factor correlations to change.
 #' Therefore, the parameter can be relaxed and implied correlations between the
-#' group and general factors ought to remain close to zero.
+#' group and general factors should remain close to zero.
 #' Given that the function already uses the 2-stage procedure,
 #' this method is employed when bifactor models are used in `esem.from.mods()`.
 #'
@@ -220,6 +220,10 @@ esem.from.mods <- function(
     stop("At least one of `cfa_fit` and `bif_fit` must be specified.")
   }
   if (!is.null(cfa_fit)) {
+    # Single model instead of list.
+    if (!is.list(cfa_fit) & inherits(cfa_fit, "lavaan")) {
+      cfa_fit <- list(factor = cfa_fit)
+    }
     if (sum(sapply(cfa_fit, function(x) !inherits(x, "lavaan"))) > 0) {
       paste0(
         names(cfa_fit)[sapply(cfa_fit, function(x) !inherits(x, "lavaan"))],
@@ -228,23 +232,27 @@ esem.from.mods <- function(
     }
   }
   if (!is.null(bif_fit)) {
+    # Single model instead of list.
+    if (!is.list(bif_fit) & inherits(bif_fit, "lavaan")) {
+      bif_fit <- list(bifactor = bif_fit)
+    }
     if (sum(sapply(bif_fit, function(x) !inherits(x, "lavaan"))) > 0) {
       paste0(
         names(bif_fit)[sapply(bif_fit, function(x) !inherits(x, "lavaan"))],
-        stop("The above elements of `bif_fit` are not objects of type lavaan.")
+        stop("The above elements of 'bif_fit' are not objects of type lavaan.")
       )
     }
   }
   if (is.null(efa_fit)) {
     stop(
       paste(
-        "`efa_fit` is NULL.",
-        "`efa_fit` must be a fitted lavaan object of an EFA model."
+        "'efa_fit' is NULL.",
+        "'efa_fit' must be a fitted lavaan object of an EFA model."
       )
     )
   }
   if (!inherits(efa_fit, "lavaan")) {
-    stop("`efa_fit` is not an object of type lavaan.")
+    stop("'efa_fit' is not an object of type lavaan.")
   }
   if (!is.null(cfa_fit)) {
     cfa_par <- sapply(cfa_fit, parameterEstimates, simplify = FALSE)
@@ -259,7 +267,7 @@ esem.from.mods <- function(
               "A CFA containing more than one latent variable has been found.",
               "Currently, the function only supports CFAs included in separate",
               "models.",
-              "Please either use `bif_fit` and a model supported there,",
+              "Please either use 'bif_fit' and a model supported there,",
               "or separate the CFAs into separate measurement models.",
               "The offending factors are:\n",
               "    ",
@@ -270,25 +278,25 @@ esem.from.mods <- function(
         return(x1)
       }
     )
-    names(cfa_par) <- cfa_names
-    if (!is.null(names(cfa_fit))) {
-      if (sum(names(cfa_fit) != cfa_names) > 0) {
-        warning(
-          paste(
-            "The names of `cfa_fit` do not match the factor names.",
-            "The set of functions in the semFromKeys package assume they do.",
-            "Therefore, names of returned objects will not match the names of",
-            "the `cfa_fit` input but will instead reflect the factor names."
-          )
-        )
-      }
-    }
+    names(cfa_fit) <- names(cfa_par) <- cfa_names
+    # if (!is.null(names(cfa_fit))) {
+    #   if (sum(names(cfa_fit) != cfa_names) > 0) {
+    #     warning(
+    #       paste(
+    #         "The names of 'cfa_fit' do not match the factor names.",
+    #         "The set of functions in the semFromKeys package assume they do.",
+    #         "Therefore, names of returned objects will not match the names of",
+    #         "the 'cfa_fit' input but will instead reflect the factor names."
+    #       )
+    #     )
+    #   }
+    # }
     cfa_keys <- sapply(cfa_par, function(x) x$rhs[x$op == "=~"])
     names(cfa_keys) <- cfa_names
     if (sum(table(names(cfa_keys)) > 1) > 0) {
       stop(
         paste(
-          "At least two different models in `cfa_fit` have factors with the",
+          "At least two different models in 'cfa_fit' have factors with the",
           "same name.",
           "Please ensure that all factor names are unique."
         )
@@ -305,23 +313,22 @@ esem.from.mods <- function(
         names(tmp)[tmp == max(tmp)]
       }
     )
-    names(bif_par) <- bif_names
-    if (!is.null(names(bif_fit))) {
-      if (sum(names(bif_fit) != bif_names) > 0) {
-        warning(
-          paste(
-            "The names of `bif_fit` do not match the general factor names.",
-            "Names of returned objects are based on factor names",
-            "so they will not match the names of `bif_fit`."
-          )
-        )
-      }
-    }
-    names(bif_keys) <- bif_names
+    names(bif_fit) <- names(bif_par) <- names(bif_keys) <- bif_names
+    # if (!is.null(names(bif_fit))) {
+    #   if (sum(names(bif_fit) != bif_names) > 0) {
+    #     warning(
+    #       paste(
+    #         "The names of 'bif_fit' do not match the general factor names.",
+    #         "Names of returned objects are based on factor names",
+    #         "so they will not match the names of 'bif_fit'."
+    #       )
+    #     )
+    #   }
+    # }
     if (sum(table(names(bif_keys)) > 1) > 0) {
       stop(
         paste(
-          "At least two different models in `bif_fit` have general factors",
+          "At least two different models in 'bif_fit' have general factors",
           "with the same name.",
           "Please ensure that all factor names are unique."
         )
@@ -332,13 +339,13 @@ esem.from.mods <- function(
     if (sum(names(cfa_keys) %in% names(bif_keys)) > 0) {
       stop(
         paste(
-          "The following models in `cfa_fit` have identically named",
-          "factor(s) in `bif_fit`:\n    ",
+          "The following models in 'cfa_fit' have identically named",
+          "factor(s) in 'bif_fit':\n    ",
           paste(
             names(cfa_fit)[names(cfa_fit) %in% names(bif_fit)], collapse = "\n"
           ),
-          "\n\n  Please ensure that CFA factors and bifactor general factors have",
-          "unique names."
+          "\n\n  Please ensure that CFA factors and bifactor general factors",
+          "have unique names."
         )
       )
     }
