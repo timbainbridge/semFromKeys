@@ -99,13 +99,14 @@ and, if \code{fit_save = TRUE}, a matrix of fit measures for each model.
 \code{bifactor.from.keys} runs a series of bifactor model from three keys lists---
 one for items on general factor; one for items on group factors;
 and one for group factors on general factors.
-The keys list must be named appropriately
-(i.e., general factor names, group factor names, and general factor names
-for the three lists respectively).
-The function is designed to streamline running measurement models for all
-scales in a sample and to input model outputs into downstream functions.
 }
 \details{
+The function is designed to streamline running measurement models for all
+scales in a sample and to input model outputs into downstream functions.
+Keys list must be named appropriately;
+that is, \code{keys_g} and \code{keys_b} names must be the general factor names,
+and \code{keys} must be the group factor names.
+
 The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
 This enables saving inputs and outputs from model runs
 (with \code{save_out = TRUE}) and checking to see if anything has changed from

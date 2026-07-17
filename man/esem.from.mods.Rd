@@ -188,7 +188,7 @@ in the correlations.
 Finally, if the 2-stage procedure is employed, then there is little room for
 measurement models to change to allow factor correlations to change.
 Therefore, the parameter can be relaxed and implied correlations between the
-group and general factors ought to remain close to zero.
+group and general factors should remain close to zero.
 Given that the function already uses the 2-stage procedure,
 this method is employed when bifactor models are used in \code{esem.from.mods()}.
 }
