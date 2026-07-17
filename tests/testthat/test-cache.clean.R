@@ -7,19 +7,19 @@ test_that(
   }
 )
 test_that(
-  "Test `older_than` not set without cache.setup",
+  "Test 'older_than' not set without cache.setup",
   {
     expect_error(
-      cache.clean(interactive = FALSE), "specify a value for `older_than`"
+      cache.clean(interactive = FALSE), "specify a value for 'older_than'"
     )
   }
 )
 test_that(
-  "Test `older_than` not set with cache.setup",
+  "Test 'older_than' not set with cache.setup",
   {
     cache.setup("tests/testthat/cache", interactive = FALSE)
     expect_error(
-      cache.clean(interactive = FALSE), "specify a value for `older_than`"
+      cache.clean(interactive = FALSE), "specify a value for 'older_than'"
     )
   }
 )

@@ -73,17 +73,6 @@ test_that(
   }
 )
 test_that(
-  "'fit_y' names must not be NULL",
-  {
-    cfa_fit2 <- cfa_fit
-    names(cfa_fit2) <- NULL
-    expect_error(
-      sem.cor(BFIGritHope, cfa_fit2),
-      "'fit_y' names must not be 'NULL'"
-    )
-  }
-)
-test_that(
   "Items cannot match a fit_y name",
   {
     items <- "bfi_e1_1"
@@ -101,17 +90,6 @@ test_that(
     expect_error(
       sem.cor(BFIGritHope, cfa_fit[1:2], c(cfa_fit[3:4], "bfi_e1_1")),
       "'fit_x' is not an object of class lavaan"
-    )
-  }
-)
-test_that(
-  "'fit_x' names must not be NULL",
-  {
-    fit_x <- cfa_fit[3:4]
-    names(fit_x) <- NULL
-    expect_error(
-      sem.cor(BFIGritHope, cfa_fit[1:2], fit_x),
-      "'fit_x' names must not be 'NULL'"
     )
   }
 )

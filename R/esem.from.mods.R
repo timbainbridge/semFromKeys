@@ -217,7 +217,7 @@ esem.from.mods <- function(
     name = "esem", check = FALSE, save_out = FALSE
 ) {
   if (is.null(cfa_fit) & is.null(bif_fit)) {
-    stop("At least one of `cfa_fit` and `bif_fit` must be specified.")
+    stop("At least one of 'cfa_fit' and 'bif_fit' must be specified.")
   }
   if (!is.null(cfa_fit)) {
     # Single model instead of list.
@@ -227,7 +227,7 @@ esem.from.mods <- function(
     if (sum(sapply(cfa_fit, function(x) !inherits(x, "lavaan"))) > 0) {
       paste0(
         names(cfa_fit)[sapply(cfa_fit, function(x) !inherits(x, "lavaan"))],
-        stop("The above elements of `cfa_fit` are not objects of type lavaan.")
+        stop("The above elements of 'cfa_fit' are not objects of type lavaan.")
       )
     }
   }

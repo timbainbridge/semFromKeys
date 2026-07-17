@@ -23,7 +23,7 @@ test_that(
   {
     expect_error(
       cfa.from.keys(keys = NULL, BFIGritHope, fit_save = FALSE),
-      "one of `keys_s` or `keys_e`"
+      "one of 'keys_s' or 'keys_e'"
     )
     expect_error(
       cfa.from.keys(data = BFIGritHope, fit_save = FALSE),
@@ -45,28 +45,28 @@ test_that(
   {
     expect_error(
       cfa.from.keys(keys, BFIGritHope, fit_save = 42),
-      "`fit_save` is not logical"
+      "'fit_save' is not logical"
     )
     expect_error(
       cfa.from.keys(keys, BFIGritHope, check = 42, fit_save = FALSE),
-      "`check` is not logical"
+      "'check' is not logical"
     )
     expect_error(
       cfa.from.keys(keys, BFIGritHope, fit_save = FALSE, save_out = 42),
-      "`save_out` is not logical"
+      "'save_out' is not logical"
     )
     expect_error(
       cfa.from.keys(keys, BFIGritHope, fit_save = FALSE, std.lv = 42),
-      "`std.lv` is not logical"
+      "'std.lv' is not logical"
     )
   }
 )
 test_that(
-  "`fit_measures` is not a character vector",
+  "'fit_measures' is not a character vector",
   {
     expect_error(
       cfa.from.keys(keys, BFIGritHope, fit_save = TRUE, fit_measures = 42),
-      "`fit_measures` is not a character vector"
+      "'fit_measures' is not a character vector"
     )
   }
 )
@@ -96,7 +96,7 @@ test_that(
     keys_mistake$grit_c[1] <- "mistake"
     expect_error(
       cfa.from.keys(keys_mistake, BFIGritHope, fit_save = FALSE),
-      "items are in `keys_s` but they are not in `data`"
+      "items are in 'keys_s' but they are not in 'data'"
     )
   }
 )
@@ -105,7 +105,7 @@ test_that(
   {
     expect_error(
       cfa.from.keys(keys$grit_c, BFIGritHope, fit_save = FALSE),
-      "`keys_s` is not a list"
+      "'keys_s' is not a list"
     )
   }
 )
@@ -133,7 +133,7 @@ test_that(
     names(keys_nm)[1:2] <- "grit"
     expect_error(
       cfa.from.keys(keys_nm, BFIGritHope, fit_save = FALSE),
-      "two elements of `keys_s` share the same name"
+      "two elements of 'keys_s' share the same name"
     )
   }
 )
@@ -160,7 +160,7 @@ test_that(
   }
 )
 test_that(
-  "`name` not a string (but a number) when required.",
+  "'name' not a string (but a number) when required.",
   {
     cache.setup("tests/testthat/cache", interactive = FALSE)
     expect_error(
@@ -168,12 +168,12 @@ test_that(
         keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = FALSE,
         name = 42
       ),
-      "`name` is not a character"
+      "'name' is not a character"
     )
   }
 )
 test_that(
-  "`name` not a string (but NULL) when required.",
+  "'name' not a string (but NULL) when required.",
   {
     cache.setup("tests/testthat/cache", interactive = FALSE)
     expect_error(
@@ -181,12 +181,12 @@ test_that(
         keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = FALSE,
         name = NULL
       ),
-      "`name` is not a character"
+      "'name' is not a character"
     )
   }
 )
 test_that(
-  "`name` is not a string when not required",
+  "'name' is not a string when not required",
   {
     expect_no_error(
       cfa.from.keys(
@@ -211,12 +211,12 @@ test_that(
     )
     expect_error(
       cfa.from.keys(keys, data = "cfa", fit_save = FALSE),
-      "items are in `keys_s` but they are not in `data`"
+      "items are in 'keys_s' but they are not in 'data'"
     )
   }
 )
 test_that(
-  "Test `save_out = TRUE` file creation and `check = TRUE` correctly loading",
+  "Test 'save_out = TRUE' file creation and 'check = TRUE' correctly loading",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     name <- "cfa"
@@ -251,12 +251,12 @@ test_that(
       "the condition has length > 1"
     )
     expect_error(
-      cache.setup(42), "`location` is not a length 1 character vector"
+      cache.setup(42), "'location' is not a length 1 character vector"
     )
   }
 )
 test_that(
-  "Test partial running on `check = TRUE` after changes to a model",
+  "Test partial running on 'check = TRUE' after changes to a model",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     name <- "cfa"
@@ -286,7 +286,7 @@ test_that(
   }
 )
 test_that(
-  "Test running on `check = TRUE` after changing to full `fit_measures` set",
+  "Test running on 'check = TRUE' after changing to full 'fit_measures' set",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
@@ -305,9 +305,9 @@ test_that(
   }
 )
 # This is treated slightly differently to the above in sem.check
-# due to distinction between `fit_measures = "all"` and a subset.
+# due to distinction between 'fit_measures = "all"' and a subset.
 test_that(
-  "Test running on `check = TRUE` after adding fit measures (not to full set)",
+  "Test running on 'check = TRUE' after adding fit measures (not to full set)",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
@@ -324,7 +324,7 @@ test_that(
   }
 )
 test_that(
-  "Test partial running on `check = TRUE` after changes to a data hash",
+  "Test partial running on 'check = TRUE' after changes to a data hash",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     name <- "cfa"
@@ -354,7 +354,7 @@ test_that(
   }
 )
 test_that(
-  "Test running on `check = TRUE` after changes to miss",
+  "Test running on 'check = TRUE' after changes to miss",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
@@ -370,7 +370,7 @@ test_that(
   }
 )
 test_that(
-  "Test running on `check = TRUE` after changes to est",
+  "Test running on 'check = TRUE' after changes to est",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
@@ -386,7 +386,7 @@ test_that(
   }
 )
 test_that(
-  "Test running on `check = TRUE` after changes to std.lv",
+  "Test running on 'check = TRUE' after changes to std.lv",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(
@@ -402,7 +402,7 @@ test_that(
   }
 )
 test_that(
-  "Test running on `check = TRUE` after selecting subset of `fit_measures`",
+  "Test running on 'check = TRUE' after selecting subset of 'fit_measures'",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
     check_fit <- cfa.from.keys(

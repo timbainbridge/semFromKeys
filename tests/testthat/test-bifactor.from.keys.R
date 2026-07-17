@@ -58,7 +58,7 @@ test_that(
       bifactor.from.keys(
         keys_b, keys_g, keys, BFIGritHope, fit_save = FALSE
       ),
-      'group factor\\(s\\) in `keys_b` are not in `keys`'
+      "group factor\\(s\\) in 'keys_b' are not in 'keys'"
     )
   }
 )
@@ -69,19 +69,19 @@ test_that(
       bifactor.from.keys(
         keys, keys_b, keys_g, BFIGritHope, fit_save = FALSE
       ),
-      '`keys_g` is not the same length as `keys_b`'
+      "'keys_g' is not the same length as 'keys_b'"
     )
   }
 )
 test_that(
-  "Different order of `keys_b` and `keys_g`elements",
+  "Different order of 'keys_b' and 'keys_g' elements",
   {
     keys_b_swap <- keys_b[2:1]
     expect_error(
       bifactor.from.keys(
         keys_g, keys_b_swap, keys, BFIGritHope, fit_save = FALSE
       ),
-      'Names of `keys_g` do not match.*`keys_b`'
+      "Names of 'keys_g' do not match names of 'keys_b'"
     )
   }
 )
@@ -100,7 +100,7 @@ test_that(
           keys_g, keys_b, keys_mistake, BFIGritHope, fit_save = FALSE
         )
       ),
-      "items are in `keys_s` but they are not in `data`"
+      "items are in 'keys_s' but they are not in 'data'"
     )
     expect_error(
       suppressWarnings(
@@ -108,13 +108,13 @@ test_that(
           keys_g_mistake, keys_b, keys, BFIGritHope, fit_save = FALSE
         )
       ),
-      "items are in `keys_s` but they are not in `data`"
+      "items are in 'keys_s' but they are not in 'data'"
     )
     expect_error(
       bifactor.from.keys(
         keys_g, keys_b_mistake, keys, BFIGritHope, fit_save = FALSE
       ),
-      "group factor\\(s\\) in `keys_b` are not in `keys`"
+      "group factor\\(s\\) in 'keys_b' are not in 'keys'"
     )
   }
 )
@@ -125,19 +125,19 @@ test_that(
       bifactor.from.keys(
         keys_g, keys_b, keys$grit_c, BFIGritHope, fit_save = FALSE
       ),
-      "`keys` is not a list"
+      "'keys' is not a list"
     )
     expect_error(
       bifactor.from.keys(
         keys_g$grit, keys_b, keys, BFIGritHope, fit_save = FALSE
       ),
-      "`keys_g` is not a list"
+      "'keys_g' is not a list"
     )
     expect_error(
       bifactor.from.keys(
         keys_g, keys_b$grit, keys, BFIGritHope, fit_save = FALSE
       ),
-      "`keys_b` is not a list"
+      "'keys_b' is not a list"
     )
   }
 )
@@ -149,7 +149,7 @@ test_that(
       bifactor.from.keys(
         keys_g, keys_b, keys_missing, BFIGritHope, fit_save = FALSE
       ),
-      "group factor\\(s\\) in `keys_b` are not in `keys`"
+      "group factor\\(s\\) in 'keys_b' are not in 'keys'"
     )
   }
 )
