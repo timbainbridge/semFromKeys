@@ -1,6 +1,7 @@
 # semFromKeys 0.2.2
 
-* Fixed the option issue that remained at the last submission (in esem.from.mods.R).
+* Fixed the option issue that remained at the last CRAN submission (in esem.from.mods.R).
+* Default cache directory now includes a subdirectory of the project name if run within an RStudio project.
 
 # semFromKeys 0.2.1
 

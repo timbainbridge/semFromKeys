@@ -7,8 +7,8 @@
 #' By default, `cache.setup` uses the system's default cache location,
 #' otherwise a location within the current working directory or project can be
 #' selected.
-#' The function needs to be run once per session whenever a cache directory is
-#' required.
+#' The function needs to be run once after the environment is cleared whenever
+#' a cache directory is required.
 #'
 #' @param location
 #' The cache location to save model objects to to enable checking.
@@ -31,29 +31,50 @@
 #' Primarily called to set up the cache configuration.
 #'
 #' @details
+#' Saving outputs to save time running identical models more than once requires
+#' files to be saved on your computer.
 #' To avoid writing to your computer without your permission,
 #' you are required to run this function first to ensure that you know *that*
 #' files are being saved and *where* files are being saved.
-#' The function temporarily sets the environment variable '.cache_env'
-#' (with
+#' The function temporarily sets a hidden environment variable '.cache_env'
+#' (with, if empty,
 #' `assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(1))`
-#' , if empty, and
+#' and with
 #' `assign("cache_dir", cache_dir, envir = get(".cache_env", envir = parent.frame(1)))`,
-#' if not), which will be removed whenever the R environment is cleared.
-#' '.cache_env' is used by other functions from the package as the cache
-#' directory.
-#' As a result, the function needs to be run once after the environment is
-#' cleared whenever a cache directory is required.
-#' All functions that utilise the cache directory will look for the
-#' environment variable and, if it is not set, will request that users either
-#' change options to not require the cache directory or run this function first.
-#' Finally, the functionality requires R version 4.0 or greater so users with
-#' an older version of R will be told to either update R or avoid using options
-#' that require the cache.
+#' if not), which will be removed whenever the environment is cleared.
 #'
-#' Note that `semFromKeys` has no way to know what directories you have
-#' specified as the cache in the past and cannot clean up unknown former cache
-#' directories.
+#' By default, the function creates the cache directory in the standard place
+#' for the operating system being used, appended by `semFromKeys/[projectname]`,
+#' if a project is being used and the `rstudioapi` is available.
+#' If a project is not being used or the `rstudioapi` package is not available,
+#' then the relative path with be `semFromKeys`.
+#'
+#' In the later case, if two function calls include the same `name` assignment,
+#' then outputs from one will overwrite the other. Therefore, it is recommended
+#' to either set the cache directory to something other than the default or use
+#' the default within a project with the `rstudioapi` package installed.
+#' Obviously this latter option will likely not work outside of RStudio,
+#' so, in that case, it is recommended to use a custom location.
+#'
+#' To ensure that R knows what the cache directory is,
+#' a hidden environment variable containing the information---`.cache_env`---is
+#' saved within the working environment.
+#' Other functions from the package will look for and use `.cache_env` to
+#' identify the cache directory.
+#' As a result, whenever the working environment is cleared
+#' (e.g., upon closing RStudio) or whenever the `.cache_env` is otherwise
+#' removed,
+#' the `cache.setup` function will need to be re-run before the cache
+#' functionality will work,
+#' regardless of the status of the any recently used cache directories.
+#'
+#' The function relies on code that was unavailable in versions of R prior to
+#' version 4.0,
+#' so anyone using an earlier version of R will either have to update R or forgo
+#' the caching functionality.
+#'
+#' `semFromKeys` has no way to know what directories you have specified as the
+#' cache in the past and cannot clean up unknown former cache directories.
 #' Therefore, it is recommended that you use either the default location or
 #' the same location for all models within the same project.
 #' Either of these will enable easy detection, so that unneeded cached files
@@ -107,7 +128,23 @@ cache.setup <- function(location = "user", interactive = TRUE) {
     )
   }
   if (location == "user") {
-    cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
+    if (!requireNamespace("rstudioapi")) {
+      cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
+    } else {
+      if (rstudioapi::isAvailable()) {
+        project <- rstudioapi::getActiveProject()
+        if (is.null(project)) {
+          cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
+        } else {
+          project <- sub(".*/", "", project)
+          cache_dir <- tools::R_user_dir(
+            paste0("semFromKeys/", project), which = "cache"
+          )
+        }
+      } else {
+        cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
+      }
+    }
   } else {
     if (!is.character(location)) {
       stop("`location` is not a length 1 character vector")
