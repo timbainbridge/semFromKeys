@@ -119,12 +119,10 @@
 #' # View correlations
 #' cors2$cor_mat
 
-# TODO: Add Nagy.
-
 sem.cor <- function(
     data, fit_y, fit_x = NULL, items = NULL, miss = "ML", est = "default",
     item_loadings = NULL,
-    name = "cors", check = FALSE, save_out = FALSE, nagy = FALSE
+    name = "cors", check = FALSE, save_out = FALSE, nagy = TRUE
 ) {
   # Single model instead of list.
   if (!is.list(fit_y) & inherits(fit_y, "lavaan")) {
