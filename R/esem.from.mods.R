@@ -79,14 +79,15 @@
 #' How ought one to assess whether the scale measures the same thing(s) with
 #' different factors or omitted items?
 #' When a single scale is being assessed, these issues can be resolved;
-#' However, when many scales are being assessed this solution is impractical.
+#' however, when many scales are being assessed this solution is impractical.
 #'
 #' An alternative solution is to fix measurement model parameters in a model
 #' estimating structural parameters.
 #' This method means that less than ideal fit at the measurement level does not
 #' propagate though the model as the measurement parameters are fixed.
-#' It also solves interpretational confounding because the definition of the
-#' latent variables cannot change.
+#' It also solves interpretational confounding because the measurement of the
+#' latent variables is fixed so their interpretation cannot change with the
+#' inclusion of other variables in a model.
 #' However, it is not a perfect solution because it underestimates uncertainty
 #' in the measurement part of the structural model (e.g., Nagy et al., 2017),
 #' which results in biased standard errors.

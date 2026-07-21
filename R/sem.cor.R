@@ -28,6 +28,9 @@
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
+#' @param nagy
+#' Logical. Indicates whether to use Nagy and colleagues' (2017) extension
+#' procedure instead of Burt's (1976) 2-stage procedure.
 #'
 #' @return
 #' Returns a list of length 4.
@@ -56,13 +59,44 @@
 #' everything in one model and
 #' it also means that excluding a variable cannot change correlations between
 #' other variables (which is possible when all are included together).
-#' The function uses Burt's 2-stage procedure to control for interpretational
-#' confounding.
+#' The function uses either Burt's 2-stage procedure when `nagy = FALSE` or
+#' Nagy and colleagues' (2017) extension procedure when `nagy = TRUE`
+#' to control for interpretational confounding (Burt, 1976).
 #'
-#' If the matrix of latent variables included in `fit_y` is not positive
-#' definite, then the matrix will be adjusted to the nearest positive definite
-#' matrix using the `[Matrix::nearPD()]` function, which employs the method
-#' developed by Higham (2002).
+#' Burt's method works by fixing measurement model parameters in the model
+#' estimating structural parameters.
+#' This method means that less than ideal fit at the measurement level does not
+#' propagate though the model as the measurement parameters are fixed.
+#' It also means that the latent variables interpretation cannot change with the
+#' addition of different variables,
+#' thereby solving interpretational confounding.
+#' However, it is not a perfect solution because it underestimates uncertainty
+#' in the measurement part of the structural model (e.g., Nagy et al., 2017),
+#' which results in biased standard errors and fit statistics.
+#'
+#' Alternatively, Nagy's method involves allowing item residuals to correlate
+#' with external variables (or factors) and constrains those relationships
+#' such that the model is identifiable.
+#' If the sums of squares of correlations between all combinations of factors'
+#' items and external factors are minimised,
+#' measurement parameters in the structural model match those of isolated
+#' measurement models without having to constrain them directly.
+#' As a result, unbiased standard errors are preserved while simultaneously
+#' eliminating interpretational confounding.
+#'
+#' Burt's method is faster but artificially constrains parameters,
+#' thereby biasing standard errors and model fit indices.
+#' They should, however, give very similar point estimates for correlations.
+#' Therefore, Nagy's method should be preferred whenever confidence intervals
+#' or model fit matter, except for extremely large sets of variables.
+#'
+#' It is possible for latent variable correlations to produce a non-positive
+#' definite correlation matrix between variables included in `fit_y`,
+#' especially when closely related factors are included.
+#' If the matrix of latent variables is not positive definite,
+#' then the matrix will be adjusted to the nearest positive definite
+#' matrix using the `[Matrix::nearPD()]` function,
+#' which employs the method developed by Higham (2002).
 #'
 #' The model relies on [sem.check()] for the back-end of running the models,
 #' which enables saving inputs and outputs from model runs
@@ -98,6 +132,11 @@
 #' Computing the nearest correlation matrix—a problem from finance.
 #' IMA Journal of Numerical Analysis, 22(3), 329-343.
 #' https://doi.org/10.1093/imanum/22.3.329.
+#'
+#' Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
+#' Extension Procedures for Confirmatory Factor Analysis.
+#' Journal of Experimental Education, 85(4).
+#' https://doi.org/10.1080/00220973.2016.1260524.
 #'
 #' @examples
 #' # Create CFA keys
@@ -813,7 +852,10 @@ sem.cor <- function(
   }
   return(
     list(
-      fit = fit$fit, cor_mat = cor_mat, ci_lower = ci_lower, ci_upper = ci_upper
+      fit = fit$fit,
+      par_std = mod_out$par_std,
+      # fit_measures = mod_out$fit_measures,
+      cor_mat = cor_mat, ci_lower = ci_lower, ci_upper = ci_upper
     )
   )
 }
