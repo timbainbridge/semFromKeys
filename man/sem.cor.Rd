@@ -12,7 +12,7 @@ sem.cor(
   items = NULL,
   miss = "ML",
   est = "default",
-  item_reliability = 0.7,
+  item_loadings = NULL,
   name = "cors",
   check = FALSE,
   save_out = FALSE,
@@ -40,11 +40,13 @@ Defaults to 'ML'.}
 Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
 
-\item{item_reliability}{When single items are specified, \code{item_reliability} sets an estimate of how
-reliably they meausre their construct.
-It can be a single number to set all reliabilities equal or a vector of
+\item{item_loadings}{When single items are specified, items are included in models with single
+item latent variables. \code{item_loadings} sets the loading of the item on the
+factor.
+It can be a single number to set all loadings equal or a vector of
 length equal to the length of items.
-Defaults to 0.7. Irrelevant if \code{items = NULL}.}
+Defaults allows the value to be free (which assumes perfect reliability).
+Irrelevant if \code{items = NULL}.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.
@@ -91,7 +93,7 @@ set \code{fit_x} as a list of fitted CFA models of independent variables.
 Correlations between the \code{fit_y} latent variables and single items can also
 be optionally included by setting \code{items} as a vector of item names.
 In this case, items will be treated as single item latent variables with
-reliability = \code{item_reliability}.
+reliability = \code{item_loadings}.
 
 Each correlation is calculated in a separate model.
 This approach saves time for longer lists of variables compared to including

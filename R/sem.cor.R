@@ -13,12 +13,14 @@
 #' A vector of single-item variables to correlate with 'fit_y' latent variables.
 #' Must not include any items contributing to the measurement of a `fit_y`
 #' latent variable.
-#' @param item_reliability
-#' When single items are specified, `item_reliability` sets an estimate of how
-#' reliably they meausre their construct.
-#' It can be a single number to set all reliabilities equal or a vector of
+#' @param item_loadings
+#' When single items are specified, items are included in models with single
+#' item latent variables. `item_loadings` sets the loading of the item on the
+#' factor.
+#' It can be a single number to set all loadings equal or a vector of
 #' length equal to the length of items.
-#' Defaults to 0.7. Irrelevant if `items = NULL`.
+#' Defaults allows the value to be free (which assumes perfect reliability).
+#' Irrelevant if `items = NULL`.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
@@ -47,7 +49,7 @@
 #' Correlations between the `fit_y` latent variables and single items can also
 #' be optionally included by setting `items` as a vector of item names.
 #' In this case, items will be treated as single item latent variables with
-#' reliability = `item_reliability`.
+#' reliability = `item_loadings`.
 #'
 #' Each correlation is calculated in a separate model.
 #' This approach saves time for longer lists of variables compared to including
@@ -121,7 +123,7 @@
 
 sem.cor <- function(
     data, fit_y, fit_x = NULL, items = NULL, miss = "ML", est = "default",
-    item_reliability = .7,
+    item_loadings = NULL,
     name = "cors", check = FALSE, save_out = FALSE, nagy = FALSE
 ) {
   # Single model instead of list.
@@ -158,20 +160,23 @@ sem.cor <- function(
         )
       )
     }
-    if (
-      length(item_reliability) != 1 & length(items) != length(item_reliability)
-    ) {
-      stop(
-        paste(
-          "'item_reliability' must be either length 1 or length equal to the",
-          "lenght or items."
+    if (!is.null(item_loadings)) {
+      if (length(item_loadings) != 1 & length(items) != length(item_loadings)) {
+        stop(
+          paste(
+            "'item_loadings' must be either 'NULL', length 1, or length equal",
+            "to the lenght or items."
+          )
         )
-      )
-    }
-    if (max(item_reliability) > 1 | min(item_reliability) <= 0) {
-      stop(
-        "'item_reliability' must be greater than 0 and less than or equal to 1."
-      )
+      }
+      if (max(item_loadings) > 1 | min(item_loadings) <= 0) {
+        stop(
+          paste(
+            "'item_loadings' (if specified) must be greater than 0 and",
+            "less than or equal to 1."
+          )
+        )
+      }
     }
   }
   if (!is.null(fit_x)) {
@@ -225,8 +230,7 @@ sem.cor <- function(
           paste0(
             "The 'fit_y' model including '", paste(yn, collapse = "' and '"),
             "' includes more than one latent variable. ",
-            "These models are not currently supported by 'sem.cor()'. ",
-            "Please include them separately."
+            "These models are not currently supported by 'sem.cor()'."
           )
         )
       } else {
@@ -248,24 +252,24 @@ sem.cor <- function(
             key_x <- unique(x1$rhs[x1$op == "=~"])
             key_y <- unique(y1$rhs[y1$op == "=~"])
             key0 <- c(x2$rhs[x2$op == "=~"], y2$rhs[y2$op == "=~"])
+            xn <- unique(x2$lhs[x2$op == "=~"])
+            yn <- unique(y2$lhs[y2$op == "=~"])
             # Any shared items. Need to unfix residual variance for these.
             i <- x1$lhs[x1$lhs %in% y1$lhs]
             if (length(i) != 0) {
-              xf <- unique(x2$lhs[x2$op == "=~"])
-              yf <- unique(y2$lhs[y2$op == "=~"])
               if (length(i) >= min(length(key_x), length(key_y))) {
                 if (length(key_x) < length(key_y)) {
-                  shorter_f <- xf
-                  longer_f <- yf
+                  shorter_f <- xn
+                  longer_f <- yn
                 }
                 if (length(key_x) > length(key_y)) {
-                  shorter_f <- yf
-                  longer_f <- xf
+                  shorter_f <- yn
+                  longer_f <- xn
                 }
                 if (length(key_x) == length(key_y)) {
                   stop(
                     paste0(
-                      "All items between '", yf, "' and '", xf, "' are shared.",
+                      "All items between '", yn, "' and '", xn, "' are shared.",
                       "\nHave you included the same latent variable twice by ",
                       "mistake?"
                     )
@@ -283,7 +287,7 @@ sem.cor <- function(
               }
               warning(
                 paste0(
-                  "The following item(s) are in both the '", yf, "' and '", xf,
+                  "The following item(s) are in both the '", yn, "' and '", xn,
                   "' factors. ",
                   "If this is not intended, please correct it and disregard ",
                   "the correlation between these factors.\n    ",
@@ -348,34 +352,34 @@ sem.cor <- function(
             key_x <- unique(x1$rhs[x1$op == "=~"])
             key_y <- unique(y1$rhs[y1$op == "=~"])
             key0 <- unique(c(key_x, key_y))
+            xn <- unique(x1$lhs[x1$op == "=~"])
+            yn <- unique(y1$lhs[y1$op == "=~"])
             # Any shared items. Need to unfix residual variance for these.
             i <- x1$lhs[x1$lhs %in% y1$lhs]
             if (length(i) != 0) {
               if (nagy) {
                 stop(
                   paste0(
-                    "The following item(s) are in both the '", yf, "' and '",
-                    xf, "' factors. ",
+                    "The following item(s) are in both the '", yn, "' and '",
+                    xn, "' factors. ",
                     "This is not supported when 'nagy = TRUE'.\n    ",
                     paste(i, collapse = "\n    ")
                   )
                 )
               }
-              xf <- unique(x1$lhs[x1$op == "=~"])
-              yf <- unique(y1$lhs[y1$op == "=~"])
               if (length(i) >= min(length(key_x), length(key_y))) {
                 if (length(key_x) < length(key_y)) {
-                  shorter_f <- xf
-                  longer_f <- yf
+                  shorter_f <- xn
+                  longer_f <- yn
                 }
                 if (length(key_x) > length(key_y)) {
-                  shorter_f <- yf
-                  longer_f <- xf
+                  shorter_f <- yn
+                  longer_f <- xn
                 }
                 if (length(key_x) == length(key_y)) {
                   stop(
                     paste0(
-                      "All items between '", yf, "' and '", xf, "' are shared.",
+                      "All items between '", yn, "' and '", xn, "' are shared.",
                       "\nHave you included the same latent variable twice by ",
                       "mistake?"
                     )
@@ -393,7 +397,7 @@ sem.cor <- function(
               }
               warning(
                 paste0(
-                  "The following item(s) are in both the '", yf, "' and '", xf,
+                  "The following item(s) are in both the '", yn, "' and '", xn,
                   "' factors. ",
                   "If this is not intended, please correct it and disregard ",
                   "the correlation between these factors.\n    ",
@@ -416,8 +420,6 @@ sem.cor <- function(
               )
               return(list(mod = mod0, key = key0))
             } else {
-              xn <- unique(x1$lhs[x1$op == "=~"])
-              yn <- unique(y1$lhs[y1$op == "=~"])
               x1l <- x1[x1$op == "=~", ]
               y1l <- y1[y1$op == "=~", ]
               x1u <- x1[x1$op == "~~" & x1$lhs != xn, ]
@@ -528,23 +530,27 @@ sem.cor <- function(
               "The following item(s) are in both 'items' and contributes ",
               "to the measurement of the '", yn, "' latent variable.",
               "\n  This is not supported.\n  ",
-              "Please either remove the item(s) from 'items' or ",
+              "Either remove the item(s) from 'items' or ",
               "(if appropriate) remove the item(s) from the latent ",
               "measurement of '", yn, "'.\n    ",
               paste(item_overlap, collapse = "\n    ")
             )
           )
         }
-        if (length(item_reliability) == length(items)) {
-          names(item_reliability) <- items
+        if (length(item_loadings) == length(items)) {
+          names(item_loadings) <- items
         }
         tmp <- lapply(
           setNames(nm = items),
           function(i) {
-            if (length(item_reliability) == length(items)) {
-              i_r <- item_reliability[i]
+            if (!is.null(item_loadings)) {
+              if (length(item_loadings) == length(items)) {
+                i_r <- paste(item_loadings[i], " * ")
+              } else {
+                i_r <- paste(item_loadings, " * ")
+              }
             } else {
-              i_r <- item_reliability
+              i_r <- ""
             }
             i_l <- paste0(i, "_l")
             if (!nagy) {
@@ -552,7 +558,7 @@ sem.cor <- function(
                 # CFA
                 paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
                 "\n",
-                paste0(i, "_l =~ ", i_r, " * ", i),
+                paste0(i, "_l =~ ", i_r, i),
                 collapse = "\n"
               )
               key0 <- c(y$rhs[y$op == "=~"], i)
@@ -623,15 +629,25 @@ sem.cor <- function(
     check = check, save_out = save_out, std.lv = TRUE
   )
   if (!is.null(fit_x) | length(fit_y) > 1) {
+    xn <- names(par1)
+    yn <- names(par2)
     cors_y <- sapply(
-      fit$par_std[!grepl("\\.items$", names(fit$par_std))],
-      function(x) x$est.std[x$lhs != x$rhs & x$op == "~~"]
+      fit$par_std[
+        !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
+      ],
+      function(x) x$est.std[x$lhs == yn & x$rhs == xn]
     )
     ci_lower_y0 <- sapply(
-      fit$par_std, function(x) x$ci.lower[x$lhs != x$rhs & x$op == "~~"]
+      fit$par_std[
+        !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
+      ],
+      function(x) x$ci.lower[x$lhs == yn & x$rhs == xn]
     )
     ci_upper_y0 <- sapply(
-      fit$par_std, function(x) x$ci.upper[x$lhs != x$rhs & x$op == "~~"]
+      fit$par_std[
+        !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
+      ],
+      function(x) x$ci.upper[x$lhs == yn & x$rhs == xn]
     )
     if (is.null(fit_x)) {
       cor_mat_y <- sapply(
@@ -695,8 +711,8 @@ sem.cor <- function(
           sapply(
             names(fit_x),
             function(x) {
-              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-              cors_y[grep(ptn, names(cors_y))]
+              ptn <- c(paste0(x, ".", y), paste0(y, ".", x))
+              cors_y[names(cors_y) %in% ptn]
             },
             USE.NAMES = FALSE
           )
@@ -708,8 +724,8 @@ sem.cor <- function(
           sapply(
             names(fit_x),
             function(x) {
-              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-              ci_lower_y0[[grep(ptn, names(ci_lower_y0))]]
+              ptn <- c(paste0(x, ".", y), paste0(y, ".", x))
+              ci_lower_y0[names(ci_lower_y0) %in% ptn]
             },
             USE.NAMES = FALSE
           )
@@ -721,8 +737,8 @@ sem.cor <- function(
           sapply(
             names(fit_x),
             function(x) {
-              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
-              ci_upper_y0[[grep(ptn, names(ci_upper_y0))]]
+              ptn <- c(paste0(x, ".", y), paste0(y, ".", x))
+              ci_upper_y0[names(ci_upper_y0) %in% ptn]
             },
             USE.NAMES = FALSE
           )
@@ -755,7 +771,7 @@ sem.cor <- function(
       mapply(
         x =
           fit$par_std[grepl(paste0(items, collapse = "|"), names(fit$par_std))],
-        y = names(fit_y),
+        y = rep(names(fit_y), each = length(items)),
         SIMPLIFY = FALSE,
         FUN = function(x, y) {
           x[
@@ -799,7 +815,7 @@ sem.cor <- function(
       ci_lower_yi <- matrix(ci_lower_yi, nrow = 1)
       colnames(ci_lower_yi) <- names(fit_y)
       ci_upper_yi <- matrix(ci_upper_yi, nrow = 1)
-      colnames(ci_upper_y) <- names(fit_y)
+      colnames(ci_upper_yi) <- names(fit_y)
     }
     if (is.vector(cor_mat_yi) & length(fit_y) == 1) {
       cor_mat_yi <- matrix(cor_mat_yi, ncol = 1)
@@ -812,59 +828,6 @@ sem.cor <- function(
     rownames(cor_mat_yi) <- items
     rownames(ci_lower_yi) <- items
     rownames(ci_upper_yi) <- items
-    # tmp <- fit$par_std[grepl(paste0(items, collapse = "|"), names(fit$par_std))]
-    # cors_i <- tmp[
-    #   tmp$lhs %in% items & tmp$rhs %in% items & tmp$op == "~~",
-    #   c("lhs", "rhs", "est.std", "ci.lower", "ci.upper")
-    # ]
-    # if (length(items) > 1) {
-    #   cor_mat_i <- sapply(
-    #     items,
-    #     function(x) {
-    #       sapply(
-    #         items,
-    #         function(y) {
-    #           cors_i$est.std[
-    #             (cors_i$lhs == x & cors_i$rhs == y) |
-    #               (cors_i$lhs == y & cors_i$rhs == x)
-    #           ]
-    #         }
-    #       )
-    #     }
-    #   )
-    #   ci_lower_i <- sapply(
-    #     items,
-    #     function(x) {
-    #       sapply(
-    #         items,
-    #         function(y) {
-    #           cors_i$ci.lower[
-    #             (cors_i$lhs == x & cors_i$rhs == y) |
-    #               (cors_i$lhs == y & cors_i$rhs == x)
-    #           ]
-    #         }
-    #       )
-    #     }
-    #   )
-    #   ci_upper_i <- sapply(
-    #     items,
-    #     function(x) {
-    #       sapply(
-    #         items,
-    #         function(y) {
-    #           cors_i$ci.upper[
-    #             (cors_i$lhs == x & cors_i$rhs == y) |
-    #               (cors_i$lhs == y & cors_i$rhs == x)
-    #           ]
-    #         }
-    #       )
-    #     }
-    #   )
-    # } else {
-    #   cor_mat_i <- matrix(1, dimnames = list(items, items))
-    #   ci_lower_i <- matrix(1, dimnames = list(items, items))
-    #   ci_upper_i <- matrix(1, dimnames = list(items, items))
-    # }
   }
   if (is.null(fit_x) & length(fit_y) > 1) {
     if (!is.positive.definite(cor_mat_y)) {
@@ -883,8 +846,8 @@ sem.cor <- function(
           " from initial estimates with the 'Matrix::nearPD()' function ",
           "to ensure it is positive definite.\n  ",
           "The maximum adjustment to any cell was ", max_adj, ".\n  ",
-          "'ci_lower' and 'ci_upper' were adjusted by the same amount as the ",
-          "primary correlation matrix."
+          "'ci_lower' and 'ci_upper' were adjusted by the same absolute amount",
+          " as the primary correlation matrix."
         )
       )
     }
@@ -893,6 +856,10 @@ sem.cor <- function(
     cor_mat <- cor_mat_y
     ci_lower <- ci_lower_y
     ci_upper <- ci_upper_y
+  } else if (is.null(fit_x) & length(fit_y) == 1) {
+    cor_mat <- cor_mat_yi
+    ci_lower <- ci_lower_yi
+    ci_upper <- ci_upper_yi
   } else {
     cor_mat <- rbind(cor_mat_y, cor_mat_yi)
     ci_lower <- rbind(ci_lower_y, ci_lower_yi)
