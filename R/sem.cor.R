@@ -239,86 +239,19 @@ sem.cor <- function(
     }
   )
   if (is.null(fit_x) & length(fit_y) >= 2) {
-    mod_key <- lapply(
+    pars <- lapply(
       seq_along(par1[-length(par1)]),
       function(y) {
         tmp <- lapply(
           (y + 1):length(par1),
           function(x) {
-            x1 <- par1[[x]]
-            y1 <- par1[[y]]
-            x2 <- x1[x1$op == "~~" | x1$op == "=~", ]
-            y2 <- y1[y1$op == "~~" | y1$op == "=~", ]
-            key_x <- unique(x1$rhs[x1$op == "=~"])
-            key_y <- unique(y1$rhs[y1$op == "=~"])
-            key0 <- c(x2$rhs[x2$op == "=~"], y2$rhs[y2$op == "=~"])
-            xn <- unique(x2$lhs[x2$op == "=~"])
-            yn <- unique(y2$lhs[y2$op == "=~"])
-            # Any shared items. Need to unfix residual variance for these.
-            i <- x1$lhs[x1$lhs %in% y1$lhs]
-            if (length(i) != 0) {
-              if (length(i) >= min(length(key_x), length(key_y))) {
-                if (length(key_x) < length(key_y)) {
-                  shorter_f <- xn
-                  longer_f <- yn
-                }
-                if (length(key_x) > length(key_y)) {
-                  shorter_f <- yn
-                  longer_f <- xn
-                }
-                if (length(key_x) == length(key_y)) {
-                  stop(
-                    paste0(
-                      "All items between '", yn, "' and '", xn, "' are shared.",
-                      "\nHave you included the same latent variable twice by ",
-                      "mistake?"
-                    )
-                  )
-                }
-                stop(
-                  paste0(
-                    "All the items in '", shorter_f, "' are included in '",
-                    longer_f, "'.\n",
-                    "Such a relationship should be specified as a bifactor ",
-                    "model with a correlation of 0 between the group and ",
-                    "general factors."
-                  )
-                )
-              }
-              warning(
-                paste0(
-                  "The following item(s) are in both the '", yn, "' and '", xn,
-                  "' factors. ",
-                  "If this is not intended, please correct it and disregard ",
-                  "the correlation between these factors.\n    ",
-                  paste(i, collapse = "\n    ")
-                )
-              )
-              for (j in i) {
-                x2 <- x2[!(x2$lhs == j & x2$op == "~~" & x2$rhs == j), ]
-                y2 <- y2[!(y2$lhs == j & y2$op == "~~" & y2$rhs == j), ]
-              }
-            }
-            mod0 <- paste0(
-              # CFA1
-              paste(x2$lhs, x2$op, x2$est, "*", x2$rhs, collapse = "\n"),
-              "\n",
-              # CFA2
-              paste(y2$lhs, y2$op, y2$est, "*", y2$rhs, collapse = "\n"),
-              collapse = "\n"
-            )
-            return(list(mod = mod0, key = key0))
+            x0 <- par1[[x]]
+            y0 <- par1[[y]]
+            list(x0 = x0, y0 = y0)
           }
         )
-        names(tmp) <- names(par1)[(y + 1):length(par1)]
-        mod1 <- lapply(tmp, function(x) x$mod)
-        key1 <- lapply(tmp, function(x) x$key)
-        return(list(mod = mod1, key = key1))
       }
     )
-    names(mod_key) <- names(par1)[seq_along(par1[-length(par1)])]
-    mods <- unlist(lapply(mod_key, function(x) x$mod), recursive = FALSE)
-    key <- unlist(lapply(mod_key, function(x) x$key), recursive = FALSE)
   } else if (!is.null(fit_x)) {
     # Correlations between constructs in fit_y and constructs in fit_x
     par2 <- lapply(fit_x, parameterEstimates)
@@ -341,12 +274,27 @@ sem.cor <- function(
         }
       }
     )
-    mod_key <- lapply(
+    pars <- lapply(
       par1,
       function(y) {
         tmp <- lapply(
           par2,
           function(x) {
+            list(x0 = x, y0 = y)
+          }
+        )
+      }
+    )
+  }
+  if ((is.null(fit_x) & length(fit_y) >= 2) | !is.null(fit_x)) {
+    mod_key <- lapply(
+      pars,
+      function(k) {
+        tmp <- lapply(
+          k,
+          function(j) {
+            x <- j[["x0"]]
+            y <- j[["y0"]]
             x1 <- x[x$op == "~~" | x$op == "=~", ]
             y1 <- y[y$op == "~~" | y$op == "=~", ]
             key_x <- unique(x1$rhs[x1$op == "=~"])
