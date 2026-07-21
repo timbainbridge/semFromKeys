@@ -419,13 +419,24 @@ esem.from.mods <- function(
       tmp[-(1:2)]
     }
   )
-  return(
-    list(
-      fit = mod_out$fit,
-      par_std = mod_out$par_std,
-      fit_measures = mod_out$fit_measures,
-      b = b,
-      r2 = r2
+  if (fit_save) {
+    return(
+      list(
+        fit = mod_out$fit,
+        par_std = mod_out$par_std,
+        fit_measures = mod_out$fit_measures,
+        b = b,
+        r2 = r2
+      )
     )
-  )
+  } else {
+    return(
+      list(
+        fit = mod_out$fit,
+        par_std = mod_out$par_std,
+        b = b,
+        r2 = r2
+      )
+    )
+  }
 }
