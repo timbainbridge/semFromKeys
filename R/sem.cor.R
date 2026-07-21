@@ -501,15 +501,15 @@ sem.cor <- function(
               i_r <- ""
             }
             i_l <- paste0(i, "_l")
+            key0 <- c(y$rhs[y$op == "=~"], i)
             if (!nagy) {
               mod0 <- paste0(
                 # CFA
                 paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
                 "\n",
-                paste0(i, "_l =~ ", i_r, i),
+                paste0(i_l, " =~ ", i_r, i),
                 collapse = "\n"
               )
-              key0 <- c(y$rhs[y$op == "=~"], i)
             } else {
               mod0 <- paste0(
                 # CFA
@@ -526,7 +526,7 @@ sem.cor <- function(
                 paste0(y1v$lhs, y1v$op, y1v$est, "*", y1v$rhs),
                 "\n",
                 # Item latent variable
-                paste0(i_l, "=~1*", items),
+                paste0(i_l, "=~", i_r, i),
                 "\n",
                 # Correlation
                 paste0(yn, "~~", paste0(i_l, collapse = "+")),

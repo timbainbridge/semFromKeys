@@ -304,12 +304,53 @@ test_that(
     )
   }
 )
-
-# Does not yet work with 'nagy = TRUE'.
-
-# test_that(
-#   "Works with 'nagy = TRUE'",
-#   {
-#     expect_equal(length(sem.cor(BFIGritHope, cfa_fit, nagy = TRUE)), 4)
-#   }
-# )
+test_that(
+  "Works with 'nagy = TRUE' for fit_y only",
+  {
+    fit_y <- cfa_fit[1:2]
+    cors <- sem.cor(BFIGritHope, fit_y, nagy = TRUE)
+    expect_equal(length(cors), 4)
+    expect_equal(length(cors$fit), ncol(combn(names(fit_y), 2)))
+    expect_equal(ncol(cors$cor_mat), length(fit_y))
+    expect_equal(nrow(cors$cor_mat), ncol(cors$cor_mat))
+    expect_equal(ncol(cors$ci_lower), ncol(cors$cor_mat))
+    expect_equal(nrow(cors$ci_lower), nrow(cors$cor_mat))
+    expect_equal(ncol(cors$ci_upper), ncol(cors$cor_mat))
+    expect_equal(nrow(cors$ci_upper), nrow(cors$cor_mat))
+  }
+)
+test_that(
+  "Works with 'nagy = TRUE' for fit_y and items",
+  {
+    fit_y <- cfa_fit[1]
+    items <- names(BFIGritHope)[grep("bfi.c\\d_1", names(BFIGritHope))]
+    cors <- sem.cor(BFIGritHope, fit_y, items = items, nagy = TRUE)
+    expect_equal(length(cors), 4)
+    expect_equal(
+      length(cors$fit),
+      ncol(combn(names(cfa_fit), 2)) + length(cfa_fit) * length(items)
+    )
+    expect_equal(ncol(cors$cor_mat), length(cfa_fit))
+    expect_equal(nrow(cors$cor_mat), length(cfa_fit) + length(items))
+    expect_equal(ncol(cors$ci_lower), length(cfa_fit))
+    expect_equal(nrow(cors$ci_lower), length(cfa_fit) + length(items))
+    expect_equal(ncol(cors$ci_upper), length(cfa_fit))
+    expect_equal(nrow(cors$ci_upper), length(cfa_fit) + length(items))
+  }
+)
+test_that(
+  "Works with 'nagy = TRUE' for fit_y and fit_x",
+  {
+    fit_y <- cfa_fit[1]
+    fit_x <- cfa_fit[2]
+    cors <- sem.cor(BFIGritHope, fit_y, fit_x, nagy = TRUE)
+    expect_equal(length(cors), 4)
+    expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
+    expect_equal(ncol(cors$cor_mat), length(fit_y))
+    expect_equal(nrow(cors$cor_mat), length(fit_x))
+    expect_equal(ncol(cors$ci_lower), ncol(cors$cor_mat))
+    expect_equal(nrow(cors$ci_lower), nrow(cors$cor_mat))
+    expect_equal(ncol(cors$ci_upper), ncol(cors$cor_mat))
+    expect_equal(nrow(cors$ci_upper), nrow(cors$cor_mat))
+  }
+)
