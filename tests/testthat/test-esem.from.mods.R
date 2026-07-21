@@ -1,8 +1,10 @@
 test_that(
   "Test normal behaviour: EFA and CFA only",
   {
-    esem_fit <- esem.from.mods(BFIGritHope, efa_fit, cfa_fit)
-    expect_equal(length(esem_fit), 5)
+    esem_fit <- esem.from.mods(
+      efa_fit, cfa_fit, data = BFIGritHope, fit_save = FALSE
+    )
+    expect_equal(length(esem_fit), 4)
     expect_equal(length(esem_fit$fit), length(keys))
     expect_equal(length(esem_fit$par), length(keys))
     expect_equal(
@@ -15,8 +17,10 @@ test_that(
 test_that(
   "Test normal behaviour: EFA and bifactor only",
   {
-    esem_fit <- esem.from.mods(BFIGritHope, efa_fit, bif_fit = bif_fit)
-    expect_equal(length(esem_fit), 5)
+    esem_fit <- esem.from.mods(
+      efa_fit, bif_fit = bif_fit, data = BFIGritHope, fit_save = FALSE
+    )
+    expect_equal(length(esem_fit), 4)
     expect_equal(length(esem_fit$fit), length(keys_g))
     expect_equal(length(esem_fit$par), length(keys_g))
     expect_equal(
@@ -27,7 +31,7 @@ test_that(
   }
 )
 test_that(
-  "Test normal behaviour: EFA and both CFA and bifactor",
+  "Test normal behaviour: EFA and both CFA and bifactor with fit_save = TRUE",
   {
     esem_fit <- esem.from.mods(
       BFIGritHope, efa_fit, cfa_fit = cfa_fit, bif_fit = bif_fit,

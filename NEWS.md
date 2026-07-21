@@ -1,3 +1,7 @@
+# semFromKeys 0.2.3
+
+* Fixed esem.from.mods returning an empty fit_measures entry when fit_save = FALSE.
+
 # semFromKeys 0.2.2
 
 * Fixed the option issue that remained at the last CRAN submission (in esem.from.mods.R).
