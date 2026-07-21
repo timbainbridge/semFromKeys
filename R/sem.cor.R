@@ -159,9 +159,9 @@
 #' cors2$cor_mat
 
 sem.cor <- function(
-    data, fit_y, fit_x = NULL, items = NULL, miss = "ML", est = "default",
-    item_loadings = NULL,
-    name = "cors", check = FALSE, save_out = FALSE, nagy = TRUE
+    data, fit_y, fit_x = NULL, items = NULL,  item_loadings = NULL, nagy = TRUE,
+    fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
+    name = "cors", check = FALSE, save_out = FALSE
 ) {
   # Single model instead of list.
   if (!is.list(fit_y) & inherits(fit_y, "lavaan")) {
@@ -610,8 +610,17 @@ sem.cor <- function(
     }
   }
   fit <- sem.check(
-    mods, data, keys_s = key, miss = miss, est = est, name = name,
-    check = check, save_out = save_out, std.lv = TRUE
+    mods,
+    data,
+    name = name,
+    keys_s = key,
+    fit_save = fit_save,
+    fit_measures = fit_measures,
+    miss = miss,
+    est = est,
+    check = check,
+    save_out = save_out,
+    std.lv = TRUE
   )
   if (!is.null(fit_x) | length(fit_y) > 1) {
     xn <- names(par1)
