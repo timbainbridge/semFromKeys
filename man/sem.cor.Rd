@@ -10,13 +10,15 @@ sem.cor(
   fit_y,
   fit_x = NULL,
   items = NULL,
+  item_loadings = NULL,
+  nagy = TRUE,
+  fit_save = FALSE,
+  fit_measures = "all",
   miss = "ML",
   est = "default",
-  item_loadings = NULL,
   name = "cors",
   check = FALSE,
-  save_out = FALSE,
-  nagy = TRUE
+  save_out = FALSE
 )
 }
 \arguments{
@@ -32,14 +34,6 @@ or 'NULL'.}
 Must not include any items contributing to the measurement of a \code{fit_y}
 latent variable.}
 
-\item{miss}{A string.
-Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
-Defaults to 'ML'.}
-
-\item{est}{A string.
-Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
-The default ('default') uses the lavaan default for the model being run.}
-
 \item{item_loadings}{When single items are specified, items are included in models with single
 item latent variables. \code{item_loadings} sets the loading of the item on the
 factor.
@@ -47,6 +41,30 @@ It can be a single number to set all loadings equal or a vector of
 length equal to the length of items.
 Defaults allows the value to be free (which assumes perfect reliability).
 Irrelevant if \code{items = NULL}.}
+
+\item{nagy}{Logical. Indicates whether to use Nagy and colleagues' (2017) extension
+procedure instead of Burt's (1976) 2-stage procedure.}
+
+\item{fit_save}{Logical.
+\code{TRUE} indicates model fit measures should be included in the output;
+\code{FALSE} indicates model fit measures should not be included in the output.
+\code{FALSE} may be desirable when fit measures are of little interest and when
+they may take a long time to estimate.
+Fit can still be examined for individual models with,
+\verb{lavaan::fitMeasures(fit$fit$[model name])}.}
+
+\item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
+as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+function.
+Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
+
+\item{miss}{A string.
+Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Defaults to 'ML'.}
+
+\item{est}{A string.
+Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+The default ('default') uses the lavaan default for the model being run.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.
@@ -68,9 +86,6 @@ parameter values, and output will be saved;
 Selecting \code{save_out = TRUE} enables the function to not rerun models next
 time if \code{check = TRUE} the next time the code is run and nothing has changed
 in the meantime.}
-
-\item{nagy}{Logical. Indicates whether to use Nagy and colleagues' (2017) extension
-procedure instead of Burt's (1976) 2-stage procedure.}
 }
 \value{
 Returns a list of length 4.
