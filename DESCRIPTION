@@ -31,7 +31,8 @@ Imports:
     withr,
     tools,
     matrixcalc,
-    Matrix
+    Matrix,
+    stats
 Suggests: 
     testthat (>= 3.0.0),
     here,

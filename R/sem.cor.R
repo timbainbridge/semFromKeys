@@ -145,16 +145,18 @@
 #'   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
 #' )
 #' # Run CFA models
-#' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
+#' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
 #' # Find correlations between all cfa_fit constructs.
-#' cors <- sem.cor(BFIGritHope, cfa_fit$fit)
+#' cors <- sem.cor(BFIGritHope, cfa_fit$fit, nagy = FALSE)
 #' # View the correlation matrix
 #' cors$cor_mat
 #'
 #' # Correlations of grit facets with hope facets and the first item from each
 #' # Big Five factor.
 #' items <- names(BFIGritHope)[grep("bfi_.*1_1", names(BFIGritHope))]
-#' cors2 <- sem.cor(BFIGritHope, cfa_fit$fit[1:2], cfa_fit$fit[3:4], items)
+#' cors2 <- sem.cor(
+#'   BFIGritHope, cfa_fit$fit[1:2], cfa_fit$fit[3:4], items, nagy = FALSE
+#' )
 #' # View correlations
 #' cors2$cor_mat
 
@@ -203,14 +205,6 @@ sem.cor <- function(
           paste(
             "'item_loadings' must be either 'NULL', length 1, or length equal",
             "to the lenght or items."
-          )
-        )
-      }
-      if (max(item_loadings) > 1 | min(item_loadings) <= 0) {
-        stop(
-          paste(
-            "'item_loadings' (if specified) must be greater than 0 and",
-            "less than or equal to 1."
           )
         )
       }
@@ -276,11 +270,16 @@ sem.cor <- function(
     }
   )
   if (is.null(fit_x) & length(fit_y) >= 2) {
-    pars <- lapply(
-      seq_along(par1[-length(par1)]),
+    pars <-lapply(
+      stats::setNames(
+        seq_along(par1[-length(par1)]),
+        names(par1)[seq_along(par1[-length(par1)])]
+      ),
       function(y) {
-        tmp <- lapply(
-          (y + 1):length(par1),
+        lapply(
+          stats::setNames(
+            (y + 1):length(par1), names(par1)[(y + 1):length(par1)]
+          ),
           function(x) {
             x0 <- par1[[x]]
             y0 <- par1[[y]]
@@ -311,16 +310,12 @@ sem.cor <- function(
         }
       }
     )
-    pars <- lapply(
+    pars <- sapply(
       par1,
       function(y) {
-        tmp <- lapply(
-          par2,
-          function(x) {
-            list(x0 = x, y0 = y)
-          }
-        )
-      }
+        sapply(par2, function(x) list(x0 = x, y0 = y), simplify = FALSE)
+      },
+      simplify = FALSE
     )
   }
   if ((is.null(fit_x) & length(fit_y) >= 2) | !is.null(fit_x)) {
@@ -373,7 +368,7 @@ sem.cor <- function(
                 stop(
                   paste0(
                     "All the items in '", shorter_f, "' are included in '",
-                    longer_f, "'.\n",
+                    longer_f, "'.\n  ",
                     "Such a relationship should be specified as a bifactor ",
                     "model with a correlation of 0 between the group and ",
                     "general factors."
@@ -526,7 +521,7 @@ sem.cor <- function(
           names(item_loadings) <- items
         }
         tmp <- lapply(
-          setNames(nm = items),
+          stats::setNames(nm = items),
           function(i) {
             if (!is.null(item_loadings)) {
               if (length(item_loadings) == length(items)) {
@@ -623,25 +618,32 @@ sem.cor <- function(
     std.lv = TRUE
   )
   if (!is.null(fit_x) | length(fit_y) > 1) {
-    xn <- names(par1)
-    yn <- names(par2)
-    cors_y <- sapply(
-      fit$par_std[
+    xn0 <- sub(".*\\.", "", names(mods))
+    xn <- xn0[!xn0 %in% items]
+    yn <- sub("\\..*", "", names(mods))[!xn0 %in% items]
+    cors_y <- mapply(
+      x = fit$par_std[
         !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
       ],
-      function(x) x$est.std[x$lhs == yn & x$rhs == xn]
+      xn0 = xn,
+      yn0 = yn,
+      FUN = function(x, xn0, yn0) x$est.std[x$lhs == xn0 & x$rhs == yn0]
     )
-    ci_lower_y0 <- sapply(
-      fit$par_std[
+    ci_lower_y0 <- mapply(
+      x = fit$par_std[
         !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
       ],
-      function(x) x$ci.lower[x$lhs == yn & x$rhs == xn]
+      xn0 = xn,
+      yn0 = yn,
+      FUN = function(x, xn0, yn0) x$ci.lower[x$lhs == xn0 & x$rhs == yn0]
     )
-    ci_upper_y0 <- sapply(
-      fit$par_std[
+    ci_upper_y0 <- mapply(
+      x = fit$par_std[
         !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
       ],
-      function(x) x$ci.upper[x$lhs == yn & x$rhs == xn]
+      xn0 = xn,
+      yn0 = yn,
+      FUN = function(x, xn0, yn0) x$ci.upper[x$lhs == xn0 & x$rhs == yn0]
     )
     if (is.null(fit_x)) {
       cor_mat_y <- sapply(
@@ -746,14 +748,6 @@ sem.cor <- function(
         ci_upper_y <- matrix(ci_upper_y, nrow = 1)
         colnames(ci_upper_y) <- names(fit_y)
       }
-      if (is.vector(cor_mat_y) & length(fit_y) == 1) {
-        cor_mat_y <- matrix(cor_mat_y, ncol = 1)
-        colnames(cor_mat_y) <- names(fit_y)
-        ci_lower_y <- matrix(ci_lower_y, ncol = 1)
-        colnames(ci_lower_y) <- names(fit_y)
-        ci_upper_y <- matrix(ci_upper_y, ncol = 1)
-        colnames(ci_upper_y) <- names(fit_y)
-      }
       rownames(cor_mat_y) <- names(fit_x)
       rownames(ci_lower_y) <- names(fit_x)
       rownames(ci_upper_y) <- names(fit_x)
@@ -811,14 +805,6 @@ sem.cor <- function(
       ci_upper_yi <- matrix(ci_upper_yi, nrow = 1)
       colnames(ci_upper_yi) <- names(fit_y)
     }
-    if (is.vector(cor_mat_yi) & length(fit_y) == 1) {
-      cor_mat_yi <- matrix(cor_mat_yi, ncol = 1)
-      colnames(cor_mat_yi) <- names(fit_y)
-      ci_lower_yi <- matrix(ci_lower_yi, ncol = 1)
-      colnames(ci_lower_yi) <- names(fit_y)
-      ci_upper_yi <- matrix(ci_upper_yi, ncol = 1)
-      colnames(ci_upper_yi) <- names(fit_y)
-    }
     rownames(cor_mat_yi) <- items
     rownames(ci_lower_yi) <- items
     rownames(ci_upper_yi) <- items
@@ -859,12 +845,19 @@ sem.cor <- function(
     ci_lower <- rbind(ci_lower_y, ci_lower_yi)
     ci_upper <- rbind(ci_upper_y, ci_upper_yi)
   }
-  return(
-    list(
-      fit = fit$fit,
-      par_std = mod_out$par_std,
-      # fit_measures = mod_out$fit_measures,
-      cor_mat = cor_mat, ci_lower = ci_lower, ci_upper = ci_upper
+  if (fit_save) {
+    return(
+      list(
+        fit = fit$fit, fit_measures = fit$fit_measures,
+        cor_mat = cor_mat, ci_lower = ci_lower, ci_upper = ci_upper
+      )
     )
-  )
+  } else {
+    return(
+      list(
+        fit = fit$fit,
+        cor_mat = cor_mat, ci_lower = ci_lower, ci_upper = ci_upper
+      )
+    )
+  }
 }

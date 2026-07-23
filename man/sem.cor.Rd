@@ -185,7 +185,9 @@ cors$cor_mat
 # Correlations of grit facets with hope facets and the first item from each
 # Big Five factor.
 items <- names(BFIGritHope)[grep("bfi_.*1_1", names(BFIGritHope))]
-cors2 <- sem.cor(BFIGritHope, cfa_fit$fit[1:2], cfa_fit$fit[3:4], items)
+cors2 <- sem.cor(
+  BFIGritHope, cfa_fit$fit[1:2], cfa_fit$fit[3:4], items, nagy = FALSE
+)
 # View correlations
 cors2$cor_mat
 }
