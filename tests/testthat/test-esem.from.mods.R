@@ -76,25 +76,6 @@ test_that(
     )
   }
 )
-# Currently not throwing a warning due to dynamic renaming of single models
-# entered not as a list.
-# test_that(
-#   "Different names to factor names",
-#   {
-#     expect_warning(
-#       esem.from.mods(
-#         BFIGritHope, efa_fit, setNames(cfa_fit, nm = letters[1:4])
-#       ),
-#       "names of 'cfa_fit' do not match the factor names"
-#     )
-#     expect_warning(
-#       esem.from.mods(
-#         BFIGritHope, efa_fit, bif_fit = setNames(bif_fit, nm = letters[1:2])
-#       ),
-#       "names of 'bif_fit' do not match the general factor names"
-#     )
-#   }
-# )
 test_that(
   "efa_fit is NULL",
   {

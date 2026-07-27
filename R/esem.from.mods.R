@@ -173,17 +173,6 @@
 #' keys <- sapply(
 #'   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
 #' )
-#' # Create bifactor keys
-#' keys_g0 <- c("grit", "hope")
-#' keys_g <- sapply(
-#'   keys_g0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
-#' )
-#' keys_b1 <- sapply(
-#'   keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
-#' )
-#' # Avoid fit problems with an S-1 model (Eid et al., 2017)
-#' keys_b <- keys_b1
-#' keys_b$hope <- keys_b1$hope[-1]
 #' # Create EFA keys
 #' # Using only 3 factors and fewer items to save time for a simple example
 #' # (This results in a less than ideal solution but it doesn't matter for an
@@ -199,12 +188,9 @@
 #' # Create fitted objects to use as inputs
 #' cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)
 #' efa_fit <- efa.from.keys(keys_e, BFIGritHope, fit_save = FALSE)
-#' bif_fit <- bifactor.from.keys(
-#'   keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE
-#' )
 #' # Run models
 #' esem_fit <- esem.from.mods(
-#'   efa_fit$fit$efa, cfa_fit$fit, bif_fit$fit, data = BFIGritHope,
+#'   efa_fit$fit$efa, cfa_fit$fit, data = BFIGritHope,
 #'   fit_save = FALSE, check = FALSE
 #' )
 #' # Examine results
@@ -280,18 +266,6 @@ esem.from.mods <- function(
       }
     )
     names(cfa_fit) <- names(cfa_par) <- cfa_names
-    # if (!is.null(names(cfa_fit))) {
-    #   if (sum(names(cfa_fit) != cfa_names) > 0) {
-    #     warning(
-    #       paste(
-    #         "The names of 'cfa_fit' do not match the factor names.",
-    #         "The set of functions in the semFromKeys package assume they do.",
-    #         "Therefore, names of returned objects will not match the names of",
-    #         "the 'cfa_fit' input but will instead reflect the factor names."
-    #       )
-    #     )
-    #   }
-    # }
     cfa_keys <- sapply(cfa_par, function(x) x$rhs[x$op == "=~"])
     names(cfa_keys) <- cfa_names
     if (sum(table(names(cfa_keys)) > 1) > 0) {
@@ -314,18 +288,19 @@ esem.from.mods <- function(
         names(tmp)[tmp == max(tmp)]
       }
     )
-    names(bif_fit) <- names(bif_par) <- names(bif_keys) <- bif_names
-    # if (!is.null(names(bif_fit))) {
-    #   if (sum(names(bif_fit) != bif_names) > 0) {
-    #     warning(
-    #       paste(
-    #         "The names of 'bif_fit' do not match the general factor names.",
-    #         "Names of returned objects are based on factor names",
-    #         "so they will not match the names of 'bif_fit'."
-    #       )
-    #     )
-    #   }
-    # }
+    names(bif_par) <- bif_names
+    if (!is.null(names(bif_fit))) {
+      if (sum(names(bif_fit) != bif_names) > 0) {
+        warning(
+          paste(
+            "The names of 'bif_fit' do not match the general factor names.",
+            "Names of returned objects are based on factor names",
+            "so they will not match the names of 'bif_fit'."
+          )
+        )
+      }
+    }
+    names(bif_keys) <- bif_names
     if (sum(table(names(bif_keys)) > 1) > 0) {
       stop(
         paste(

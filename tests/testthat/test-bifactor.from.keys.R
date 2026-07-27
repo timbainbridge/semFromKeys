@@ -1,5 +1,5 @@
 test_that(
-  "Test normal behaviour with fit_save = FALSE",
+  "Test normal behaviour with 'fit_save = FALSE'",
   {
     bif_fit <- bifactor.from.keys(
       keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE
@@ -11,7 +11,7 @@ test_that(
   }
 )
 test_that(
-  "Test normal behaviour with fit_save = TRUE",
+  "Test normal behaviour with 'fit_save = TRUE'",
   {
     bif_fit <- bifactor.from.keys(
       keys_g, keys_b, keys, BFIGritHope, fit_save = TRUE

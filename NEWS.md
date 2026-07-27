@@ -1,6 +1,11 @@
+# semFromKeys 0.2.4
+
+* Updated `cache.clean()` to only work in non-interactive sessions when `interactive = FALSE`.
+* Changed `cache.setup()` and `cache.clean()` examples to `\dontrun` to prevent saved elements from remaining after CRAN checks of `\donttest`.
+
 # semFromKeys 0.2.3
 
-* Fixed esem.from.mods returning an empty fit_measures entry when fit_save = FALSE.
+* Fixed esem.from.mods returning an empty `fit_measures` entry when `fit_save = FALSE`.
 
 # semFromKeys 0.2.2
 
@@ -19,7 +24,7 @@
 
 # semFromKeys 0.1.1
 
-* Added caching with [cache.setup()] and [cache.clean()] for use with
+* Added caching with `cache.setup()` and `cache.clean()` for use with
 `save_out = TRUE` and `check = TRUE`.
 
 # semFromKeys 0.1.0

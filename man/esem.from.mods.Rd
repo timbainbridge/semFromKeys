@@ -199,17 +199,6 @@ keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
 keys <- sapply(
   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
 )
-# Create bifactor keys
-keys_g0 <- c("grit", "hope")
-keys_g <- sapply(
-  keys_g0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
-)
-keys_b1 <- sapply(
-  keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
-)
-# Avoid fit problems with an S-1 model (Eid et al., 2017)
-keys_b <- keys_b1
-keys_b$hope <- keys_b1$hope[-1]
 # Create EFA keys
 # Using only 3 factors and fewer items to save time for a simple example
 # (This results in a less than ideal solution but it doesn't matter for an
@@ -225,12 +214,9 @@ keys_e <- sapply(
 # Create fitted objects to use as inputs
 cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)
 efa_fit <- efa.from.keys(keys_e, BFIGritHope, fit_save = FALSE)
-bif_fit <- bifactor.from.keys(
-  keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE
-)
 # Run models
 esem_fit <- esem.from.mods(
-  efa_fit$fit$efa, cfa_fit$fit, bif_fit$fit, data = BFIGritHope,
+  efa_fit$fit$efa, cfa_fit$fit, data = BFIGritHope,
   fit_save = FALSE, check = FALSE
 )
 # Examine results

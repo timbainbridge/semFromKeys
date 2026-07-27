@@ -50,7 +50,7 @@
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   # Setup a cache directory
 #'   cache.setup()
 #'   # Now code with check = TRUE or save_out = TRUE will work, e.g.,
@@ -67,7 +67,15 @@
 #'   cfa_fit <- cfa.from.keys(
 #'     keys, BFIGritHope, fit_save = TRUE, check = TRUE, save_out = TRUE
 #'   )
-#'   cache.clean(60/86400)  # Delete files not modified in the last minute.
+#'
+#'   # The cache.clean lines are commented out so you do not inadvertently
+#'   # delete any models created with your own code in the same cache directory.
+#'
+#'   # cache.clean(30)  # Delete files not modified in the last 30 days.
+#'   # cache.clean(60/86400)  # Delete files not modified in the last minute.
+#'   # Delete all files matching those created by the package in the current
+#'   # cache directory and subdirectories without confirmation.
+#'   # cache.clean(0, interactive = FALSE)
 #' }
 
 cache.clean <- function(older_than = NULL, interactive = TRUE) {
@@ -106,7 +114,18 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
     message("No files to delete.")
   } else {
     # Prompt user if interactive
-    if (interactive & interactive()) {
+    if (!interactive() & interactive) {
+      stop(
+        paste(
+          "Running 'cache.clean' in a non-interactive session with",
+          "'interactive = TRUE' does not delete anything to prevent unexpected",
+          "data loss.",
+          "If you want to clean the cache in a non non-interactive session,",
+          "please set 'interactive = TRUE'."
+        )
+      )
+    }
+    if (interactive) {
       message(
         paste0(
           "About to delete the following ", length(files_del),
@@ -138,7 +157,18 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
   dirs_del <- dirs[dirs_empty]
   dirs_del <- dirs_del[-1]  # Don't delete parent (i.e., cache_dir)
   if (length(dirs_del) > 0) {
-    if (interactive & interactive()) {
+    if (!interactive() & interactive) {
+      stop(
+        paste(
+          "Running 'cache.clean' in a non-interactive session with",
+          "'interactive = TRUE' does not delete anything to prevent unexpected",
+          "data loss.",
+          "If you want to clean the cache in a non non-interactive session,",
+          "please set 'interactive = TRUE'."
+        )
+      )
+    }
+    if (interactive) {
       message(
         paste0(
           "\nAbout to delete the following ", length(dirs_del) - 1,
@@ -161,7 +191,18 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
   if (length(list.files(cache_dir, full.names = TRUE, recursive = TRUE)) > 0) {
     return(invisible(NULL))
   }
-  if (interactive & interactive()) {
+  if (!interactive() & interactive) {
+    stop(
+      paste(
+        "Running 'cache.clean' in a non-interactive session with",
+        "'interactive = TRUE' does not delete anything to prevent unexpected",
+        "data loss.",
+        "If you want to clean the cache in a non non-interactive session,",
+        "please set 'interactive = TRUE'."
+      )
+    )
+  }
+  if (interactive) {
     message(paste0("The top cache directory, '", cache_dir, "', is empty."))
     response <- readline(
       paste(
@@ -173,15 +214,15 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
       message("Cancelled.")
       return(invisible(NULL))
     }
-    unlink(cache_dir)
-    rm(.cache_env, envir = .GlobalEnv)
-    message(
-      paste0(
-        "'", cache_dir, "' has been deleted.\n",
-        "To use 'check = TRUE' or 'save_out = TRUE',",
-        "'cache.setup()' will have to be reinitiated."
-      )
+  }
+  unlink(cache_dir)
+  rm(.cache_env, envir = env)
+  message(
+    paste0(
+      "'", cache_dir, "' has been deleted.\n",
+      "To use 'check = TRUE' or 'save_out = TRUE',",
+      "'cache.setup()' will have to be reinitiated."
     )
-    return(invisible(NULL))
-  } else invisible(NULL)
+  )
+  return(invisible(NULL))
 }
