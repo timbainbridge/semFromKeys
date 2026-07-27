@@ -95,8 +95,11 @@
 #' especially when closely related factors are included.
 #' If the matrix of latent variables is not positive definite,
 #' then the matrix will be adjusted to the nearest positive definite
-#' matrix using the `[Matrix::nearPD()]` function,
-#' which employs the method developed by Higham (2002).
+#' matrix using the [Matrix::nearPD()] function,
+#' which employs the method developed by Higham (2002),
+#' and a message will state that the matrix was adjusted and the maximum
+#' adjustment to any cell.
+#' Confidence intervals will be adjusted by the same amount.
 #'
 #' The model relies on [sem.check()] for the back-end of running the models,
 #' which enables saving inputs and outputs from model runs
@@ -106,7 +109,7 @@
 #' faster models, such that time spent rerunning them would be onerous.
 #' In the case of `sem.cor()`, the number of correlations can add up quickly,
 #' so the functionality may be useful
-#' (e.g., with 20 scales there are 19 + 18 + 17 + ... + 1 = 190 correlations).
+#' (e.g., with 20 scales, there are 19 + 18 + 17 + ... + 1 = 190 correlations).
 #' For further details on how this works, see the [sem.check()] function
 #' documentation.
 #'
@@ -270,7 +273,7 @@ sem.cor <- function(
     }
   )
   if (is.null(fit_x) & length(fit_y) >= 2) {
-    pars <-lapply(
+    pars <- lapply(
       stats::setNames(
         seq_along(par1[-length(par1)]),
         names(par1)[seq_along(par1[-length(par1)])]

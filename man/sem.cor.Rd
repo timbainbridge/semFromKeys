@@ -154,8 +154,11 @@ definite correlation matrix between variables included in \code{fit_y},
 especially when closely related factors are included.
 If the matrix of latent variables is not positive definite,
 then the matrix will be adjusted to the nearest positive definite
-matrix using the \verb{[Matrix::nearPD()]} function,
-which employs the method developed by Higham (2002).
+matrix using the \code{\link[Matrix:nearPD]{Matrix::nearPD()}} function,
+which employs the method developed by Higham (2002),
+and a message will state that the matrix was adjusted and the maximum
+adjustment to any cell.
+Confidence intervals will be adjusted by the same amount.
 
 The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models,
 which enables saving inputs and outputs from model runs
@@ -165,7 +168,7 @@ The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
 In the case of \code{sem.cor()}, the number of correlations can add up quickly,
 so the functionality may be useful
-(e.g., with 20 scales there are 19 + 18 + 17 + ... + 1 = 190 correlations).
+(e.g., with 20 scales, there are 19 + 18 + 17 + ... + 1 = 190 correlations).
 For further details on how this works, see the \code{\link[=sem.check]{sem.check()}} function
 documentation.
 }
