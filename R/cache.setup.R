@@ -17,6 +17,8 @@
 #' If any other string is used a folder will be created within either the
 #' [getwd()] directory or,
 #' if available, within the directory identified by [here::here()].
+#' If using an RStudio project, these will create the directory in the
+#' project directory.
 #' @param interactive
 #' Logical.
 #' `TRUE` indicates that confirmation will be required before a cache directory
@@ -87,7 +89,7 @@
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   # Setup a cache directory
 #'   cache.setup()
 #'   # Now code with check = TRUE or save_out = TRUE will work, e.g.,
@@ -137,7 +139,7 @@ cache.setup <- function(location = "user", interactive = TRUE) {
     }
   } else {
     if (!is.character(location)) {
-      stop("`location` is not a length 1 character vector")
+      stop("'location' is not a length 1 character vector")
     }
     if (interactive & interactive()) {
       if (requireNamespace("here")) {

@@ -251,7 +251,7 @@ test_that(
       "the condition has length > 1"
     )
     expect_error(
-      cache.setup(42), "`location` is not a length 1 character vector"
+      cache.setup(42), "'location' is not a length 1 character vector"
     )
   }
 )
