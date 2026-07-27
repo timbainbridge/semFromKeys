@@ -166,9 +166,9 @@ keys_g0 <- c("grit", "hope")
 keys_g <- sapply(
   keys_g0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
 )
-keys_b1 <- sapply(
+\donttest{keys_b1 <- sapply(
   keys_g0, function(x) keys0[grep(x, keys0)], simplify = FALSE
-)
+)}
 # Avoid fit problems with an S-1 model (Eid et al., 2017)
 keys_b <- keys_b1
 keys_b$hope <- keys_b1$hope[-1]

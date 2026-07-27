@@ -12,7 +12,9 @@ If \code{location = "user"} (default, recommended if unsure),
 then the system's default cache location is used.
 If any other string is used a folder will be created within either the
 \code{\link[=getwd]{getwd()}} directory or,
-if available, within the directory identified by \code{\link[here:here]{here::here()}}.}
+if available, within the directory identified by \code{\link[here:here]{here::here()}}.
+If using an RStudio project, these will create the directory in the
+project directory.}
 
 \item{interactive}{Logical.
 \code{TRUE} indicates that confirmation will be required before a cache directory
@@ -85,7 +87,7 @@ Functions that directly or indirectly might require a cache directory are:
 \code{\link[=esem.from.mods]{esem.from.mods()}}, and \code{\link[=sem.check]{sem.check()}}.
 }
 \examples{
-\donttest{
+\dontrun{
   # Setup a cache directory
   cache.setup()
   # Now code with check = TRUE or save_out = TRUE will work, e.g.,

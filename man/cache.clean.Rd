@@ -47,7 +47,7 @@ previously ran it 2 days ago, you could run all your code and, when it has
 finished, use \code{cache.clean(older_than = 1)}.
 }
 \examples{
-\donttest{
+\dontrun{
   # Setup a cache directory
   cache.setup()
   # Now code with check = TRUE or save_out = TRUE will work, e.g.,
@@ -64,7 +64,15 @@ finished, use \code{cache.clean(older_than = 1)}.
   cfa_fit <- cfa.from.keys(
     keys, BFIGritHope, fit_save = TRUE, check = TRUE, save_out = TRUE
   )
-  cache.clean(60/86400)  # Delete files not modified in the last minute.
+
+  # The cache.clean lines are commented out so you do not inadvertently
+  # delete any models created with your own code in the same cache directory.
+
+  # cache.clean(30)  # Delete files not modified in the last 30 days.
+  # cache.clean(60/86400)  # Delete files not modified in the last minute.
+  # Delete all files matching those created by the package in the current
+  # cache directory and subdirectories without confirmation.
+  # cache.clean(0, interactive = FALSE)
 }
 }
 \seealso{
