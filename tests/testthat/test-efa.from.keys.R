@@ -57,11 +57,11 @@ test_that(
     keys_mistake$bfi_e[1] <- "mistake"
     expect_error(
       efa.from.keys(keys_mistake, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "items are in `keys_e` but they are not in `data`"
+      "items are in 'keys_e' but they are not in 'data'"
     )
     expect_error(
       efa.from.keys(keys_e$bfi_e, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "`keys_e` is not a list"
+      "'keys_e' is not a list"
     )
   }
 )
@@ -72,7 +72,7 @@ test_that(
     names(keys_e_nm)[1:2] <- "bfi_e"
     expect_error(
       efa.from.keys(keys_e_nm, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "two elements of `keys_e` share the same name"
+      "two elements of 'keys_e' share the same name"
     )
   }
 )
@@ -88,7 +88,7 @@ test_that(
   }
 )
 test_that(
-  "Test running on `check = TRUE` after changes to orthogonal",
+  "Test running on 'check = TRUE' after changes to orthogonal",
   {
     cache_dir <- cache.setup("tests/testthat")
     check_fit <- efa.from.keys(
@@ -114,7 +114,7 @@ test_that(
   }
 )
 test_that(
-  "Test running on `check = TRUE` after changes to est",
+  "Test running on 'check = TRUE' after changes to est",
   {
     cache.setup("tests/testthat")
     check_fit <- efa.from.keys(
