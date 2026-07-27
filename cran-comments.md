@@ -16,9 +16,9 @@
 
 0 errors | 0 warnings | 0 notes
 
-### Notes
+### Note
 
-* setup.cache() and cache.clean() create and setup, and clean a cache directory. The \donttest examples did not aggressively clean the cache, so model outputs remained when the examples were run. I could have fixed it by including an aggressive version of cache.clean in the examples but, if a user has set up the same cache directory as the example, they may delete results stored there unintentionally because the argument `interactive = FALSE` would have to be set to work in testing the example. Therefore, I have chosen to wrap the examples in \dontrun instead of \donttest, so the examples remain useful to users without risking deleting their data, while also passing CRAN's automated tests.
+`setup.cache()` and `cache.clean()` create and set up, and clean a cache directory. The `\donttest` examples did not aggressively clean the cache, so model outputs remained when the examples were run. I could have fixed it by including an aggressive version of `cache.clean()` in the examples but, if a user has set up the same cache directory as the example, they may delete results stored there unintentionally because the argument `interactive = FALSE` would have to be set to work in testing. Therefore, I have chosen to wrap the examples in `\dontrun` instead of `\donttest`, so the examples remain useful to users without risking deleting their data, while also passing CRAN's automated tests.
 
 ## 17-7-2026 submission
 
