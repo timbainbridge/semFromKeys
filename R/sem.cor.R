@@ -138,7 +138,7 @@
 #'
 #' Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
 #' Extension Procedures for Confirmatory Factor Analysis.
-#' Journal of Experimental Education, 85(4).
+#' Journal of Experimental Education, 85(4), 574-596.
 #' https://doi.org/10.1080/00220973.2016.1260524.
 #'
 #' @examples
