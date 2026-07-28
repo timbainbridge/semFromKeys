@@ -14,34 +14,40 @@ instead of writing out the code for models manually. For confirmatory
 factor analyses (CFAs) and bifactor models, the code creates and runs a
 series of models based on keys indicating each of the factors in the
 models. For exploratory factor analyses (EFAs) keys list are used to
-create a target rotation for a single EFA. For exploratory structural
-equation models (ESEM), the code takes a fitted EFA model and fitted CFA
-and/or bifactor models and runs an ESEM for each CFA or bifactor model
-input. In the ESEM, the EFA factors predict a series of latent variables
-in separate models using Burt’s (1976) 2-stage procedure to prevent
-interpretational confounding. The ESEM models were designed to run
-analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
+create a target rotation for a single EFA. For latent variable
+correlations, the model takes fitted CFA models and runs a series of
+models computing correlations between latent variables and, optionally,
+single items. For exploratory structural equation models (ESEM), the
+code takes a fitted EFA model and fitted CFA and/or bifactor models and
+runs an ESEM for each CFA or bifactor model input. In the ESEM, the EFA
+factors predict a series of latent variables in separate models using
+Burt’s (1976) 2-stage procedure to prevent interpretational confounding.
+The ESEM models were designed to run analyses equivalent to that of
+Bainbridge, Ludeke, and Smillie (2022).
 
 Although the package might be of most use to those running ESEM similar
 to those of Bainbridge and colleagues (2022), it could also be very
-helpful to anyone wanting to estimate a CFA measurement model for each
-scale in a sample to either check measurement characteristics before
-proceeding with further analyses or to simply compute measurement model
-based reliability statistics.
+helpful to anyone wanting to create a correlation matrix based on latent
+variables rather than sum scores or to estimate a CFA measurement model
+for each scale in a sample to either check measurement characteristics
+before proceeding with further analyses or to simply compute measurement
+model based reliability statistics.
 
-For more sets of models that take a long time to run, code has been
-included to allow the first run to save outputs that can be checked
-against in subsequent runs. If nothing has changed, then the previous
-outputs are returned, saving the time (and energy) of running them
-again. To get this feature to work, the R version has to be 4.0 or later
-and a cache directory will have to be set with the `cache.setup()`
-function, which, by default, configures a cache directory in the users’
-cache as determined by the operating system. It can alternatively be set
-as a subdirectory within the current project or, if not using a project,
-the current working directory. Once the cache is set, `save_out = TRUE`
-can be included in function calls to save the relevant outputs, and
+For sets of models that take a long time to run, code has been included
+to allow the first run to save outputs that can be checked against in
+subsequent runs. If nothing has changed, then the previous outputs are
+returned, saving the time (and energy) of running them again. To get
+this feature to work, the R version has to be 4.0 or later and a cache
+directory will have to be set with the `cache.setup()` function, which,
+by default, configures a cache directory in the users’ cache as
+determined by the operating system. It can alternatively be set as a
+subdirectory within the current project or, if not using a project, the
+current working directory. Once the cache is set, `save_out = TRUE` can
+be included in function calls to save the relevant outputs, and
 `check = TRUE` can be included to look for previous outputs and only run
-models where something has changed.
+models where something has changed. The feature means that small changes
+in data cleaning or model code need not necessitate re-running
+time-consuming models if only a small number have changed.
 
 Given that the package enables creating files in a cache directory, the
 `cache.clean()` function has also been included to help clean up files.
@@ -68,7 +74,8 @@ install.packages("semFromKeys")
 ## Example
 
 The following example generates keys, runs CFAs and an EFA using these
-keys, and uses outputs from these to run ESEMs.
+keys, computes correlations between CFA latent variables, and uses
+outputs from these to run ESEMs.
 
 ### CFAs
 
@@ -128,7 +135,7 @@ Results can be examined. For example, standard ‘lavaan’ summaries:
 
 ``` r
 lavaan::summary(cfa_fit$fit$grit_c)
-#> lavaan 0.6-21 ended normally after 12 iterations
+#> lavaan 0.7-2 ended normally after 12 iterations
 #> 
 #>   Estimator                                         ML
 #>   Optimization method                           NLMINB
@@ -239,6 +246,14 @@ efa_fit$fit_measures                # Fit measures
 #>        chisq   df pvalue      bic
 #> efa 4808.621 1480      0 62887.71
 ```
+
+### Correlations
+
+The fitted CFA models can also be used to calculate latent variable
+correlations. In this example, Burt’s 2-stage procedure is used by
+setting `nagy = FALSE` to save time, but in many cases Nagy and
+colleagues’ (2017) method will be superior. See `?sem.cor()` for further
+details.
 
 ### ESEM
 
