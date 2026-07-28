@@ -4,13 +4,13 @@
 
 * From https://cran.r-project.org/web/checks/check_results_semFromKeys.html.
 * Found the following files/directories:
-  '~/.cache/R/semFromKeys' '~/.cache/R/semFromKeys/cfa'
-  '~/.cache/R/semFromKeys/cfa/cfa_fit.rds'
-  '~/.cache/R/semFromKeys/cfa/cfa_fit_m.rds'
-  '~/.cache/R/semFromKeys/cfa/cfa_hash.rds'
-  '~/.cache/R/semFromKeys/cfa/cfa_mod.rds'
-  '~/.cache/R/semFromKeys/cfa/cfa_par.rds'
-  '~/.cache/R/semFromKeys/cfa/cfa_params.rds'
+  '\~/.cache/R/semFromKeys' '\~/.cache/R/semFromKeys/cfa'
+  '\~/.cache/R/semFromKeys/cfa/cfa_fit.rds'
+  '\~/.cache/R/semFromKeys/cfa/cfa_fit_m.rds'
+  '\~/.cache/R/semFromKeys/cfa/cfa_hash.rds'
+  '\~/.cache/R/semFromKeys/cfa/cfa_mod.rds'
+  '\~/.cache/R/semFromKeys/cfa/cfa_par.rds'
+  '\~/.cache/R/semFromKeys/cfa/cfa_params.rds'
 
 ### R CMD check results
 
