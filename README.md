@@ -131,7 +131,7 @@ cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = TRUE)
 #> 4 / 4   hope_p
 ```
 
-Results can be examined. For example, standard ‘lavaan’ summaries:
+Results can be examined; for example, standard ‘lavaan’ summaries:
 
 ``` r
 lavaan::summary(cfa_fit$fit$grit_c)
@@ -203,34 +203,8 @@ scores (e.g., with
 `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for
 composite reliability, Jöreskog, 1971).
 
-### Latent variable correlations
-
-It is also possible to examine correlations between the latent variables
-calculated above.
-
-``` r
-latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit)
-#> Fitting models
-#> 1 / 6   grit_c.grit_p
-#> 2 / 6   grit_c.hope_a
-#> 3 / 6   grit_c.hope_p
-#> 4 / 6   grit_p.hope_a
-#> 5 / 6   grit_p.hope_p
-#> 6 / 6   hope_a.hope_p
-#> Generating parameter estimates
-#> 1 / 6   grit_c.grit_p
-#> 2 / 6   grit_c.hope_a
-#> 3 / 6   grit_c.hope_p
-#> 4 / 6   grit_p.hope_a
-#> 5 / 6   grit_p.hope_p
-#> 6 / 6   hope_a.hope_p
-latent_cors$cor_mat
-#>           grit_c    grit_p    hope_a    hope_p
-#> grit_c 1.0000000 0.5060551 0.3913016 0.3051007
-#> grit_p 0.5060551 1.0000000 0.9012011 0.8506360
-#> hope_a 0.3913016 0.9012011 1.0000000 0.9274204
-#> hope_p 0.3051007 0.8506360 0.9274204 1.0000000
-```
+Bifactor models can be run with a similar, albeit more complex, method.
+See `?bifactor.from.keys` for details.
 
 ### EFAs
 
@@ -281,17 +255,43 @@ efa_fit$fit_measures                # Fit measures
 The fitted CFA models can also be used to calculate latent variable
 correlations. In this example, Burt’s 2-stage procedure is used by
 setting `nagy = FALSE` to save time, but in many cases Nagy and
-colleagues’ (2017) method will be superior. See `?sem.cor()` for further
-details.
+colleagues’ (2017) method will be superior and is the default. See
+`?sem.cor()` for further details.
+
+``` r
+latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit, nagy = FALSE)
+#> Fitting models
+#> 1 / 6   grit_c.grit_p
+#> 2 / 6   grit_c.hope_a
+#> 3 / 6   grit_c.hope_p
+#> 4 / 6   grit_p.hope_a
+#> 5 / 6   grit_p.hope_p
+#> 6 / 6   hope_a.hope_p
+#> Generating parameter estimates
+#> 1 / 6   grit_c.grit_p
+#> 2 / 6   grit_c.hope_a
+#> 3 / 6   grit_c.hope_p
+#> 4 / 6   grit_p.hope_a
+#> 5 / 6   grit_p.hope_p
+#> 6 / 6   hope_a.hope_p
+latent_cors$cor_mat
+#>           grit_c    grit_p    hope_a    hope_p
+#> grit_c 1.0000000 0.4962176 0.3724859 0.3002280
+#> grit_p 0.4962176 1.0000000 0.8993154 0.8325711
+#> hope_a 0.3724859 0.8993154 1.0000000 0.9276052
+#> hope_p 0.3002280 0.8325711 0.9276052 1.0000000
+```
 
 ### ESEM
 
-Finally, outputs from these models can be used as inputs into ESEMs
-where the scales of the CFAs are regressed on the EFA factors.
+Finally, outputs from CFA, bifactor, and EFA models can be used as
+inputs into ESEMs where the scales of the CFAs and bifactor models are
+regressed on the EFA factors. In this example, bifactor models are not
+included.
 
 ``` r
 esem_fit <- esem.from.mods(
-  efa_fit$fit$efa, cfa_fit$fit, data = BFIGritHope, fit_save = FALSE
+  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
 )
 #> Fitting models
 #> 1 / 4   grit_c
@@ -333,8 +333,6 @@ To take advantage of functions’ time-saving `check = TRUE` for
 subsequent running of code, a cache directory will need to be set. To
 see how to do this, see `?cache.setup`.
 
-<!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
-
 ## References
 
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating
@@ -349,3 +347,10 @@ in Structural Equation Models. Sociological Methods & Research, 5(1),
 Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric
 Tests. Psychometrika, 36(2), 109-133.
 <https://doi.org/10.1007/BF02291393>.
+
+Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017). Extension
+Procedures for Confirmatory Factor Analysis. Journal of Experimental
+Education, 85(4), 574-596.
+<https://doi.org/10.1080/00220973.2016.1260524>.
+
+<!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->

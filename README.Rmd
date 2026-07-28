@@ -70,7 +70,7 @@ Once keys are created, the CFAs can be run. The function produces messages of pr
 cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = TRUE)
 ```
 
-Results can be examined. For example, standard 'lavaan' summaries: 
+Results can be examined; for example, standard 'lavaan' summaries: 
 
 ```{r example-cfa2}
 lavaan::summary(cfa_fit$fit$grit_c)
@@ -84,14 +84,7 @@ cfa_fit$fit_measures[, c("cfi", "rmsea")]
 
 These models can be used to examine the measurement characteristics of the scales or to calculate latent variable model-based reliability scores (e.g., with `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for composite reliability, Jöreskog, 1971).
 
-### Latent variable correlations
-
-It is also possible to examine correlations between the latent variables calculated above.
-
-```{r example-lavaco}
-latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit)
-latent_cors$cor_mat
-```
+Bifactor models can be run with a similar, albeit more complex, method. See `?bifactor.from.keys` for details.
 
 ### EFAs
 
@@ -125,19 +118,20 @@ efa_fit$fit_measures                # Fit measures
 
 ### Correlations
 
-The fitted CFA models can also be used to calculate latent variable correlations. In this example, Burt's 2-stage procedure is used by setting `nagy = FALSE` to save time, but in many cases Nagy and colleagues' (2017) method will be superior. See `?sem.cor()` for further details.
+The fitted CFA models can also be used to calculate latent variable correlations. In this example, Burt's 2-stage procedure is used by setting `nagy = FALSE` to save time, but in many cases Nagy and colleagues' (2017) method will be superior and is the default. See `?sem.cor()` for further details.
 
-```{r}
-
+```{r example-lavaco}
+latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit, nagy = FALSE)
+latent_cors$cor_mat
 ```
 
 ### ESEM
 
-Finally, outputs from these models can be used as inputs into ESEMs where the scales of the CFAs are regressed on the EFA factors.
+Finally, outputs from CFA, bifactor, and EFA models can be used as inputs into ESEMs where the scales of the CFAs and bifactor models are regressed on the EFA factors. In this example, bifactor models are not included.
 
 ```{r example-esem}
 esem_fit <- esem.from.mods(
-  efa_fit$fit$efa, cfa_fit$fit, data = BFIGritHope, fit_save = FALSE
+  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
 )
 ```
 
@@ -155,8 +149,6 @@ esem_fit$b$grit_c
 
 To take advantage of functions' time-saving `check = TRUE` for subsequent running of code, a cache directory will need to be set. To see how to do this, see `?cache.setup`.
 
-<!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
-
 ## References
 
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating the Big Five as an organizing framework for commonly used psychological trait scales. Journal of Personality and Social Psychology, 122(4), 749-777. https://doi.org/10.1037/pspp0000395.
@@ -164,3 +156,7 @@ Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating the Big Fi
 Burt, R. S. (1976). Interpretational confounding of unobserved variables in Structural Equation Models. Sociological Methods & Research, 5(1), 3-52. https://doi.org/10.1177/004912417600500101.
 
 Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric Tests. Psychometrika, 36(2), 109-133. https://doi.org/10.1007/BF02291393.
+
+Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017). Extension Procedures for Confirmatory Factor Analysis. Journal of Experimental Education, 85(4), 574-596. https://doi.org/10.1080/00220973.2016.1260524.
+
+<!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
