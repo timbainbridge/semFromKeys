@@ -52,8 +52,8 @@ time-consuming models if only a small number have changed.
 Given that the package enables creating files in a cache directory, the
 `cache.clean()` function has also been included to help clean up files.
 To comply with CRAN policies, the cache directory is set as a temporary
-environment variables, so it has to be set for each session when
-required.
+environment variable, so it has to be set each time the global
+environment is cleared.
 
 ## Installation
 
@@ -202,6 +202,35 @@ the scales or to calculate latent variable model-based reliability
 scores (e.g., with
 `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for
 composite reliability, Jöreskog, 1971).
+
+### Latent variable correlations
+
+It is also possible to examine correlations between the latent variables
+calculated above.
+
+``` r
+latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit)
+#> Fitting models
+#> 1 / 6   grit_c.grit_p
+#> 2 / 6   grit_c.hope_a
+#> 3 / 6   grit_c.hope_p
+#> 4 / 6   grit_p.hope_a
+#> 5 / 6   grit_p.hope_p
+#> 6 / 6   hope_a.hope_p
+#> Generating parameter estimates
+#> 1 / 6   grit_c.grit_p
+#> 2 / 6   grit_c.hope_a
+#> 3 / 6   grit_c.hope_p
+#> 4 / 6   grit_p.hope_a
+#> 5 / 6   grit_p.hope_p
+#> 6 / 6   hope_a.hope_p
+latent_cors$cor_mat
+#>           grit_c    grit_p    hope_a    hope_p
+#> grit_c 1.0000000 0.5060551 0.3913016 0.3051007
+#> grit_p 0.5060551 1.0000000 0.9012011 0.8506360
+#> hope_a 0.3913016 0.9012011 1.0000000 0.9274204
+#> hope_p 0.3051007 0.8506360 0.9274204 1.0000000
+```
 
 ### EFAs
 

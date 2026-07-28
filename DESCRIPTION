@@ -1,7 +1,7 @@
 Package: semFromKeys
 Type: Package
 Title: Run 'lavaan' Models from Keys Lists
-Version: 0.2.4
+Version: 0.3.0
 Authors@R: c(
     person(
       "Timothy F.", "Bainbridge",
@@ -29,7 +29,10 @@ Imports:
     lavaan,
     openssl,
     withr,
-    tools
+    tools,
+    matrixcalc,
+    Matrix,
+    stats
 Suggests: 
     testthat (>= 3.0.0),
     here,

@@ -77,10 +77,17 @@ the \code{cache.setup} function will need to be re-run before the cache
 functionality will work,
 regardless of the status of the any recently used cache directories.
 
-Note also that the function relies on code that was unavailable in versions
-of R prior to version 4.0,
+The function relies on code that was unavailable in versions of R prior to
+version 4.0,
 so anyone using an earlier version of R will either have to update R or forgo
 the caching functionality.
+
+\code{semFromKeys} has no way to know what directories you have specified as the
+cache in the past and cannot clean up unknown former cache directories.
+Therefore, it is recommended that you use either the default location or
+the same location for all models within the same project.
+Either of these will enable easy detection, so that unneeded cached files
+can be found and deleted.
 
 Functions that directly or indirectly might require a cache directory are:
 \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}},

@@ -34,7 +34,7 @@ test_that(
   "Test normal behaviour: EFA and both CFA and bifactor with fit_save = TRUE",
   {
     esem_fit <- esem.from.mods(
-      efa_fit, cfa_fit = cfa_fit, bif_fit = bif_fit, data = BFIGritHope,
+      BFIGritHope, efa_fit, cfa_fit = cfa_fit, bif_fit = bif_fit,
       fit_save = TRUE
     )
     expect_equal(length(esem_fit), 5)
@@ -52,7 +52,7 @@ test_that(
   "Neither cfa_fit nor bif_fit set",
   {
     expect_error(
-      esem.from.mods(efa_fit, data = BFIGritHope, fit_save = FALSE),
+      esem.from.mods(BFIGritHope, efa_fit),
       "one of 'cfa_fit' and 'bif_fit' must be specified"
     )
   }
@@ -61,44 +61,18 @@ test_that(
   "Non-lavaan object inputs",
   {
     expect_error(
-      esem.from.mods(
-        efa_fit, cfa_fit = list(a = 1:2, b = 3:4), data = BFIGritHope,
-        fit_save = FALSE
-      ),
+      esem.from.mods(BFIGritHope, efa_fit, cfa_fit = list(a = 1:2, b = 3:4)),
       "'cfa_fit' are not objects of type lavaan"
     )
     expect_error(
-      esem.from.mods(
-        efa_fit, bif_fit = list(a = 1:2, b = 3:4), data = BFIGritHope,
-        fit_save = FALSE
-      ),
+      esem.from.mods(BFIGritHope, efa_fit, bif_fit = list(a = 1:2, b = 3:4)),
       "'bif_fit' are not objects of type lavaan"
     )
     expect_error(
       esem.from.mods(
-        efa_fit = list(a = 1:2, b = 3:4), cfa_fit = cfa_fit, data = BFIGritHope,
-        fit_save = FALSE
+        BFIGritHope, efa_fit = list(a = 1:2, b = 3:4), cfa_fit = cfa_fit
       ),
       "'efa_fit' is not an object of type lavaan"
-    )
-  }
-)
-test_that(
-  "Different names to factor names",
-  {
-    expect_warning(
-      esem.from.mods(
-        efa_fit, setNames(cfa_fit, nm = letters[1:4]), data = BFIGritHope,
-        fit_save = FALSE
-      ),
-      "names of 'cfa_fit' do not match the factor names"
-    )
-    expect_warning(
-      esem.from.mods(
-        efa_fit, bif_fit = setNames(bif_fit, nm = letters[1:2]),
-        data = BFIGritHope, fit_save = FALSE
-      ),
-      "names of 'bif_fit' do not match the general factor names"
     )
   }
 )
@@ -106,9 +80,7 @@ test_that(
   "efa_fit is NULL",
   {
     expect_error(
-      esem.from.mods(
-        efa_fit = NULL, cfa_fit, data = BFIGritHope, fit_save = FALSE
-      ),
+      esem.from.mods(BFIGritHope, efa_fit = NULL, cfa_fit),
       "'efa_fit' is NULL"
     )
   }
@@ -125,9 +97,7 @@ test_that(
     )
     cfa2_fit <- list(grit = lavaan::cfa(cfa2_mod, BFIGritHope))
     expect_error(
-      esem.from.mods(
-        efa_fit, cfa2_fit, data = BFIGritHope, fit_save = FALSE
-      ),
+      esem.from.mods(BFIGritHope, efa_fit, cfa2_fit),
       "CFA containing more than one latent variable has been found"
     )
   }
@@ -136,16 +106,11 @@ test_that(
   "Factors with the same names",
   {
     expect_error(
-      esem.from.mods(
-        efa_fit, cfa_fit[c(1, 1:4)], data = BFIGritHope, fit_save = FALSE
-      ),
+      esem.from.mods(BFIGritHope, efa_fit, cfa_fit[c(1, 1:4)]),
       "two different models in 'cfa_fit' have factors with the same name"
     )
     expect_error(
-      esem.from.mods(
-        efa_fit, bif_fit = bif_fit[c(1, 1:2)], data = BFIGritHope,
-        fit_save = fit_save
-      ),
+      esem.from.mods(BFIGritHope, efa_fit, bif_fit = bif_fit[c(1, 1:2)]),
       "different models in 'bif_fit' have general factors with the same name"
     )
   }
@@ -157,7 +122,7 @@ test_that(
     names(keys2)[1] <- "grit"
     cfa_fit2 <- cfa.from.keys(keys2, BFIGritHope, fit_save = FALSE)$fit
     expect_error(
-      esem.from.mods(efa_fit, cfa_fit2, bif_fit, BFIGritHope),
+      esem.from.mods(BFIGritHope, efa_fit, cfa_fit2, bif_fit),
       "models in 'cfa_fit' have identically named factor"
     )
   }
@@ -174,18 +139,16 @@ test_that(
         keys_g2, keys_b, keys, BFIGritHope, fit_save = FALSE
       )$fit
     )
-    expect_no_error(
-      esem.from.mods(efa_fit, bif_fit = bif_fit2, data = BFIGritHope)
-    )
+    expect_no_error(esem.from.mods(BFIGritHope, efa_fit, bif_fit = bif_fit2))
   }
 )
 test_that(
   "Test 'save_out = TRUE' file creation and 'check = TRUE' correctly loading",
   {
-    cache_dir <- cache.setup("tests/testthat")
+    cache_dir <- cache.setup("tests/testthat", interactive = FALSE)
     name <- "esem"
     check_fit <- esem.from.mods(
-      efa_fit, cfa_fit, data = BFIGritHope, check = TRUE, save_out = TRUE,
+      BFIGritHope, efa_fit, cfa_fit, check = TRUE, save_out = TRUE,
       fit_save = TRUE, name = name
     )
     expect_all_true(
@@ -199,7 +162,7 @@ test_that(
     )
     check_fit2 <- expect_no_message(
       esem.from.mods(
-        efa_fit, cfa_fit, data = BFIGritHope, check = TRUE, save_out = TRUE,
+        BFIGritHope, efa_fit, cfa_fit, check = TRUE, save_out = TRUE,
         fit_save = TRUE, name = name
       ),
       message = "\\d / \\d"

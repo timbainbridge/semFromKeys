@@ -1,3 +1,7 @@
+# semFromKeys 0.3.0
+
+* Added the `sem.cor()` function, which takes CFA outputs and produces a correlation matrix between latent variables and, optionally, single items.
+
 # semFromKeys 0.2.4
 
 * Updated `cache.clean()` to only work in non-interactive sessions when `interactive = FALSE`.

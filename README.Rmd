@@ -25,7 +25,7 @@ Although the package might be of most use to those running ESEM similar to those
 
 For sets of models that take a long time to run, code has been included to allow the first run to save outputs that can be checked against in subsequent runs. If nothing has changed, then the previous outputs are returned, saving the time (and energy) of running them again. To get this feature to work, the R version has to be 4.0 or later and a cache directory will have to be set with the `cache.setup()` function, which, by default, configures a cache directory in the users' cache as determined by the operating system. It can alternatively be set as a subdirectory within the current project or, if not using a project, the current working directory. Once the cache is set, `save_out = TRUE` can be included in function calls to save the relevant outputs, and `check = TRUE` can be included to look for previous outputs and only run models where something has changed. The feature means that small changes in data cleaning or model code need not necessitate re-running time-consuming models if only a small number have changed.
 
-Given that the package enables creating files in a cache directory, the `cache.clean()` function has also been included to help clean up files. To comply with CRAN policies, the cache directory is set as a temporary environment variables, so it has to be set for each session when required.
+Given that the package enables creating files in a cache directory, the `cache.clean()` function has also been included to help clean up files. To comply with CRAN policies, the cache directory is set as a temporary environment variable, so it has to be set each time the global environment is cleared.
 
 ## Installation
 
@@ -83,6 +83,15 @@ cfa_fit$fit_measures[, c("cfi", "rmsea")]
 ```
 
 These models can be used to examine the measurement characteristics of the scales or to calculate latent variable model-based reliability scores (e.g., with `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for composite reliability, Jöreskog, 1971).
+
+### Latent variable correlations
+
+It is also possible to examine correlations between the latent variables calculated above.
+
+```{r example-lavaco}
+latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit)
+latent_cors$cor_mat
+```
 
 ### EFAs
 
@@ -154,5 +163,4 @@ Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating the Big Fi
 
 Burt, R. S. (1976). Interpretational confounding of unobserved variables in Structural Equation Models. Sociological Methods & Research, 5(1), 3-52. https://doi.org/10.1177/004912417600500101.
 
-Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric Tests.
-Psychometrika, 36(2), 109-133. https://doi.org/10.1007/BF02291393.
+Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric Tests. Psychometrika, 36(2), 109-133. https://doi.org/10.1007/BF02291393.

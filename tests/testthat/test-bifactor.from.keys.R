@@ -81,7 +81,7 @@ test_that(
       bifactor.from.keys(
         keys_g, keys_b_swap, keys, BFIGritHope, fit_save = FALSE
       ),
-      "Names of 'keys_g' do not match.*'keys_b'"
+      "Names of 'keys_g' do not match names of 'keys_b'"
     )
   }
 )
