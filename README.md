@@ -10,38 +10,44 @@
 
 The ‘semFromKeys’ package was designed to streamline running ‘lavaan’
 models with similar structures using keys lists to generate model code
-instead of writing out the code for models manually. Currently, the code
-can run confirmatory factor analyses (CFAs), bifactor models,
-exploratory factor analyses (EFAs), latent variable correlations, and
-exploratory structural equation models (ESEMs). For CFAs and bifactor
-models, the code creates and runs a series of models based on keys
-indicating each of the factors in the models. For EFAs, keys list are
-used to create a target rotation for a single EFA. For latent variable
-correlations, the code takes fitted CFA models and runs models with
-correlations between all combinations or latent variables or selected
-latent variables with other selected latent variables. For ESEMs, the
+instead of writing out the code for models manually. For confirmatory
+factor analyses (CFAs) and bifactor models, the code creates and runs a
+series of models based on keys indicating each of the factors in the
+models. For exploratory factor analyses (EFAs) keys list are used to
+create a target rotation for a single EFA. For latent variable
+correlations, the model takes fitted CFA models and runs a series of
+models computing correlations between latent variables and, optionally,
+single items. For exploratory structural equation models (ESEM), the
 code takes a fitted EFA model and fitted CFA and/or bifactor models and
-runs an ESEM for each CFA or bifactor model input where the EFA factors
-predict the series of CFA/bifactor factors.
+runs an ESEM for each CFA or bifactor model input. In the ESEM, the EFA
+factors predict a series of latent variables in separate models using
+Burt’s (1976) 2-stage procedure to prevent interpretational confounding.
+The ESEM models were designed to run analyses equivalent to that of
+Bainbridge, Ludeke, and Smillie (2022).
 
-In the structural models (i.e., the latent variable correlations and the
-ESEM), Burt’s (1976) 2-stage procedure is used to prevent
-interpretational confounding. The ESEM models were designed to run
-analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
+Although the package might be of most use to those running ESEM similar
+to those of Bainbridge and colleagues (2022), it could also be very
+helpful to anyone wanting to create a correlation matrix based on latent
+variables rather than sum scores or to estimate a CFA measurement model
+for each scale in a sample to either check measurement characteristics
+before proceeding with further analyses or to simply compute measurement
+model based reliability statistics.
 
-For more sets of models that take a long time to run, code has been
-included to allow the first run to save outputs that can be checked
-against in subsequent runs. If nothing has changed, then the previous
-outputs are returned, saving the time (and energy) of running them
-again. To get this feature to work, the R version has to be 4.0 or later
-and a cache directory will have to be set with the `cache.setup()`
-function, which, by default, configures a cache directory in the users’
-cache as determined by the operating system. It can alternatively be set
-as a subdirectory within the current project or, if not using a project,
-the current working directory. Once the cache is set, `save_out = TRUE`
-can be included in function calls to save the relevant outputs, and
+For sets of models that take a long time to run, code has been included
+to allow the first run to save outputs that can be checked against in
+subsequent runs. If nothing has changed, then the previous outputs are
+returned, saving the time (and energy) of running them again. To get
+this feature to work, the R version has to be 4.0 or later and a cache
+directory will have to be set with the `cache.setup()` function, which,
+by default, configures a cache directory in the users’ cache as
+determined by the operating system. It can alternatively be set as a
+subdirectory within the current project or, if not using a project, the
+current working directory. Once the cache is set, `save_out = TRUE` can
+be included in function calls to save the relevant outputs, and
 `check = TRUE` can be included to look for previous outputs and only run
-models where something has changed.
+models where something has changed. The feature means that small changes
+in data cleaning or model code need not necessitate re-running
+time-consuming models if only a small number have changed.
 
 Given that the package enables creating files in a cache directory, the
 `cache.clean()` function has also been included to help clean up files.
@@ -68,7 +74,8 @@ install.packages("semFromKeys")
 ## Example
 
 The following example generates keys, runs CFAs and an EFA using these
-keys, and uses outputs from these to run ESEMs.
+keys, computes correlations between CFA latent variables, and uses
+outputs from these to run ESEMs.
 
 ### CFAs
 
@@ -124,11 +131,11 @@ cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = TRUE)
 #> 4 / 4   hope_p
 ```
 
-Results can be examined. For example, standard ‘lavaan’ summaries:
+Results can be examined; for example, standard ‘lavaan’ summaries:
 
 ``` r
 lavaan::summary(cfa_fit$fit$grit_c)
-#> lavaan 0.6-21 ended normally after 12 iterations
+#> lavaan 0.7-2 ended normally after 12 iterations
 #> 
 #>   Estimator                                         ML
 #>   Optimization method                           NLMINB
@@ -196,34 +203,8 @@ scores (e.g., with
 `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for
 composite reliability, Jöreskog, 1971).
 
-### Latent variable correlations
-
-It is also possible to examine correlations between the latent variables
-calculated above.
-
-``` r
-latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit)
-#> Fitting models
-#> 1 / 6   grit_c.grit_p
-#> 2 / 6   grit_c.hope_a
-#> 3 / 6   grit_c.hope_p
-#> 4 / 6   grit_p.hope_a
-#> 5 / 6   grit_p.hope_p
-#> 6 / 6   hope_a.hope_p
-#> Generating parameter estimates
-#> 1 / 6   grit_c.grit_p
-#> 2 / 6   grit_c.hope_a
-#> 3 / 6   grit_c.hope_p
-#> 4 / 6   grit_p.hope_a
-#> 5 / 6   grit_p.hope_p
-#> 6 / 6   hope_a.hope_p
-latent_cors$cor_mat
-#>           grit_c    grit_p    hope_a    hope_p
-#> grit_c 1.0000000 0.4962176 0.3724859 0.3002280
-#> grit_p 0.4962176 1.0000000 0.8993154 0.8325711
-#> hope_a 0.3724859 0.8993154 1.0000000 0.9276052
-#> hope_p 0.3002280 0.8325711 0.9276052 1.0000000
-```
+Bifactor models can be run with a similar, albeit more complex, method.
+See `?bifactor.from.keys` for details.
 
 ### EFAs
 
@@ -269,14 +250,48 @@ efa_fit$fit_measures                # Fit measures
 #> efa 4808.621 1480      0 62887.71
 ```
 
+### Correlations
+
+The fitted CFA models can also be used to calculate latent variable
+correlations. In this example, Burt’s 2-stage procedure is used by
+setting `nagy = FALSE` to save time, but in many cases Nagy and
+colleagues’ (2017) method will be superior and is the default. See
+`?sem.cor()` for further details.
+
+``` r
+latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit, nagy = FALSE)
+#> Fitting models
+#> 1 / 6   grit_c.grit_p
+#> 2 / 6   grit_c.hope_a
+#> 3 / 6   grit_c.hope_p
+#> 4 / 6   grit_p.hope_a
+#> 5 / 6   grit_p.hope_p
+#> 6 / 6   hope_a.hope_p
+#> Generating parameter estimates
+#> 1 / 6   grit_c.grit_p
+#> 2 / 6   grit_c.hope_a
+#> 3 / 6   grit_c.hope_p
+#> 4 / 6   grit_p.hope_a
+#> 5 / 6   grit_p.hope_p
+#> 6 / 6   hope_a.hope_p
+latent_cors$cor_mat
+#>           grit_c    grit_p    hope_a    hope_p
+#> grit_c 1.0000000 0.4962176 0.3724859 0.3002280
+#> grit_p 0.4962176 1.0000000 0.8993154 0.8325711
+#> hope_a 0.3724859 0.8993154 1.0000000 0.9276052
+#> hope_p 0.3002280 0.8325711 0.9276052 1.0000000
+```
+
 ### ESEM
 
-Finally, outputs from these models can be used as inputs into ESEMs
-where the scales of the CFAs are regressed on the EFA factors.
+Finally, outputs from CFA, bifactor, and EFA models can be used as
+inputs into ESEMs where the scales of the CFAs and bifactor models are
+regressed on the EFA factors. In this example, bifactor models are not
+included.
 
 ``` r
 esem_fit <- esem.from.mods(
-  efa_fit$fit$efa, cfa_fit$fit, data = BFIGritHope, fit_save = FALSE
+  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
 )
 #> Fitting models
 #> 1 / 4   grit_c
@@ -318,8 +333,6 @@ To take advantage of functions’ time-saving `check = TRUE` for
 subsequent running of code, a cache directory will need to be set. To
 see how to do this, see `?cache.setup`.
 
-<!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
-
 ## References
 
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating
@@ -334,3 +347,10 @@ in Structural Equation Models. Sociological Methods & Research, 5(1),
 Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric
 Tests. Psychometrika, 36(2), 109-133.
 <https://doi.org/10.1007/BF02291393>.
+
+Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017). Extension
+Procedures for Confirmatory Factor Analysis. Journal of Experimental
+Education, 85(4), 574-596.
+<https://doi.org/10.1080/00220973.2016.1260524>.
+
+<!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->

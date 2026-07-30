@@ -19,11 +19,11 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The 'semFromKeys' package was designed to streamline running 'lavaan' models with similar structures using keys lists to generate model code instead of writing out the code for models manually. Currently, the code can run confirmatory factor analyses (CFAs), bifactor models, exploratory factor analyses (EFAs), latent variable correlations, and exploratory structural equation models (ESEMs). For CFAs and bifactor models, the code creates and runs a series of models based on keys indicating each of the factors in the models. For EFAs, keys list are used to create a target rotation for a single EFA. For latent variable correlations, the code takes fitted CFA models and runs models with correlations between all combinations or latent variables or selected latent variables with other selected latent variables. For ESEMs, the code takes a fitted EFA model and fitted CFA and/or bifactor models and runs an ESEM for each CFA or bifactor model input where the EFA factors predict the series of CFA/bifactor factors.
+The 'semFromKeys' package was designed to streamline running 'lavaan' models with similar structures using keys lists to generate model code instead of writing out the code for models manually. For confirmatory factor analyses (CFAs) and bifactor models, the code creates and runs a series of models based on keys indicating each of the factors in the models. For exploratory factor analyses (EFAs) keys list are used to create a target rotation for a single EFA. For latent variable correlations, the model takes fitted CFA models and runs a series of models computing correlations between latent variables and, optionally, single items. For exploratory structural equation models (ESEM), the code takes a fitted EFA model and fitted CFA and/or bifactor models and runs an ESEM for each CFA or bifactor model input. In the ESEM, the EFA factors predict a series of latent variables in separate models using Burt's (1976) 2-stage procedure to prevent interpretational confounding. The ESEM models were designed to run analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 
-In the structural models (i.e., the latent variable correlations and the ESEM), Burt's (1976) 2-stage procedure is used to prevent interpretational confounding. The ESEM models were designed to run analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
+Although the package might be of most use to those running ESEM similar to those of Bainbridge and colleagues (2022), it could also be very helpful to anyone wanting to create a correlation matrix based on latent variables rather than sum scores or to estimate a CFA measurement model for each scale in a sample to either check measurement characteristics before proceeding with further analyses or to simply compute measurement model based reliability statistics.
 
-For more sets of models that take a long time to run, code has been included to allow the first run to save outputs that can be checked against in subsequent runs. If nothing has changed, then the previous outputs are returned, saving the time (and energy) of running them again. To get this feature to work, the R version has to be 4.0 or later and a cache directory will have to be set with the `cache.setup()` function, which, by default, configures a cache directory in the users' cache as determined by the operating system. It can alternatively be set as a subdirectory within the current project or, if not using a project, the current working directory. Once the cache is set, `save_out = TRUE` can be included in function calls to save the relevant outputs, and `check = TRUE` can be included to look for previous outputs and only run models where something has changed.
+For sets of models that take a long time to run, code has been included to allow the first run to save outputs that can be checked against in subsequent runs. If nothing has changed, then the previous outputs are returned, saving the time (and energy) of running them again. To get this feature to work, the R version has to be 4.0 or later and a cache directory will have to be set with the `cache.setup()` function, which, by default, configures a cache directory in the users' cache as determined by the operating system. It can alternatively be set as a subdirectory within the current project or, if not using a project, the current working directory. Once the cache is set, `save_out = TRUE` can be included in function calls to save the relevant outputs, and `check = TRUE` can be included to look for previous outputs and only run models where something has changed. The feature means that small changes in data cleaning or model code need not necessitate re-running time-consuming models if only a small number have changed.
 
 Given that the package enables creating files in a cache directory, the `cache.clean()` function has also been included to help clean up files. To comply with CRAN policies, the cache directory is set as a temporary environment variable, so it has to be set each time the global environment is cleared.
 
@@ -44,7 +44,7 @@ install.packages("semFromKeys")
 
 ## Example
 
-The following example generates keys, runs CFAs and an EFA using these keys, and uses outputs from these to run ESEMs.
+The following example generates keys, runs CFAs and an EFA using these keys, computes correlations between CFA latent variables, and uses outputs from these to run ESEMs.
 
 ### CFAs
 
@@ -70,7 +70,7 @@ Once keys are created, the CFAs can be run. The function produces messages of pr
 cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = TRUE)
 ```
 
-Results can be examined. For example, standard 'lavaan' summaries: 
+Results can be examined; for example, standard 'lavaan' summaries: 
 
 ```{r example-cfa2}
 lavaan::summary(cfa_fit$fit$grit_c)
@@ -84,14 +84,7 @@ cfa_fit$fit_measures[, c("cfi", "rmsea")]
 
 These models can be used to examine the measurement characteristics of the scales or to calculate latent variable model-based reliability scores (e.g., with `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for composite reliability, Jöreskog, 1971).
 
-### Latent variable correlations
-
-It is also possible to examine correlations between the latent variables calculated above.
-
-```{r example-lavaco}
-latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit)
-latent_cors$cor_mat
-```
+Bifactor models can be run with a similar, albeit more complex, method. See `?bifactor.from.keys` for details.
 
 ### EFAs
 
@@ -123,13 +116,22 @@ EFA results can be examined in a similar way to the CFAs.
 efa_fit$fit_measures                # Fit measures
 ```
 
+### Correlations
+
+The fitted CFA models can also be used to calculate latent variable correlations. In this example, Burt's 2-stage procedure is used by setting `nagy = FALSE` to save time, but in many cases Nagy and colleagues' (2017) method will be superior and is the default. See `?sem.cor()` for further details.
+
+```{r example-lavaco}
+latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit, nagy = FALSE)
+latent_cors$cor_mat
+```
+
 ### ESEM
 
-Finally, outputs from these models can be used as inputs into ESEMs where the scales of the CFAs are regressed on the EFA factors.
+Finally, outputs from CFA, bifactor, and EFA models can be used as inputs into ESEMs where the scales of the CFAs and bifactor models are regressed on the EFA factors. In this example, bifactor models are not included.
 
 ```{r example-esem}
 esem_fit <- esem.from.mods(
-  efa_fit$fit$efa, cfa_fit$fit, data = BFIGritHope, fit_save = FALSE
+  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
 )
 ```
 
@@ -147,8 +149,6 @@ esem_fit$b$grit_c
 
 To take advantage of functions' time-saving `check = TRUE` for subsequent running of code, a cache directory will need to be set. To see how to do this, see `?cache.setup`.
 
-<!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
-
 ## References
 
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating the Big Five as an organizing framework for commonly used psychological trait scales. Journal of Personality and Social Psychology, 122(4), 749-777. https://doi.org/10.1037/pspp0000395.
@@ -156,3 +156,7 @@ Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating the Big Fi
 Burt, R. S. (1976). Interpretational confounding of unobserved variables in Structural Equation Models. Sociological Methods & Research, 5(1), 3-52. https://doi.org/10.1177/004912417600500101.
 
 Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric Tests. Psychometrika, 36(2), 109-133. https://doi.org/10.1007/BF02291393.
+
+Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017). Extension Procedures for Confirmatory Factor Analysis. Journal of Experimental Education, 85(4), 574-596. https://doi.org/10.1080/00220973.2016.1260524.
+
+<!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
