@@ -212,9 +212,15 @@ esem.from.mods <- function(
       cfa_fit <- list(factor = cfa_fit)
     }
     if (sum(sapply(cfa_fit, function(x) !inherits(x, "lavaan"))) > 0) {
-      paste0(
-        names(cfa_fit)[sapply(cfa_fit, function(x) !inherits(x, "lavaan"))],
-        stop("The above elements of 'cfa_fit' are not objects of type lavaan.")
+      stop(
+        paste0(
+          "The below elements of 'cfa_fit' are not objects of type lavaan.",
+          "\n    ",
+          paste0(
+            names(cfa_fit)[sapply(cfa_fit, function(x) !inherits(x, "lavaan"))],
+            collapse = "\n    "
+          )
+        )
       )
     }
   }
@@ -224,9 +230,15 @@ esem.from.mods <- function(
       bif_fit <- list(bifactor = bif_fit)
     }
     if (sum(sapply(bif_fit, function(x) !inherits(x, "lavaan"))) > 0) {
-      paste0(
-        names(bif_fit)[sapply(bif_fit, function(x) !inherits(x, "lavaan"))],
-        stop("The above elements of 'bif_fit' are not objects of type lavaan.")
+      stop(
+        paste0(
+          "The below elements of 'bif_fit' are not objects of type lavaan.",
+          "\n    ",
+          paste0(
+            names(bif_fit)[sapply(bif_fit, function(x) !inherits(x, "lavaan"))],
+            collapse = "\n    "
+          )
+        )
       )
     }
   }
