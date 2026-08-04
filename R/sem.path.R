@@ -1,10 +1,12 @@
 #' Runs ESEM based on CFA and EFA model outputs.
 #'
-#' `sem.path` runs latent variable structural equation models (ESEM) in lavaan.
+#' `sem.path` runs latent variable structural equation models in lavaan.
 #' The function takes lists of fitted CFA and/or bifactor lavaan model objects
-#' for the measurement models and lavaan code for the structural model.
+#' for the measurement models and lavaan code for the structural model and runs
+#' uses these to create the model code and run the model.
 #'
 #' @inheritParams sem.check
+#' @param path The full structural model in lavaan code.
 #' @param cfa_fit
 #' A named list of fitted lavaan objects of CFA models.
 #' Can be `NULL` if `bif_fit` is not `NULL`.
@@ -18,89 +20,176 @@
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
+#' @param extra
+#' Extra lavaan code to be added.
+#' For example, to set reliability for a single item outcome or to allow
+#' specific covariances, notably semi-partial correlations in incremental
+#' validity analyses.
 #'
 #' @return
 #' Returns a list of length 4 (if `fit_save = FALSE`) or
 #' 5 (if `fit_save = TRUE`).
-#' The elements of the list are: a list of lavaan model output objects;
-#' a list of parameter estimates from the models (standardized if `std = TRUE`);
-#' a matrix of fit measures for each model if `fit_save = TRUE`;
-#' a list of regression beta parameters from each model;
-#' and a dataframe of R-squared values from each model.
-
+#' The elements of the list are: a lavaan model output object;
+#' a data frame of parameter estimates from the model
+#' (standardized if `std = TRUE`);
+#' a vector of fit measures for the model if `fit_save = TRUE`;
+#' a list of structural regression and correlation parameters from the model;
+#' and a data frame of R-squared values from the model (if applicable).
+#'
+#' @importFrom stringr string_extract_all
 
 sem.path <- function(
-    regr,     # Regression to run
-    fit1,     # Fitted lavaan measurement models
-    dat,      # Data -- must include all variables used in the model
-    name,     # Name for the model
-    kl_s,     # Named keys list of all the latent variables of mod
-    mod_dir,  # Directory for saving model outputs
-    extra = FALSE,  # Extra code to be added manually.
-    # E.g., to set reliability for a single item outcome or to allow specific
-    # covariances, notably semipartial correlations in incremental validity
-    # analyses.
-    hash_dir = here::here("output", "hashes"),  # Directory for hash files
-    orthogonal = FALSE,  # Orthogonal or not, as per lavaan
-    miss = "ML",     # Missing data treatment, as per lavaan
-    est = "ML",      # Estimator to use, as per lavaan
-    std.lv = FALSE,  # As per std.lv in lavaan
-    ordered = NULL   # As per ordered in lavaan
+    path, data, cfa_fit = NULL, bif_fit = NULL, name = "sem", extra = NULL,
+    fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
+    name = "sem", check = FALSE, save_out = FALSE
 ) {
-  if ((sapply(fit1, function(x) class(x) != "lavaan") |> sum()) > 0) {
-    stop(
-      "At least one of the elements of fit1 is not an object of class lavaan."
-    )
+
+  ##### Below copied from esem.from.mods() #####
+  if (is.null(cfa_fit) & is.null(bif_fit)) {
+    stop("At least one of 'cfa_fit' and 'bif_fit' must be specified.")
   }
-  if (!dir.exists(hash_dir)) dir.create(hash_dir)
-  hash_d0 <-
-    if (file.exists(
-      here::here(hash_dir, paste0("hash_", name, "_d.rds"))
-    )) {
-      readRDS(here::here(hash_dir, paste0("hash_", name, "_d.rds")))
-    } else FALSE
-  # Create hashes
-  require(openssl)
-  hash_d <- md5(paste(dat[unlist(kl_s)], collapse = ""))
-  # Compare to previous hash
-  hash_d_test <- if (hash_d0 != FALSE) hash_d == hash_d0 else FALSE
-  if (!dir.exists(mod_dir)) dir.create(mod_dir)
-  m0 <-
-    if (file.exists(here::here(mod_dir, paste0(name, "_m.rds")))) {
-      tmp <- readRDS(here::here(mod_dir, paste0(name, "_m.rds")))
-      # Remove spaces, double line breaks
-      gsub(" ", "", tmp) |> gsub("\n\n", "\n", x = _)
-    } else FALSE
+  if (!is.null(cfa_fit)) {
+    # Single model instead of list.
+    if (!is.list(cfa_fit) & inherits(cfa_fit, "lavaan")) {
+      cfa_fit <- list(factor = cfa_fit)
+    }
+    if (sum(sapply(cfa_fit, function(x) !inherits(x, "lavaan"))) > 0) {
+      stop(
+        paste0(
+          "The below elements of 'cfa_fit' are not objects of type lavaan.",
+          "\n    ",
+          paste0(
+            names(cfa_fit)[sapply(cfa_fit, function(x) !inherits(x, "lavaan"))],
+            collapse = "\n    "
+          )
+        )
+      )
+    }
+  }
+  if (!is.null(bif_fit)) {
+    # Single model instead of list.
+    if (!is.list(bif_fit) & inherits(bif_fit, "lavaan")) {
+      bif_fit <- list(bifactor = bif_fit)
+    }
+    if (sum(sapply(bif_fit, function(x) !inherits(x, "lavaan"))) > 0) {
+      stop(
+        paste0(
+          "The below elements of 'bif_fit' are not objects of type lavaan.",
+          "\n    ",
+          paste0(
+            names(bif_fit)[sapply(bif_fit, function(x) !inherits(x, "lavaan"))],
+            collapse = "\n    "
+          )
+        )
+      )
+    }
+  }
+  if (!is.null(cfa_fit)) {
+    cfa_par <- sapply(cfa_fit, parameterEstimates, simplify = FALSE)
+    # Extract factor names
+    cfa_names <- sapply(
+      cfa_par,
+      function(x) {
+        x1 <- unique(x$lhs[x$op == "=~"])
+        if (length(x1) > 1) {
+          stop(
+            paste(
+              "A CFA containing more than one latent variable has been found.",
+              "Currently, the function only supports CFAs included in separate",
+              "models.",
+              "Please either use 'bif_fit' and a model supported there,",
+              "or separate the CFAs into separate measurement models.",
+              "The offending factors are:\n",
+              "    ",
+              paste(x1, collapse = "\n    ")
+            )
+          )
+        }
+        return(x1)
+      }
+    )
+    names(cfa_fit) <- names(cfa_par) <- cfa_names
+    cfa_keys <- sapply(cfa_par, function(x) x$rhs[x$op == "=~"])
+    names(cfa_keys) <- cfa_names
+    if (sum(table(names(cfa_keys)) > 1) > 0) {
+      stop(
+        paste(
+          "At least two different models in 'cfa_fit' have factors with the",
+          "same name.",
+          "Please ensure that all factor names are unique."
+        )
+      )
+    }
+  }
+  if (!is.null(bif_fit)) {
+    bif_par <- sapply(bif_fit, parameterEstimates, simplify = FALSE)
+    bif_keys <- sapply(bif_par, function(x) unique(x$rhs[x$op == "=~"]))
+    bif_names <- mapply(
+      x = bif_par, y = bif_keys,
+      FUN = function(x, y) {
+        tmp <- table(x$lhs[x$op == "=~" & x$rhs %in% y])
+        names(tmp)[tmp == max(tmp)]
+      }
+    )
+    names(bif_par) <- bif_names
+    if (!is.null(names(bif_fit))) {
+      if (sum(names(bif_fit) != bif_names) > 0) {
+        warning(
+          paste(
+            "The names of 'bif_fit' do not match the general factor names.",
+            "Names of returned objects are based on factor names",
+            "so they will not match the names of 'bif_fit'."
+          )
+        )
+      }
+    }
+    names(bif_keys) <- bif_names
+    if (sum(table(names(bif_keys)) > 1) > 0) {
+      stop(
+        paste(
+          "At least two different models in 'bif_fit' have general factors",
+          "with the same name.",
+          "Please ensure that all factor names are unique."
+        )
+      )
+    }
+  }
+  if (!is.null(cfa_fit) & !is.null(bif_fit)) {
+    if (sum(names(cfa_keys) %in% names(bif_keys)) > 0) {
+      stop(
+        paste(
+          "The following models in 'cfa_fit' have identically named",
+          "factor(s) in 'bif_fit':\n    ",
+          paste(
+            names(cfa_fit)[names(cfa_fit) %in% names(bif_fit)], collapse = "\n"
+          ),
+          "\n\n  Please ensure that CFA factors and bifactor general factors",
+          "have unique names."
+        )
+      )
+    }
+  }
+  ##### Above copied from esem.from.mods() #####
+
   # Check which variables are outcomes and need free residual variance.
-  require(stringr)
-  y_vars <- str_extract_all(regr, "(^|\n) *.*( |)~") |>
+  y_vars <- str_extract_all(path, "(^|\n) *.*( |)~") |>
     unlist() |>
     gsub("~|\n| ", "", x = _) |>
     unique()
-  # if (is.null(z_vars)) {
-  z_vars <- str_extract_all(regr, "(~~|~|\\+) *.*?(\n| |$|~~)") |>
+  x_vars <- str_extract_all(path, "(~~|~|\\+) *.*?(\n| |$|~~)") |>
     unlist() |>
     gsub("~| |\\+|\n", "", x = _) |>
     unique()
-  # }
-  extra_vars <- str_extract_all(extra, "(^|=~|~~) *.*?(=~|\n|$)") |>
-    unlist() |>
-    gsub("=~|~~|.*\\*|\n| ", "", x = _) |>
-    unique()
-  par0 <- lapply(fit1, parameterEstimates)
-  # Remove any models from par0 that are not specified in the structural model.
-  # Note names(par0) could include something different from the actual latent
-  # variable name used in the code, so the latent variable name itself should
-  # be extracted rather than using names(par0).
-  par_sel <- sapply(
-    par0,
-    function(x) {
-      tmp <- x$lhs[x$op == "=~"] |> unique()
-      tmp %in% c(y_vars, z_vars, extra_vars)
-    }
-  )
-  par1 <- par0[par_sel]
-  items <- z_vars[!z_vars %in% c(names(par1), "")]
+  if (!is.null(extra)) {
+    extra_vars <- str_extract_all(extra, "(^|=~|~~) *.*?(=~|\n|$)") |>
+      unlist() |>
+      gsub("=~|~~|.*\\*|\n| ", "", x = _) |>
+      unique()
+  }
+  items <- x_vars[!x_vars %in% c(names(cfa_par), names(bif_par), "")]
+  if (!items %in% names(data)) {
+    stop("A preditor in path is not in ")
+  }
   item_cors <- paste(
     sapply(
       seq_along(items[-length(items)]),
@@ -157,7 +246,7 @@ sem.path <- function(
   ) |>
     paste0(collapse = "\n") |>
     paste0("\n", item_cors) |>
-    paste0("\n", regr)
+    paste0("\n", path)
   if (extra != FALSE) {
     mod <- paste0(mod, "\n", extra)
   }
@@ -180,35 +269,10 @@ sem.path <- function(
         m0
       )
   } else FALSE
-  # Load old object if it exists
-  fit0 <- if (file.exists(here::here(mod_dir, paste0(name, "_fit.rds")))) {
-    readRDS(here::here(mod_dir, paste0(name, "_fit.rds")))
-  } else FALSE
-  fit_type <- ifelse(class(fit0) == "lavaan", TRUE, FALSE)
-  if (hash_d_test & m_test & fit_type) {
-    message(paste("Use existing fit for", name))
-    fit <- fit0
-  } else {
-    message(paste("New model estimates for", name))
-    if (is.null(ordered)) {
-      fit <- sem(
-        mod, dat,
-        orthogonal = orthogonal, missing = miss, estimator = est,
-        std.lv = std.lv
-      )
-    } else {
-      fit <- sem(
-        mod, dat,
-        orthogonal = orthogonal, missing = miss, estimator = est,
-        std.lv = std.lv, ordered = ordered
-      )
-    }
-  }
-  # Save models (so they can be read in next time)
-  saveRDS(fit, here::here(mod_dir, paste0(name, "_fit.rds")))
-  # Save model / hashes
-  saveRDS(mod, here::here(mod_dir, paste0(name, "_m.rds")))
-  saveRDS(hash_d, here::here(hash_dir, paste0("hash_", name, "_d.rds")))
-  # Return
+  fit <- sem(
+    mod, dat,
+    orthogonal = orthogonal, missing = miss, estimator = est,
+    std.lv = std.lv, ordered = ordered
+  )
   return(fit)
 }
