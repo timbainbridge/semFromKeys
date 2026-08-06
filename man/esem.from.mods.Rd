@@ -95,17 +95,17 @@ use outputs from \code{\link[=efa.from.keys]{efa.from.keys()}}, and \code{\link[
 The function was designed to streamline running exploratory structural
 equation models (ESEM) where EFA factors predict a series of latent variables
 in separate models using Burt's (1976) 2-stage procedure to prevent
-interpretational confounding. The function is designed to run analyses
-equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
+interpretational confounding (see below). The function is designed to run
+analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 
 The function requires fitted lavaan objects as inputs in order to properly
 employ the 2-stage procedure.
 Using \code{\link[=efa.from.keys]{efa.from.keys()}}, \code{\link[=cfa.from.keys]{cfa.from.keys()}}, and/or \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}
 should make this relatively straight-forward.
 
-Matching the philosophy of the package, the function is designed to run for
-multiple models with a similar design. If you are using the function for a
-single model, transform inputs into lists as appropriate.
+The function is designed to run for multiple models with a similar design.
+If you are using the function for a single model,
+transform inputs into lists as appropriate.
 
 The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
 This enables saving inputs and outputs from model runs
@@ -113,29 +113,28 @@ This enables saving inputs and outputs from model runs
 prior runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
-For further details on how this works, see the \code{\link[=sem.check]{sem.check()}} function
-documentation.
+For further details on how this works,
+see the \code{\link[=sem.check]{sem.check()}} function  documentation.
 
-Although the function will take any lavaan models that have successfully
-produced standard lavaan outputs,
-it will not complain if these have poor fit or other undesirable
-characteristics (beyond warnings and errors produced by lavaan).
-If this matters to you, it would be worth checking the outputs of upstream
-functions prior to running \code{esem.from.mods()}.
+In SEM, standard methods do not distinguish between measurement and
+structural parameters. Therefore, measurement model parameters can change
+with the addition of theoretically unrelated constructs in a structural
+model, thereby changing the interpretation of the latent variable.
+This is known as "interpretational confounding".
 
 There is some disagreement about how to deal with interpretational
-confounding.
-The standard solution (other than ignoring it) is to create good fitting
-measurement models first, then freely estimate the structural model with
-checks to ensure adequate fit of the model and
-that interpretational confounding is not an issue.
-A problem with this is that changes to measurement models can require
-entirely different factors (e.g., where original authors suggested a 4-factor
-scale and subsequent analyses suggest a 2-factor scale) or items to be
-removed.
-How ought one to assess whether the scale measures the same thing(s) with
-different factors or omitted items?
-When a single scale is being assessed, these issues can be resolved;
+confounding. The standard solution (other than ignoring it) is to create good
+fitting measurement models first, then freely estimate the structural model
+with checks to ensure adequate fit of the model and that interpretational
+confounding is not an issue.
+This is sometimes a good solution, but, in other cases, simply moves the
+problem. If the measurement model was for a well-established scale and it is
+changed, it loses easy comparison with past research.
+This issue is most clearly relevant when changes to a measurement model
+require entirely different factors or items to be removed.
+When a single scale is being assessed, these issues can be resolved by
+suggesting a thorough evaluation of the scale and, perhaps, the suggestion of
+a new measurement model or a new scale for a particular population;
 however, when many scales are being assessed this solution is impractical.
 
 An alternative solution is to fix measurement model parameters in a model
@@ -147,7 +146,7 @@ latent variables is fixed so their interpretation cannot change with the
 inclusion of other variables in a model.
 However, it is not a perfect solution because it underestimates uncertainty
 in the measurement part of the structural model (e.g., Nagy et al., 2017),
-which results in biased standard errors.
+which results in biased standard errors and fit statistics.
 
 A final option (among those noted here) was proposed by
 Nagy and colleagues (2017).
@@ -163,10 +162,30 @@ eliminating interpretational confounding.
 Unfortunately, estimating these models becomes increasingly slow with more
 items and factors, such that it quickly becomes untenable,
 especially for ESEM and when many models have to be run.
+Moreover, the method only works with correlations, not regressions,
+so some method to run regressions using the correlations needs to be
+implemented that does not itself result in biased estimates due to ignored
+uncertainty in the correlation estimates.
 
 As a result of these considerations, the 2-stage procedure of fixing
 measurement parameters in the structural models was chosen for the current
 function due to its simplicity and scalability.
+
+Note, however, that the solution to interpretational confounding means that
+fit statistics will be biased, so should not be used to determine an optimal
+model or that a model surpasses some cut-off of "good fit".
+Instead, the function is intended to allow variables to be regressed on EFA
+factors with much better measurement than would be achieved with aggregate
+scores.
+Note also that the function will not complain if measurement models have poor
+fit or other undesirable characteristics
+(beyond warnings and errors produced by lavaan).
+In cases where keeping the same measurement model as prior research is
+important, it may make sense to include a poor fitting measurement model in
+the ESEM.
+In cases where the measurement model might reasonably be adjusted, however,
+it is important to check measurement model fit before running
+\code{esem.from.mods}.
 
 A further complication occurs for bifactor models.
 Recall that bifactor models require orthogonal relationships between the
@@ -181,8 +200,6 @@ This may be possible in some cases (e.g., if the scale can be modified into
 a unidimentional scale), but frequently it is not.
 Second, avoid using regressions in models with bifactor models and compute
 regressions based on latent variable correlations.
-(This can be done by, e.g., creating a correlation matrix from the factor
-correlations and using the \code{\link[psych:setCor]{psych::setCor()}} function).
 This method produces accurate point estimates in the regressions,
 but standard errors are biased as the method cannot account for uncertainty
 in the correlations.
