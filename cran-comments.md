@@ -1,4 +1,14 @@
-## Latest submission (28-7-2026)
+## Latest submission (6-8-2026)
+
+### R CMD check results
+
+0 errors | 0 warnings | 0 notes
+
+### Notes
+
+* Fixed an important bug whereby the `sem.cor()` function would fail if a factor name included a '.'.
+
+## 28-7-2026 submission
 
 ### Issue in \donttest 
 
