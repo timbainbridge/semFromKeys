@@ -1,3 +1,8 @@
+# semFromKeys 0.3.1
+
+* Fixed a bug for length 1 `cfa_fit` and `bif_fit` in `esem.from.mods`.
+* Updated `esem.from.mods` documentation.
+
 # semFromKeys 0.3.0
 
 * Added the `sem.cor()` function, which takes CFA outputs and produces a correlation matrix between latent variables and, optionally, single items.
