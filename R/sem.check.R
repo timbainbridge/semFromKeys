@@ -262,6 +262,14 @@ sem.check <- function(
         )
       )
     }
+    if (sum(names(keys_s) != names(mods)) > 0) {
+      stop(
+        paste(
+          "Names of 'keys_s' and names of 'mods' do not match.",
+          "Please ensure they match to allow the function to run."
+        )
+      )
+    }
     if (sum(table(names(keys_s)) > 1) > 0) {
       stop(
         paste(

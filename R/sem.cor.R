@@ -401,7 +401,7 @@ sem.cor <- function(
                 paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
                 collapse = "\n"
               )
-              return(list(mod = mod0, key = key0))
+              return(list(mod = mod0, key = key0, xn = xn, yn = yn))
             } else {
               x1l <- x1[x1$op == "=~", ]
               y1l <- y1[y1$op == "=~", ]
@@ -478,17 +478,21 @@ sem.cor <- function(
                   )
                 )
               )
-              return(list(mod = mod0, key = key0))
+              return(list(mod = mod0, key = key0, xn = xn, yn = yn))
             }
           }
         )
         mod1 <- lapply(tmp, function(x) x$mod)
         key1 <- lapply(tmp, function(x) x$key)
-        return(list(mod = mod1, key = key1))
+        xn <- sapply(tmp, function(x) x$xn)
+        yn <- sapply(tmp, function(x) x$yn)
+        return(list(mod = mod1, key = key1, xn = xn, yn = yn))
       }
     )
     mods <- unlist(lapply(mod_key, function(x) x$mod), recursive = FALSE)
     key <- unlist(lapply(mod_key, function(x) x$key), recursive = FALSE)
+    xn <- unlist(lapply(mod_key, function(x) x$xn), recursive = FALSE)
+    yn <- unlist(lapply(mod_key, function(x) x$yn), recursive = FALSE)
   } else {
     mods <- NULL
     key <- NULL
@@ -621,9 +625,6 @@ sem.cor <- function(
     std.lv = TRUE
   )
   if (!is.null(fit_x) | length(fit_y) > 1) {
-    xn0 <- sub(".*\\.", "", names(mods))
-    xn <- xn0[!xn0 %in% items]
-    yn <- sub("\\..*", "", names(mods))[!xn0 %in% items]
     cors_y <- mapply(
       x = fit$par_std[
         !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
