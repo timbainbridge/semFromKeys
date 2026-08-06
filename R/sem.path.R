@@ -69,6 +69,7 @@
 sem.path <- function(
     path, data, cfa_fit, items = NULL, item_loadings = NULL, extra = NULL,
     fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
+    std = FALSE, orthogonal = TRUE,
     name = "sem", check = FALSE, save_out = FALSE
 ) {
   if (!is.null(items)) {
@@ -151,6 +152,7 @@ sem.path <- function(
       stringr::str_split("\\s*(?:~~|=~|~|\\+|\n)\\s*") |>
       unlist() |>
       unique()
+    extra_vars <- extra_vars[!extra_vars %in% c(x_vars, y_vars)]
   }
   if (!y_vars %in% c(names(data), names(cfa_fit))) {
     stop(
@@ -164,59 +166,64 @@ sem.path <- function(
     )
   }
   if (!is.null(extra)) {
-    if (
-      length(extra_vars) > 0 & !extra_vars %in% c(names(data), names(cfa_fit))
-    ) {
-      stop(
-        paste(
-          "A variable in 'extra' does not match a variable name in",
-          "'data' or a latent varialbe name in 'cfa_fit'.",
-          "Please check variable names used in 'extra' match those of",
-          "the relevant CFA or item name as appropriate.",
-          "Note that the name must match that of the factor in the lavaan",
-          "model, if that differs from the object name."
+    if (length(extra_vars) > 0) {
+      if (!extra_vars %in% c(items, names(cfa_fit))) {
+        stop(
+          paste(
+            "A variable in 'extra' does not match a variable name in",
+            "'items' or a latent varialbe name in 'cfa_fit'.",
+            "Please check variable names used in 'extra' match those of",
+            "the relevant CFA or item name as appropriate.",
+            "Note that the name must match that of the factor in the lavaan",
+            "model, if that differs from the object name."
+          )
         )
-      )
+      }
     }
   }
-  mod_i <- paste0(
-    lapply(
-      stats::setNames(nm = items),
-      function(i) {
-        if (!is.null(item_loadings)) {
-          if (length(item_loadings) == length(items)) {
-            i_r <- paste(item_loadings[i], " * ")
+  if (!is.null(items)) {
+    mod_i <- paste0(
+      lapply(
+        stats::setNames(nm = items),
+        function(i) {
+          if (!is.null(item_loadings)) {
+            if (length(item_loadings) == length(items)) {
+              i_r <- paste(item_loadings[i], " * ")
+            } else {
+              i_r <- paste(item_loadings, " * ")
+            }
           } else {
-            i_r <- paste(item_loadings, " * ")
+            i_r <- ""
           }
-        } else {
-          i_r <- ""
-        }
-        i_l <- paste0(i, "_l")
-        mod0 <- paste0(i_l, " =~ ", i_r, i)
-      }
-    ),
-    collapse = "\n"
-  )
-  if (length(items) > 1) {
-    item_cors <- paste(
-      sapply(
-        seq_along(items[-length(items)]),
-        function(x) {
-          paste0(
-            "\n", items[x], "_l ~~ ",
-            paste(items[(x + 1):length(items)], "_l", collapse = " + ")
-          )
+          i_l <- paste0(i, "_l")
+          paste0(i_l, " =~ ", i_r, i)
         }
       ),
       collapse = "\n"
     )
+    if (length(items) > 1) {
+      item_cors <- paste(
+        sapply(
+          seq_along(items[-length(items)]),
+          function(x) {
+            paste0(
+              "\n", items[x], "_l ~~ ",
+              paste(items[(x + 1):length(items)], "_l", collapse = " + ")
+            )
+          }
+        ),
+        collapse = "\n"
+      )
+    } else {
+      item_cors <- NULL
+    }
   } else {
     item_cors <- NULL
+    mod_i <- NULL
   }
   # Full structural model
   mod <- sapply(
-    par1,
+    cfa_par,
     function(x) {
       i <- x$lhs[x$op == "=~"] |> unique()
       if (sum(i %in% y_vars) >= 1) {
@@ -229,8 +236,6 @@ sem.path <- function(
           ]
         }
       }
-      # x$rhs[x$op == "~1"] <- "1"
-      # x$op[x$op == "~1"] <- "~"
       x <- x[x$op %in% c("~~", "=~"), ]
       paste(
         c(
@@ -264,30 +269,22 @@ sem.path <- function(
   if (!is.null(extra)) {
     mod <- paste0(mod, "\n", extra)
   }
-  mod0 <- gsub(" ", "", mod) |> gsub("\n\n", "\n", x = _)
-
-
-  # TODO: Remind myself how to change this so gsubfn is not required.
-  # (Likely from sem.cor)
-
-
-  requireNamespace(gsubfn)
-  m_test <- if (m0 != FALSE) {
-    gsubfn::gsubfn(
-      "([0-9]\\.[0-9]+)",
-      ~format(round(as.numeric(x), 4), nsmall = 4),
-      mod0
-    ) ==
-      gsubfn::gsubfn(
-        "([0-9]\\.[0-9]+)",
-        ~format(round(as.numeric(x), 4), nsmall = 4),
-        m0
-      )
-  } else FALSE
-  fit <- sem(
-    mod, dat,
-    orthogonal = orthogonal, missing = miss, estimator = est,
-    std.lv = std.lv, ordered = ordered
+  fit <- sem.check(
+    list(mod = mod), data = data,
+    keys_s = list(mod = c(unlist(cfa_keys), items)),
+    fit_save = fit_save, fit_measures = fit_measures,
+    miss = miss, est = est, orthogonal = orthogonal, std = std,
+    name = name, check = check, save_out = save_out
   )
-  return(fit)
+  if (fit_save) {
+    return(
+      list(
+        fit = fit$fit$mod,
+        par = fit$par$mod,
+        fit_measures = fit$fit_measures["mod", ]
+        )
+      )
+  } else {
+    return(list(fit = fit$fit$mod, par = fit$par$mod))
+  }
 }
