@@ -1,7 +1,9 @@
-# semFromKeys 0.3.1
-
 * Fixed a bug for length 1 `cfa_fit` and `bif_fit` in `esem.from.mods`.
 * Updated `esem.from.mods` documentation.
+
+# semFromKeys 0.3.1
+
+* Fixed minor bugs in two esem.from.mods error messages.
 
 # semFromKeys 0.3.0
 
