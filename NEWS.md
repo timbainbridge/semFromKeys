@@ -1,3 +1,5 @@
+# semFromKeys 0.3.3
+
 * Fixed a bug in `sem.cor()` whereby variable names were not correctly extracted when '.'s were included in the name.
 * Added a missing error check, such that cryptic, "missing variables" errors would not appear in `sem.check()` due to mismatched `mods` and `keys_s` names.
 
