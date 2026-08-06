@@ -6,7 +6,9 @@
 #' uses these to create the model code and run the model.
 #'
 #' @inheritParams sem.check
-#' @param path The full structural model in lavaan code.
+#' @param path
+#' Regression or paths between latent variables or single-item indicators in
+#' lavaan code.
 #' @param cfa_fit
 #' A named list of fitted lavaan objects of CFA models.
 #' Can be `NULL` if `bif_fit` is not `NULL`.
@@ -21,10 +23,24 @@
 #' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
 #' @param extra
-#' Extra lavaan code to be added.
-#' For example, to set reliability for a single item outcome or to allow
-#' specific covariances, notably semi-partial correlations in incremental
-#' validity analyses.
+#' Extra lavaan code to be added that is not included in `cfa_fit`, `bif_fit`,
+#' or `path`.
+#' For example, the argument can be used to set constraints, fix values,
+#' or allow correlations between item residuals or latent variables.
+#' Notably, the feature can be used to fix semi-partial correlations in
+#' incremental validity analyses (see Hayes, 2001).
+#' @param items
+#' A vector of single-item indicators of structural elements.
+#' 'items' must not include any items contributing to the measurement of a
+#' latent variable.
+#' @param item_loadings
+#' When single items are specified, items are included in models with single
+#' item latent variables.
+#' `item_loadings` sets the loading of the item on the factor.
+#' Set as `NULL` to allow the value to be freely estimated (default);
+#' set as a single number to set all item loadings equal to that number; or
+#' set as a vector of length equal to the length of items to set all loadings.
+#' Irrelevant if `items = NULL`.
 #'
 #' @return
 #' Returns a list of length 4 (if `fit_save = FALSE`) or
@@ -37,12 +53,39 @@
 #' and a data frame of R-squared values from the model (if applicable).
 #'
 #' @importFrom stringr string_extract_all
+#' @importFrom stringr str_split
+#'
+#' @references
+#' Hayes, T. (2001).
+#' R-squared change in structural equation models with latent variables and
+#' missing data.
+#' Behavior Research Methods, 53(5), 2127-2157.
+#' https://doi.org/10.3758/s13428-020-01532-y.
+
+
+# TODO: Check that no element of items is in a measurement model.
+
 
 sem.path <- function(
-    path, data, cfa_fit = NULL, bif_fit = NULL, name = "sem", extra = NULL,
+    path, data, cfa_fit = NULL, bif_fit = NULL,
+    items = NULL, item_loadings = NULL, extra = NULL,
     fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
     name = "sem", check = FALSE, save_out = FALSE
 ) {
+  if (!is.null(items)) {
+    if (!items %in% names(data)) {
+      stop(
+        paste(
+          "An  preditor in 'path' does not match a variable name in",
+          "'data' nor a latent varialbe name in 'cfa_fit' or 'bif_fit'.",
+          "Please check dependent variable names used in 'path' match those of",
+          "the relevant CFA, bifactor, or item name as appropriate.",
+          "Note that the name must match that in the lavaan model, not the",
+          "name of the object (if different)."
+        )
+      )
+    }
+  }
 
   ##### Below copied from esem.from.mods() #####
   if (is.null(cfa_fit) & is.null(bif_fit)) {
@@ -123,7 +166,7 @@ sem.path <- function(
   }
   if (!is.null(bif_fit)) {
     bif_par <- sapply(bif_fit, parameterEstimates, simplify = FALSE)
-    bif_keys <- sapply(bif_par, function(x) unique(x$rhs[x$op == "=~"]))
+    bif_keys <- lapply(bif_par, function(x) unique(x$rhs[x$op == "=~"]))
     bif_names <- mapply(
       x = bif_par, y = bif_keys,
       FUN = function(x, y) {
@@ -131,7 +174,7 @@ sem.path <- function(
         names(tmp)[tmp == max(tmp)]
       }
     )
-    names(bif_par) <- bif_names
+    names(bif_fit) <- names(bif_par) <- bif_names
     if (!is.null(names(bif_fit))) {
       if (sum(names(bif_fit) != bif_names) > 0) {
         warning(
@@ -171,36 +214,102 @@ sem.path <- function(
   }
   ##### Above copied from esem.from.mods() #####
 
+  if (!is.null(cfa_fit)) {
+    if (!is.null(bif_fit)) {
+      par1 <- c(cfa_par, bif_par)
+    } else {
+      par1 <- cfa_par
+    }
+  } else {
+    par1 <- bif_par
+  }
   # Check which variables are outcomes and need free residual variance.
-  y_vars <- str_extract_all(path, "(^|\n) *.*( |)~") |>
+  y_vars <- stringr::str_extract_all(path, "(^|\n) *.*( |)~") |>
     unlist() |>
     gsub("~|\n| ", "", x = _) |>
     unique()
-  x_vars <- str_extract_all(path, "(~~|~|\\+) *.*?(\n| |$|~~)") |>
+  x_vars <- stringr::str_extract_all(path, "(~~|~|\\+) *.*?(\n| |$|~~)") |>
     unlist() |>
     gsub("~| |\\+|\n", "", x = _) |>
     unique()
   if (!is.null(extra)) {
-    extra_vars <- str_extract_all(extra, "(^|=~|~~) *.*?(=~|\n|$)") |>
+
+    # TODO: Check for generality.
+
+    extra_vars <- extra |>
+      stringr::str_split("\\s*(?:~~|=~|~)\\s*") |>
       unlist() |>
-      gsub("=~|~~|.*\\*|\n| ", "", x = _) |>
       unique()
+
+      # str_extract_all(extra, "(^|=~|~~) *.*?(~~|=~|\n|$)") |>
+      # unlist() |>
+      # gsub("=~|~~|.*\\*|\n| ", "", x = _) |>
+      # unique()
   }
-  items <- x_vars[!x_vars %in% c(names(cfa_par), names(bif_par), "")]
-  if (!items %in% names(data)) {
-    stop("A preditor in path is not in ")
+  if (!y_vars %in% c(names(data), names(cfa_fit), names(bif_fit))) {
+    stop(
+      paste(
+        "A depenent variable in 'path' is not in 'data', 'cfa_fit', nor",
+        "'bif_fit'.",
+        "Please check dependent variable names used in 'path' match those of",
+        "the relevant CFA, bifactor, or item name as appropriate.",
+        "Note that the name must match that in the lavaan model, not the name",
+        "of the object (if different)."
+      )
+    )
   }
-  item_cors <- paste(
-    sapply(
-      seq_along(items[-length(items)]),
-      function(x) {
+  if (!is.null(extra)) {
+    if (
+      length(extra_vars) > 0 &
+      !extra_vars %in% c(names(data), names(cfa_fit), names(bif_fit))
+    ) {
+      stop(
         paste(
-          items[x], "~~", paste(items[(x + 1):length(items)], collapse = " + ")
+          "A variable in 'extra' does not match a variable name in",
+          "'data' nor a latent varialbe name in 'cfa_fit' or 'bif_fit'.",
+          "Please check variable names used in 'extra' match those of",
+          "the relevant CFA, bifactor, or item name as appropriate.",
+          "Note that the name must match that in the lavaan model, not the",
+          "name of the object (if different)."
         )
+      )
+    }
+  }
+  mod_i <- paste0(
+    lapply(
+      stats::setNames(nm = items),
+      function(i) {
+        if (!is.null(item_loadings)) {
+          if (length(item_loadings) == length(items)) {
+            i_r <- paste(item_loadings[i], " * ")
+          } else {
+            i_r <- paste(item_loadings, " * ")
+          }
+        } else {
+          i_r <- ""
+        }
+        i_l <- paste0(i, "_l")
+        mod0 <- paste0(i_l, " =~ ", i_r, i)
       }
     ),
     collapse = "\n"
   )
+  if (length(items) > 1) {
+    item_cors <- paste(
+      sapply(
+        seq_along(items[-length(items)]),
+        function(x) {
+          paste0(
+            "\n", items[x], "_l ~~ ",
+            paste(items[(x + 1):length(items)], "_l", collapse = " + ")
+          )
+        }
+      ),
+      collapse = "\n"
+    )
+  } else {
+    item_cors <- NULL
+  }
   # Full structural model
   mod <- sapply(
     par1,
@@ -216,8 +325,9 @@ sem.path <- function(
           ]
         }
       }
-      x$rhs[x$op == "~1"] <- "1"
-      x$op[x$op == "~1"] <- "~"
+      # x$rhs[x$op == "~1"] <- "1"
+      # x$op[x$op == "~1"] <- "~"
+      x <- x[x$op %in% c("~~", "=~"), ]
       paste(
         c(
           # CFA model
@@ -245,15 +355,16 @@ sem.path <- function(
     }
   ) |>
     paste0(collapse = "\n") |>
-    paste0("\n", item_cors) |>
+    paste0(item_cors) |>
     paste0("\n", path)
-  if (extra != FALSE) {
+  if (!is.null(extra)) {
     mod <- paste0(mod, "\n", extra)
   }
   mod0 <- gsub(" ", "", mod) |> gsub("\n\n", "\n", x = _)
 
 
-  # TODO: Figure out how to change so gsubfn is not required.
+  # TODO: Remind myself how to change this so gsubfn is not required.
+  # (Likely from sem.cor)
 
 
   requireNamespace(gsubfn)
