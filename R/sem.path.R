@@ -67,8 +67,7 @@
 
 
 sem.path <- function(
-    path, data, cfa_fit = NULL, bif_fit = NULL,
-    items = NULL, item_loadings = NULL, extra = NULL,
+    path, data, cfa_fit, items = NULL, item_loadings = NULL, extra = NULL,
     fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
     name = "sem", check = FALSE, save_out = FALSE
 ) {
@@ -87,142 +86,57 @@ sem.path <- function(
     }
   }
 
-  ##### Below copied from esem.from.mods() #####
-  if (is.null(cfa_fit) & is.null(bif_fit)) {
-    stop("At least one of 'cfa_fit' and 'bif_fit' must be specified.")
+  ##### Below adapted from esem.from.mods() #####
+  if (!is.list(cfa_fit) & inherits(cfa_fit, "lavaan")) {
+    cfa_fit <- list(factor = cfa_fit)
   }
-  if (!is.null(cfa_fit)) {
-    # Single model instead of list.
-    if (!is.list(cfa_fit) & inherits(cfa_fit, "lavaan")) {
-      cfa_fit <- list(factor = cfa_fit)
-    }
-    if (sum(sapply(cfa_fit, function(x) !inherits(x, "lavaan"))) > 0) {
-      stop(
+  if (sum(sapply(cfa_fit, function(x) !inherits(x, "lavaan"))) > 0) {
+    stop(
+      paste0(
+        "The below elements of 'cfa_fit' are not objects of type lavaan.",
+        "\n    ",
         paste0(
-          "The below elements of 'cfa_fit' are not objects of type lavaan.",
-          "\n    ",
-          paste0(
-            names(cfa_fit)[sapply(cfa_fit, function(x) !inherits(x, "lavaan"))],
-            collapse = "\n    "
-          )
+          names(cfa_fit)[sapply(cfa_fit, function(x) !inherits(x, "lavaan"))],
+          collapse = "\n    "
         )
       )
-    }
-  }
-  if (!is.null(bif_fit)) {
-    # Single model instead of list.
-    if (!is.list(bif_fit) & inherits(bif_fit, "lavaan")) {
-      bif_fit <- list(bifactor = bif_fit)
-    }
-    if (sum(sapply(bif_fit, function(x) !inherits(x, "lavaan"))) > 0) {
-      stop(
-        paste0(
-          "The below elements of 'bif_fit' are not objects of type lavaan.",
-          "\n    ",
-          paste0(
-            names(bif_fit)[sapply(bif_fit, function(x) !inherits(x, "lavaan"))],
-            collapse = "\n    "
-          )
-        )
-      )
-    }
-  }
-  if (!is.null(cfa_fit)) {
-    cfa_par <- sapply(cfa_fit, parameterEstimates, simplify = FALSE)
-    # Extract factor names
-    cfa_names <- sapply(
-      cfa_par,
-      function(x) {
-        x1 <- unique(x$lhs[x$op == "=~"])
-        if (length(x1) > 1) {
-          stop(
-            paste(
-              "A CFA containing more than one latent variable has been found.",
-              "Currently, the function only supports CFAs included in separate",
-              "models.",
-              "Please either use 'bif_fit' and a model supported there,",
-              "or separate the CFAs into separate measurement models.",
-              "The offending factors are:\n",
-              "    ",
-              paste(x1, collapse = "\n    ")
-            )
-          )
-        }
-        return(x1)
-      }
     )
-    names(cfa_fit) <- names(cfa_par) <- cfa_names
-    cfa_keys <- sapply(cfa_par, function(x) x$rhs[x$op == "=~"])
-    names(cfa_keys) <- cfa_names
-    if (sum(table(names(cfa_keys)) > 1) > 0) {
-      stop(
-        paste(
-          "At least two different models in 'cfa_fit' have factors with the",
-          "same name.",
-          "Please ensure that all factor names are unique."
-        )
-      )
-    }
   }
-  if (!is.null(bif_fit)) {
-    bif_par <- sapply(bif_fit, parameterEstimates, simplify = FALSE)
-    bif_keys <- lapply(bif_par, function(x) unique(x$rhs[x$op == "=~"]))
-    bif_names <- mapply(
-      x = bif_par, y = bif_keys,
-      FUN = function(x, y) {
-        tmp <- table(x$lhs[x$op == "=~" & x$rhs %in% y])
-        names(tmp)[tmp == max(tmp)]
-      }
-    )
-    names(bif_fit) <- names(bif_par) <- bif_names
-    if (!is.null(names(bif_fit))) {
-      if (sum(names(bif_fit) != bif_names) > 0) {
-        warning(
+  cfa_par <- sapply(cfa_fit, parameterEstimates, simplify = FALSE)
+  cfa_keys <- sapply(cfa_par, function(x) x$rhs[x$op == "=~"])
+  cfa_names <- sapply(
+    cfa_par,
+    function(x) {
+      x1 <- unique(x$lhs[x$op == "=~"])
+      if (length(x1) > 1) {
+        stop(
           paste(
-            "The names of 'bif_fit' do not match the general factor names.",
-            "Names of returned objects are based on factor names",
-            "so they will not match the names of 'bif_fit'."
+            "A CFA containing more than one latent variable has been found.",
+            "Currently, the function only supports CFAs included in separate",
+            "models.",
+            "Please either use 'bif_fit' and a model supported there,",
+            "or separate the CFAs into separate measurement models.",
+            "The offending factors are:\n",
+            "    ",
+            paste(x1, collapse = "\n    ")
           )
         )
       }
+      return(x1)
     }
-    names(bif_keys) <- bif_names
-    if (sum(table(names(bif_keys)) > 1) > 0) {
-      stop(
-        paste(
-          "At least two different models in 'bif_fit' have general factors",
-          "with the same name.",
-          "Please ensure that all factor names are unique."
-        )
+  )
+  names(cfa_fit) <- names(cfa_par) <- names(cfa_keys) <- cfa_names
+  if (sum(table(names(cfa_keys)) > 1) > 0) {
+    stop(
+      paste(
+        "At least two different models in 'cfa_fit' have factors with the",
+        "same name.",
+        "Please ensure that all factor names are unique."
       )
-    }
+    )
   }
-  if (!is.null(cfa_fit) & !is.null(bif_fit)) {
-    if (sum(names(cfa_keys) %in% names(bif_keys)) > 0) {
-      stop(
-        paste(
-          "The following models in 'cfa_fit' have identically named",
-          "factor(s) in 'bif_fit':\n    ",
-          paste(
-            names(cfa_fit)[names(cfa_fit) %in% names(bif_fit)], collapse = "\n"
-          ),
-          "\n\n  Please ensure that CFA factors and bifactor general factors",
-          "have unique names."
-        )
-      )
-    }
-  }
-  ##### Above copied from esem.from.mods() #####
+  ##### Above adapted from esem.from.mods() #####
 
-  if (!is.null(cfa_fit)) {
-    if (!is.null(bif_fit)) {
-      par1 <- c(cfa_par, bif_par)
-    } else {
-      par1 <- cfa_par
-    }
-  } else {
-    par1 <- bif_par
-  }
   # Check which variables are outcomes and need free residual variance.
   y_vars <- stringr::str_extract_all(path, "(^|\n) *.*( |)~") |>
     unlist() |>
@@ -233,44 +147,34 @@ sem.path <- function(
     gsub("~| |\\+|\n", "", x = _) |>
     unique()
   if (!is.null(extra)) {
-
-    # TODO: Check for generality.
-
     extra_vars <- extra |>
-      stringr::str_split("\\s*(?:~~|=~|~)\\s*") |>
+      stringr::str_split("\\s*(?:~~|=~|~|\\+|\n)\\s*") |>
       unlist() |>
       unique()
-
-      # str_extract_all(extra, "(^|=~|~~) *.*?(~~|=~|\n|$)") |>
-      # unlist() |>
-      # gsub("=~|~~|.*\\*|\n| ", "", x = _) |>
-      # unique()
   }
-  if (!y_vars %in% c(names(data), names(cfa_fit), names(bif_fit))) {
+  if (!y_vars %in% c(names(data), names(cfa_fit))) {
     stop(
       paste(
-        "A depenent variable in 'path' is not in 'data', 'cfa_fit', nor",
-        "'bif_fit'.",
+        "A depenent variable in 'path' is not in 'data' or 'cfa_fit'.",
         "Please check dependent variable names used in 'path' match those of",
-        "the relevant CFA, bifactor, or item name as appropriate.",
-        "Note that the name must match that in the lavaan model, not the name",
-        "of the object (if different)."
+        "the relevant CFA or item name as appropriate.",
+        "Note that the name must match that of the factor in the lavaan model,",
+        "if that differs from the object name."
       )
     )
   }
   if (!is.null(extra)) {
     if (
-      length(extra_vars) > 0 &
-      !extra_vars %in% c(names(data), names(cfa_fit), names(bif_fit))
+      length(extra_vars) > 0 & !extra_vars %in% c(names(data), names(cfa_fit))
     ) {
       stop(
         paste(
           "A variable in 'extra' does not match a variable name in",
-          "'data' nor a latent varialbe name in 'cfa_fit' or 'bif_fit'.",
+          "'data' or a latent varialbe name in 'cfa_fit'.",
           "Please check variable names used in 'extra' match those of",
-          "the relevant CFA, bifactor, or item name as appropriate.",
-          "Note that the name must match that in the lavaan model, not the",
-          "name of the object (if different)."
+          "the relevant CFA or item name as appropriate.",
+          "Note that the name must match that of the factor in the lavaan",
+          "model, if that differs from the object name."
         )
       )
     }
