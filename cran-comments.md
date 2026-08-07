@@ -1,8 +1,13 @@
-## Latest submission (6-8-2026)
+## Latest submission (7-8-2026)
 
 ### R CMD check results
 
-0 errors | 0 warnings | 0 notes
+0 errors | 0 warnings | 1 notes
+
+* Examples with CPU (user + system) or elapsed time > 10s
+
+                     user system elapsed
+      efa.from.keys 15.14    0.3   15.47
 
 ### Notes
 
