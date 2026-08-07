@@ -54,6 +54,7 @@
 #'
 #' @importFrom stringr string_extract_all
 #' @importFrom stringr str_split
+#' @export
 #'
 #' @references
 #' Hayes, T. (2001).
@@ -69,7 +70,7 @@
 sem.path <- function(
     path, data, cfa_fit, items = NULL, item_loadings = NULL, extra = NULL,
     fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
-    std = FALSE, orthogonal = TRUE,
+    orthogonal = TRUE,
     name = "sem", check = FALSE, save_out = FALSE
 ) {
   if (!is.null(items)) {
@@ -270,21 +271,37 @@ sem.path <- function(
     mod <- paste0(mod, "\n", extra)
   }
   fit <- sem.check(
-    list(mod = mod), data = data,
-    keys_s = list(mod = c(unlist(cfa_keys), items)),
+    setNames(list(mod), nm = name), data = data,
+    keys_s = setNames(list(c(unlist(cfa_keys), items)), nm = name),
     fit_save = fit_save, fit_measures = fit_measures,
-    miss = miss, est = est, orthogonal = orthogonal, std = std,
+    miss = miss, est = est, orthogonal = orthogonal, std = TRUE,
     name = name, check = check, save_out = save_out
   )
+  x <- fit$par_std[[name]]
+  xr <- x[x$op == "~~" & x$lhs == x$rhs & x$lhs %in% y_vars, ]
+  r2 <- data.frame(
+    y_var = xr$lhs,
+    R2 = 1 - xr$est.std,
+    se = xr$se,
+    ci.lower = 1 - xr$ci.upper,
+    ci.upper = 1 - xr$ci.lower
+  )
+  b <- x[x$op == "~", -2]
+  names(b)[1] <- "y_var"
+  names(b)[2] <- "x_var"
   if (fit_save) {
     return(
       list(
-        fit = fit$fit$mod,
-        par = fit$par$mod,
-        fit_measures = fit$fit_measures["mod", ]
-        )
+        fit = fit$fit[[name]],
+        par_std = fit$par_std[[name]],
+        fit_measures = fit$fit_measures[name, ],
+        b = b,
+        r2 = r2
       )
+    )
   } else {
-    return(list(fit = fit$fit$mod, par = fit$par$mod))
+    return(
+      list(fit = fit$fit[[name]], par_std = fit$par_std[[name]], b = b, r2 = r2)
+    )
   }
 }
