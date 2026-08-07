@@ -122,11 +122,14 @@ keys_e <- sapply(
   },
   simplify = FALSE
 )
-# Run model
-efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = TRUE)
+# Run model with selected fit measures.
+efa_fit <- efa.from.keys(
+  keys_e, BFIGritHope, check = FALSE,
+  fit_save = TRUE, fit_measures = c("cfi", "rmsea")
+)
 # Examine results
-summary(efa_fit$fit$efa)                   # Standard lavaan summary
-efa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
+summary(efa_fit$fit$efa)  # Standard lavaan summary
+efa_fit$fit_measures      # Fit measures
 }
 \references{
 Burt, R. S. (1976).
