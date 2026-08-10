@@ -11,23 +11,20 @@
 #' lavaan code.
 #' @param cfa_fit
 #' A named list of fitted lavaan objects of CFA models.
-#' Can be `NULL` if `bif_fit` is not `NULL`.
-#' @param bif_fit
-#' A named list of fitted lavaan objects of bifactor models.
-#' Can be `NULL` if `cfa_fit` is not `NULL`.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
 #' Defaults to "sem".
-#' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
+#' Should never be "" or `NULL` but otherwise irrelevant if both
+#' `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
 #' @param extra
-#' Extra lavaan code to be added that is not included in `cfa_fit`, `bif_fit`,
-#' or `path`.
+#' Extra lavaan code to be added that is not created from `cfa_fit`, or included
+#' in `path`.
 #' For example, the argument can be used to set constraints, fix values,
 #' or allow correlations between item residuals or latent variables.
-#' Notably, the feature can be used to fix semi-partial correlations in
+#' Notably, the argument can be used to free semi-partial correlations in
 #' incremental validity analyses (see Hayes, 2001).
 #' @param items
 #' A vector of single-item indicators of structural elements.
@@ -50,20 +47,24 @@
 #' If `TRUE`, single-item latent variables are fixed at 0 unless explicitly
 #' freed or set to an alternative value
 #' (using `extra`, see details for how to do this).
+#' Defaults to `TRUE`.
 #' Irrelevant if `items = NULL`.
 #'
 #' @return
-#' Returns a list of length 4 (if `fit_save = FALSE`) or
-#' 5 (if `fit_save = TRUE`).
+#' Returns a list of length 5 (if `fit_save = FALSE`) or
+#' 6 (if `fit_save = TRUE`).
 #' The elements of the list are: a lavaan model output object;
-#' a data frame of parameter estimates from the model
-#' (standardized if `std = TRUE`);
+#' a data frame of parameter estimates from the model;
 #' a vector of fit measures for the model if `fit_save = TRUE`;
 #' a list of structural regression and correlation parameters from the model;
 #' and a data frame of R-squared values from the model (if applicable).
 #'
 #' @details
 #' TBD
+#' Mention semi-partial correlations and incremental validity analyses.
+#' What's orth items.
+#' 0 correlations assumed if not included in path, extra, or with orth_items
+#'
 #'
 #' @importFrom stringr string_extract_all
 #' @importFrom stringr str_split
@@ -77,12 +78,13 @@
 #' https://doi.org/10.3758/s13428-020-01532-y.
 
 
-# TODO: Check that no element of items is in a measurement model.
+# TODO: Add RMSEA-P as a fit stat.
+
 
 sem.path <- function(
     path, data, cfa_fit, items = NULL, item_loadings = NULL, extra = NULL,
-    fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
-    orth_items = FALSE,
+    fit_save = TRUE, fit_measures = "all", miss = "ML", est = "default",
+    orth_items = TRUE,
     name = "sem", check = FALSE, save_out = FALSE
 ) {
   if (!is.null(items)) {
@@ -147,6 +149,7 @@ sem.path <- function(
     unlist() |>
     gsub("~| |\\+|\n", "", x = _) |>
     unique()
+  x_vars <- x_vars[!x_vars %in% y_vars]
   if (!is.null(extra)) {
     extra_vars <- extra |>
       stringr::str_split("\\s*(?:~~|=~|~|\\+|\n)\\s*") |>
@@ -155,15 +158,19 @@ sem.path <- function(
     extra_vars <- extra_vars[!extra_vars %in% c(x_vars, y_vars)]
   }
   if (is.null(items) & is.null(item_loadings)) {
-    all_vars <- c(y_vars, x_vars, extra_vars)
+    if (is.null(extra)) {
+      all_vars <- c(y_vars, x_vars)
+    } else {
+      all_vars <- c(y_vars, x_vars, extra_vars)
+    }
     items <- all_vars[!all_vars %in% names(cfa_par)]
     if (length(items) > 0) {
       item_miss <- items[!items %in% names(data)]
       if (length(item_miss) > 0) {
         stop(
-          paste(
-            item_miss[1], "is in 'path' but does not match either a latent",
-            "variable name, nor a variable name in 'data'."
+          paste0(
+            "'", item_miss[1], "' is in 'path' but does not match either a ",
+            "latent variable name, nor a variable name in 'data'."
           )
         )
       }
@@ -172,9 +179,10 @@ sem.path <- function(
   item_in_cfa <- items[items %in% unlist(cfa_keys)]
   if (length(item_in_cfa) > 0) {
     stop(
-      paste(
-        item_in_cfa[1], "is a single item but is also an item in a CFA model.",
-        "Items that contribute to a CFA measurement model cannot",
+      paste0(
+        "'", item_in_cfa[1], "' is a structural variable but is also an item ",
+        "in a CFA model. ",
+        "Items that contribute to a CFA measurement model cannot ",
         "also be a structural variable."
       )
     )
@@ -182,12 +190,12 @@ sem.path <- function(
   y_miss <- y_vars[!y_vars %in% c(names(data), names(cfa_fit))]
   if (length(y_miss) > 0) {
     stop(
-      paste(
-        y_miss[1], "is in 'path' but is not in 'items', 'cfa_fit',",
-        "or a named variable in 'data'.",
-        "Please check", y_miss[1], "matches the name of the relevant CFA,",
-        "item, or variable name as appropriate.",
-        "Note that latent variable names must match that of the factor",
+      paste0(
+        "'", y_miss[1], "' is in 'path' but is not in 'items', 'cfa_fit', ",
+        "or a named variable in 'data'. ",
+        "Please check '", y_miss[1], "' matches the name of the relevant CFA, ",
+        "item, or variable name as appropriate. ",
+        "Note that latent variable names must match that of the factor ",
         "in the lavaan model (which could differ from the object name)."
       )
     )
@@ -195,12 +203,12 @@ sem.path <- function(
   x_miss <- x_vars[!x_vars %in% c(names(data), names(cfa_fit))]
   if (length(x_miss) > 0) {
     stop(
-      paste(
-        x_miss[1], "is in 'path' but is not in 'items', 'cfa_fit',",
-        "or a named variable in 'data'.",
-        "Please check", x_miss[1], "matches the name of the relevant CFA,",
-        "item, or variable name as appropriate.",
-        "Note that latent variable names must match that of the factor",
+      paste0(
+        "'", x_miss[1], "' is in 'path' but is not in 'items', 'cfa_fit', ",
+        "or a named variable in 'data'. ",
+        "Please check '", x_miss[1], "' matches the name of the relevant CFA, ",
+        "item, or variable name as appropriate. ",
+        "Note that latent variable names must match that of the factor ",
         "in the lavaan model (which could differ from the object name)."
       )
     )
@@ -209,13 +217,14 @@ sem.path <- function(
     if (length(extra_vars) > 0) {
       extra_miss <- extra_vars[!extra_vars %in% c(names(data), names(cfa_fit))]
       if (length(extra_miss) > 0) {
+        # Note: it is possible to get here only if items is an entered argument.
         stop(
-          paste(
-            extra_miss[1], "is in 'extra' but is not in 'items', 'cfa_fit',",
-            "or a named variable in 'data'.",
-            "Please check", extra_miss[1], "matches the name of",
-            "the relevant CFA, item, or variable name as appropriate.",
-            "Note that latent variable names must match that of the factor",
+          paste0(
+            "'", extra_miss[1], "' is in 'extra' but is not in 'items', ",
+            "'cfa_fit', or a named variable in 'data'. ",
+            "Please check '", extra_miss[1], "' matches the name of ",
+            "the relevant CFA, item, or variable name as appropriate. ",
+            "Note that latent variable names must match that of the factor ",
             "in the lavaan model (which could differ from the object name)."
           )
         )
@@ -266,18 +275,16 @@ sem.path <- function(
   mod <- sapply(
     cfa_par,
     function(x) {
+      x <- x[x$op %in% c("~~", "=~"), ]
       i <- x$lhs[x$op == "=~"] |> unique()
       if (sum(i %in% y_vars) >= 1) {
+        # Free residual variance for y factors.
+        # Overly complex for single-factor CFA only but could be important for
+        # multi-factor CFA or bifactor models.
         for (j in i) {
-          x <- x[
-            !(
-              (x$lhs == j & x$op == "~~" & x$rhs == j) |
-                (x$lhs == j & x$op == "~1")
-            ),
-          ]
+          x <- x[!(x$lhs == j & x$op == "~~" & x$rhs == j), ]
         }
       }
-      x <- x[x$op %in% c("~~", "=~"), ]
       paste(
         c(
           # CFA model
@@ -291,13 +298,16 @@ sem.path <- function(
               function(j) {
                 if (!j %in% y_vars) {
                   paste(
-                    i, "~~", paste(items, collapse = " + "), collapse = "\n"
+                    i, "~~", paste0(items, "_l", collapse = " + "),
+                    collapse = "\n"
                   )
                 } else {
                   ""
                 }
               }
             )
+          } else {
+            ""
           }
         ),
         collapse = "\n"
@@ -305,7 +315,7 @@ sem.path <- function(
     }
   ) |>
     paste0(collapse = "\n") |>
-    paste0(mod_i, item_cors) |>
+    paste0("\n", mod_i, item_cors) |>
     paste0("\n", path)
   if (!is.null(extra)) {
     mod <- paste0(mod, "\n", extra)
@@ -329,6 +339,7 @@ sem.path <- function(
   b <- x[x$op == "~", -2]
   names(b)[1] <- "y_var"
   names(b)[2] <- "x_var"
+  cors <- x[x$op == "~~" & x$lhs != x$rhs, ]
   if (fit_save) {
     return(
       list(
@@ -336,12 +347,19 @@ sem.path <- function(
         par_std = fit$par_std[[name]],
         fit_measures = fit$fit_measures[name, ],
         b = b,
-        r2 = r2
+        r2 = r2,
+        cors = cors
       )
     )
   } else {
     return(
-      list(fit = fit$fit[[name]], par_std = fit$par_std[[name]], b = b, r2 = r2)
+      list(
+        fit = fit$fit[[name]],
+        par_std = fit$par_std[[name]],
+        b = b,
+        r2 = r2,
+        cors = cors
+      )
     )
   }
 }
