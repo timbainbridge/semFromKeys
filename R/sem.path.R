@@ -1,7 +1,7 @@
 #' Runs ESEM based on CFA and EFA model outputs.
 #'
 #' `sem.path` runs latent variable structural equation models in lavaan.
-#' The function takes lists of fitted CFA and/or bifactor lavaan model objects
+#' The function takes lists of fitted CFA lavaan model objects
 #' for the measurement models and lavaan code for the structural model and runs
 #' uses these to create the model code and run the model.
 #'
@@ -33,6 +33,8 @@
 #' A vector of single-item indicators of structural elements.
 #' 'items' must not include any items contributing to the measurement of a
 #' latent variable.
+#' If items are included in `path` but `items = NULL` and
+#' `item_loadings = NULL`, then the function will find the items automatically.
 #' @param item_loadings
 #' When single items are specified, items are included in models with single
 #' item latent variables.
@@ -40,6 +42,14 @@
 #' Set as `NULL` to allow the value to be freely estimated (default);
 #' set as a single number to set all item loadings equal to that number; or
 #' set as a vector of length equal to the length of items to set all loadings.
+#' Irrelevant if `items = NULL`.
+#' @param orth_items
+#' Logical.
+#' If `FALSE`, all single-item latent variable correlations with all other
+#' latent variables are freely estimated.
+#' If `TRUE`, single-item latent variables are fixed at 0 unless explicitly
+#' freed or set to an alternative value
+#' (using `extra`, see details for how to do this).
 #' Irrelevant if `items = NULL`.
 #'
 #' @return
@@ -51,6 +61,9 @@
 #' a vector of fit measures for the model if `fit_save = TRUE`;
 #' a list of structural regression and correlation parameters from the model;
 #' and a data frame of R-squared values from the model (if applicable).
+#'
+#' @details
+#' TBD
 #'
 #' @importFrom stringr string_extract_all
 #' @importFrom stringr str_split
@@ -66,25 +79,15 @@
 
 # TODO: Check that no element of items is in a measurement model.
 
-
 sem.path <- function(
     path, data, cfa_fit, items = NULL, item_loadings = NULL, extra = NULL,
     fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
-    orthogonal = TRUE,
+    orth_items = FALSE,
     name = "sem", check = FALSE, save_out = FALSE
 ) {
   if (!is.null(items)) {
-    if (!items %in% names(data)) {
-      stop(
-        paste(
-          "An  preditor in 'path' does not match a variable name in",
-          "'data' nor a latent varialbe name in 'cfa_fit' or 'bif_fit'.",
-          "Please check dependent variable names used in 'path' match those of",
-          "the relevant CFA, bifactor, or item name as appropriate.",
-          "Note that the name must match that in the lavaan model, not the",
-          "name of the object (if different)."
-        )
-      )
+    if (any(sapply(items, function(x) !x %in% names(data)))) {
+      stop("An item in 'items' does not match a variable name in 'data'.")
     }
   }
 
@@ -115,11 +118,7 @@ sem.path <- function(
           paste(
             "A CFA containing more than one latent variable has been found.",
             "Currently, the function only supports CFAs included in separate",
-            "models.",
-            "Please either use 'bif_fit' and a model supported there,",
-            "or separate the CFAs into separate measurement models.",
-            "The offending factors are:\n",
-            "    ",
+            "models.\n    ",
             paste(x1, collapse = "\n    ")
           )
         )
@@ -155,10 +154,10 @@ sem.path <- function(
       unique()
     extra_vars <- extra_vars[!extra_vars %in% c(x_vars, y_vars)]
   }
-  if (!y_vars %in% c(names(data), names(cfa_fit))) {
+  if (any(sapply(y_vars, function(x) !x %in% c(names(data), names(cfa_fit))))) {
     stop(
       paste(
-        "A depenent variable in 'path' is not in 'data' or 'cfa_fit'.",
+        "A depenent variable in 'path' is not in 'items' or 'cfa_fit'.",
         "Please check dependent variable names used in 'path' match those of",
         "the relevant CFA or item name as appropriate.",
         "Note that the name must match that of the factor in the lavaan model,",
@@ -171,8 +170,7 @@ sem.path <- function(
       if (!extra_vars %in% c(items, names(cfa_fit))) {
         stop(
           paste(
-            "A variable in 'extra' does not match a variable name in",
-            "'items' or a latent varialbe name in 'cfa_fit'.",
+            "A variable in 'extra' is not in 'items' or 'cfa_fit'.",
             "Please check variable names used in 'extra' match those of",
             "the relevant CFA or item name as appropriate.",
             "Note that the name must match that of the factor in the lavaan",
@@ -202,14 +200,14 @@ sem.path <- function(
       ),
       collapse = "\n"
     )
-    if (length(items) > 1) {
+    if (length(items) > 1 & !orth_items) {
       item_cors <- paste(
         sapply(
           seq_along(items[-length(items)]),
           function(x) {
             paste0(
               "\n", items[x], "_l ~~ ",
-              paste(items[(x + 1):length(items)], "_l", collapse = " + ")
+              paste0(items[(x + 1):length(items)], "_l", collapse = " + ")
             )
           }
         ),
@@ -245,7 +243,7 @@ sem.path <- function(
           # Correlations with items
           # (excluding Y vars, where Y is regressed on items, so cannot also be
           # correlated)
-          if (length(items) > 0) {
+          if (length(items) > 0 & !orth_items) {
             sapply(
               i,
               function(j) {
@@ -265,7 +263,7 @@ sem.path <- function(
     }
   ) |>
     paste0(collapse = "\n") |>
-    paste0(item_cors) |>
+    paste0(mod_i, item_cors) |>
     paste0("\n", path)
   if (!is.null(extra)) {
     mod <- paste0(mod, "\n", extra)
@@ -274,7 +272,7 @@ sem.path <- function(
     setNames(list(mod), nm = name), data = data,
     keys_s = setNames(list(c(unlist(cfa_keys), items)), nm = name),
     fit_save = fit_save, fit_measures = fit_measures,
-    miss = miss, est = est, orthogonal = orthogonal, std = TRUE,
+    miss = miss, est = est, orthogonal = TRUE, std = TRUE,
     name = name, check = check, save_out = save_out
   )
   x <- fit$par_std[[name]]
