@@ -154,27 +154,69 @@ sem.path <- function(
       unique()
     extra_vars <- extra_vars[!extra_vars %in% c(x_vars, y_vars)]
   }
-  if (any(sapply(y_vars, function(x) !x %in% c(names(data), names(cfa_fit))))) {
+  if (is.null(items) & is.null(item_loadings)) {
+    all_vars <- c(y_vars, x_vars, extra_vars)
+    items <- all_vars[!all_vars %in% names(cfa_par)]
+    if (length(items) > 0) {
+      item_miss <- items[!items %in% names(data)]
+      if (length(item_miss) > 0) {
+        stop(
+          paste(
+            item_miss[1], "is in 'path' but does not match either a latent",
+            "variable name, nor a variable name in 'data'."
+          )
+        )
+      }
+    }
+  }
+  item_in_cfa <- items[items %in% unlist(cfa_keys)]
+  if (length(item_in_cfa) > 0) {
     stop(
       paste(
-        "A depenent variable in 'path' is not in 'items' or 'cfa_fit'.",
-        "Please check dependent variable names used in 'path' match those of",
-        "the relevant CFA or item name as appropriate.",
-        "Note that the name must match that of the factor in the lavaan model,",
-        "if that differs from the object name."
+        item_in_cfa[1], "is a single item but is also an item in a CFA model.",
+        "Items that contribute to a CFA measurement model cannot",
+        "also be a structural variable."
+      )
+    )
+  }
+  y_miss <- y_vars[!y_vars %in% c(names(data), names(cfa_fit))]
+  if (length(y_miss) > 0) {
+    stop(
+      paste(
+        y_miss[1], "is in 'path' but is not in 'items', 'cfa_fit',",
+        "or a named variable in 'data'.",
+        "Please check", y_miss[1], "matches the name of the relevant CFA,",
+        "item, or variable name as appropriate.",
+        "Note that latent variable names must match that of the factor",
+        "in the lavaan model (which could differ from the object name)."
+      )
+    )
+  }
+  x_miss <- x_vars[!x_vars %in% c(names(data), names(cfa_fit))]
+  if (length(x_miss) > 0) {
+    stop(
+      paste(
+        x_miss[1], "is in 'path' but is not in 'items', 'cfa_fit',",
+        "or a named variable in 'data'.",
+        "Please check", x_miss[1], "matches the name of the relevant CFA,",
+        "item, or variable name as appropriate.",
+        "Note that latent variable names must match that of the factor",
+        "in the lavaan model (which could differ from the object name)."
       )
     )
   }
   if (!is.null(extra)) {
     if (length(extra_vars) > 0) {
-      if (!extra_vars %in% c(items, names(cfa_fit))) {
+      extra_miss <- extra_vars[!extra_vars %in% c(names(data), names(cfa_fit))]
+      if (length(extra_miss) > 0) {
         stop(
           paste(
-            "A variable in 'extra' is not in 'items' or 'cfa_fit'.",
-            "Please check variable names used in 'extra' match those of",
-            "the relevant CFA or item name as appropriate.",
-            "Note that the name must match that of the factor in the lavaan",
-            "model, if that differs from the object name."
+            extra_miss[1], "is in 'extra' but is not in 'items', 'cfa_fit',",
+            "or a named variable in 'data'.",
+            "Please check", extra_miss[1], "matches the name of",
+            "the relevant CFA, item, or variable name as appropriate.",
+            "Note that latent variable names must match that of the factor",
+            "in the lavaan model (which could differ from the object name)."
           )
         )
       }
