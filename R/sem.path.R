@@ -158,7 +158,7 @@
 #' future. Therefore, results may change when the update occurs and the function
 #' should be considered experimental.
 #'
-#' @importFrom stringr string_extract_all
+#' @importFrom stringr str_extract_all
 #' @importFrom stringr str_split
 #' @export
 #'
@@ -177,9 +177,15 @@ sem.path <- function(
     orth_items = TRUE,
     name = "sem", check = FALSE, save_out = FALSE
 ) {
+  item_miss <- items[!items %in% names(data)]
   if (!is.null(items)) {
-    if (any(sapply(items, function(x) !x %in% names(data)))) {
-      stop("An item in 'items' does not match a variable name in 'data'.")
+    if (length(item_miss) > 0) {
+      stop(
+        paste0(
+          "'", item_miss[1], "' is in 'items' but does not match ",
+          "a variable name in 'data'."
+        )
+      )
     }
   }
 
@@ -322,33 +328,33 @@ sem.path <- function(
     }
   }
   if (!is.null(items)) {
-    mod_i <- paste0(
-      lapply(
-        stats::setNames(nm = items),
-        function(i) {
-          if (!is.null(item_loadings)) {
-            if (length(item_loadings) == length(items)) {
-              i_r <- paste(item_loadings[i], " * ")
-            } else {
-              i_r <- paste(item_loadings, " * ")
-            }
-          } else {
-            i_r <- ""
-          }
-          i_l <- paste0(i, "_l")
-          paste0(i_l, " =~ ", i_r, i)
-        }
-      ),
-      collapse = "\n"
-    )
+    # mod_i <- paste0(
+    #   lapply(
+    #     stats::setNames(nm = items),
+    #     function(i) {
+    #       if (!is.null(item_loadings)) {
+    #         if (length(item_loadings) == length(items)) {
+    #           i_r <- paste(item_loadings[i], " * ")
+    #         } else {
+    #           i_r <- paste(item_loadings, " * ")
+    #         }
+    #       } else {
+    #         i_r <- ""
+    #       }
+    #       i_l <- paste0(i, "_l")
+    #       paste0(i_l, " =~ ", i_r, i)
+    #     }
+    #   ),
+    #   collapse = "\n"
+    # )
     if (length(items) > 1 & !orth_items) {
       item_cors <- paste(
         sapply(
           seq_along(items[-length(items)]),
           function(x) {
             paste0(
-              "\n", items[x], "_l ~~ ",
-              paste0(items[(x + 1):length(items)], "_l", collapse = " + ")
+              "\n", items[x], " ~~ ",
+              paste0(items[(x + 1):length(items)], collapse = " + ")
             )
           }
         ),
@@ -365,63 +371,38 @@ sem.path <- function(
   mod <- sapply(
     cfa_par,
     function(x) {
-      x <- x[x$op %in% c("~~", "=~"), ]
+      x <- x[x$op %in% "=~", ]
       i <- x$lhs[x$op == "=~"] |> unique()
-      if (sum(i %in% y_vars) >= 1) {
-        # Free residual variance for y factors.
-        # Overly complex for single-factor CFA only but could be important for
-        # multi-factor CFA or bifactor models.
-        for (j in i) {
-          x <- x[!(x$lhs == j & x$op == "~~" & x$rhs == j), ]
-        }
-      }
-      paste(
-        c(
-          # CFA model
-          paste(x$lhs, x$op, x$est, "*", x$rhs, collapse = "\n"),
-          # Correlations with items
-          # (excluding Y vars, where Y is regressed on items, so cannot also be
-          # correlated)
-
-          # Why are items included if not to be part of the structural model?
-          # Structural relationships between items and latent variables MUST,
-          # therefore, be specified manually, with the exception of items with
-          # each other.
-
-          # if (length(items) > 0 & !orth_items) {
-          #   sapply(
-          #     i,
-          #     function(j) {
-          #       if (!j %in% y_vars) {
-          #         paste(
-          #           i, "~~", paste0(items, "_l", collapse = " + "),
-          #           collapse = "\n"
-          #         )
-          #       } else {
-          #         ""
-          #       }
-          #     }
-          #   )
-          # } else {
-          #   ""
-          # }
-        ),
-        collapse = "\n"
-      )
+      xi <- lapply(i, function(y) x$rhs[x$lhs == y])
+      # if (sum(i %in% y_vars) >= 1) {
+      #   # Free residual variance for y factors.
+      #   # Overly complex for single-factor CFA only but could be important for
+      #   # multi-factor CFA or bifactor models.
+      #   for (j in i) {
+      #     x <- x[!(x$lhs == j & x$op == "~~" & x$rhs == j), ]
+      #   }
+      # }
+      # # CFA model
+      # paste(x$lhs, x$op, x$est, "*", x$rhs, collapse = "\n")
+      mapply(
+        function(j, k) {
+          paste(j, "=~", paste(k, collapse = " + "))
+        },
+        j = i, k = xi, SIMPLIFY = FALSE
+      ) |>
+        paste(collapse = "\n")
     }
   ) |>
     paste0(collapse = "\n") |>
-    paste0("\n", mod_i, item_cors) |>
-    paste0("\n", path)
-  if (!is.null(extra)) {
-    mod <- paste0(mod, "\n", extra)
-  }
+    paste0(item_cors) |>
+    paste0("\n", path) |>
+    paste0("\n", extra)
   fit <- sem.check(
     setNames(list(mod), nm = name), data = data,
     keys_s = setNames(list(c(unlist(cfa_keys), items)), nm = name),
     fit_save = fit_save, fit_measures = fit_measures,
     miss = miss, est = est, orthogonal = TRUE, std = TRUE,
-    name = name, check = check, save_out = save_out
+    name = name, check = check, save_out = save_out, use_sam = TRUE
   )
   x <- fit$par_std[[name]]
   xr <- x[x$op == "~~" & x$lhs == x$rhs & x$lhs %in% y_vars, ]
@@ -437,25 +418,60 @@ sem.path <- function(
   names(b)[2] <- "x_var"
   cors <- x[x$op == "~~" & x$lhs != x$rhs, ]
   if (fit_save) {
-    return(
-      list(
-        fit = fit$fit[[name]],
-        par_std = fit$par_std[[name]],
-        fit_measures = fit$fit_measures[name, ],
-        b = b,
-        r2 = r2,
-        cors = cors
+    if (nrow(cors) != 0) {
+      return(
+        list(
+          fit = fit$fit[[name]],
+          par_std = fit$par_std[[name]],
+          fit_measures = fit$fit_measures[name, ],
+          b = b,
+          r2 = r2,
+          cors = cors
+        )
       )
-    )
+    } else {
+      message(
+        paste(
+          "No correlations were found in the model. If that seems incorrect,",
+          "please check you have included them in 'extra'."
+        )
+      )
+      return(
+        list(
+          fit = fit$fit[[name]],
+          par_std = fit$par_std[[name]],
+          fit_measures = fit$fit_measures[name, ],
+          b = b,
+          r2 = r2
+        )
+      )
+    }
   } else {
-    return(
-      list(
-        fit = fit$fit[[name]],
-        par_std = fit$par_std[[name]],
-        b = b,
-        r2 = r2,
-        cors = cors
+    if (nrow(cors) != 0) {
+      return(
+        list(
+          fit = fit$fit[[name]],
+          par_std = fit$par_std[[name]],
+          b = b,
+          r2 = r2,
+          cors = cors
+        )
       )
-    )
+    } else {
+      message(
+        paste(
+          "No correlations were found in the model. If that seems incorrect,",
+          "please check you have included them in 'extra'."
+        )
+      )
+      return(
+        list(
+          fit = fit$fit[[name]],
+          par_std = fit$par_std[[name]],
+          b = b,
+          r2 = r2
+        )
+      )
+    }
   }
 }

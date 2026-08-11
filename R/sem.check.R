@@ -86,6 +86,12 @@
 #' Selecting `save_out = TRUE` enables the function to not rerun models next
 #' time if `check = TRUE` the next time the code is run and nothing has changed
 #' in the meantime.
+#' @param use_sam
+#' Logical.
+#' `TRUE` indicates that the [lavaan::sam()] function should be used for model
+#' estimation.
+#' `FALSE` indicates that the [lavaan::sem()] function should be used for model
+#' estimation.
 #'
 #' @return
 #' Returns a list of length 2 (if `fit_save = FALSE`) or
@@ -96,13 +102,12 @@
 #'
 #' @details
 #' The function is largely intended to be used as a helper function to upstream
-#' functions,
-#' including [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()], and
-#' [esem.from.mods()].
+#' functions, including [cfa.from.keys()], [bifactor.from.keys()],
+#' [efa.from.keys()], and [esem.from.mods()].
 #' Although it is recommended to use the appropriate upstream function whenever
-#' possible,
-#' there are not (currently) options to do so when customised lavaan models are
-#' required;
+#' possible, there are not (currently) options to do so when customised lavaan
+#' models are required (with the exception of the `extra` argument in
+#' [sem.path()];
 #' for example, when allowing two items' residuals to correlate in a CFA.
 #' `sem.check()` can be used in these cases (see example).
 #'
@@ -155,6 +160,7 @@
 #'
 #' @importFrom stringr str_replace_all
 #' @importFrom lavaan sem
+#' @importFrom lavaan sam
 #' @importFrom lavaan standardizedSolution
 #' @importFrom lavaan parameterEstimates
 #' @importFrom lavaan fitMeasures
@@ -184,7 +190,7 @@ sem.check <- function(
     fit_save = FALSE, fit_measures = "all",
     miss = "ML", est = "default", std.lv = FALSE, std = TRUE,
     orthogonal = FALSE, target = NULL,
-    name = "sem", check = FALSE, save_out = FALSE
+    name = "sem", check = FALSE, save_out = FALSE, use_sam = FALSE
 ) {
   if (!is.logical(fit_save)) {
     stop("'fit_save' is not logical. It should be 'TRUE' or 'FALSE'.")
@@ -228,6 +234,9 @@ sem.check <- function(
   }
   if (!is.logical(std.lv)) {
     stop("'std.lv' is not logical. It should be 'TRUE' or 'FALSE'.")
+  }
+  if (!is.logical(use_sam)) {
+    stop("'use_sam' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (!is.list(mods)) {
     stop(
@@ -484,23 +493,43 @@ sem.check <- function(
             }
           }
           if (is.null(target)) {
-            if (est == "default") {
-              sem(
-                model   = mods1,
-                data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                missing = miss,
-                std.lv  = std.lv,
-                orthogonal = orthogonal
-              )
+            if (!use_sam) {
+              if (est == "default") {
+                sem(
+                  model   = mods1,
+                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                  missing = miss,
+                  std.lv  = std.lv,
+                  orthogonal = orthogonal
+                )
+              } else {
+                sem(
+                  model   = mods1,
+                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                  missing = miss,
+                  estimator = est,
+                  std.lv  = std.lv,
+                  orthogonal = orthogonal
+                )
+              }
             } else {
-              sem(
-                model   = mods1,
-                data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                missing = miss,
-                estimator = est,
-                std.lv  = std.lv,
-                orthogonal = orthogonal
-              )
+              if (est == "default") {
+                sam(
+                  model   = mods1,
+                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                  missing = miss,
+                  std.lv  = std.lv
+                )
+              } else {
+                sam(
+                  model   = mods1,
+                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                  mm_args = list(estimator = est),
+                  struc_args = list(estimator = est),
+                  missing = miss,
+                  std.lv  = std.lv
+                )
+              }
             }
           } else {
             if (est == "default") {
