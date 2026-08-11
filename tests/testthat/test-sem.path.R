@@ -18,7 +18,7 @@ test_that(
 test_that(
   "'sem.path' works with cfa_fit and items",
   {
-    path <- "grit_p ~ grit_c + hope_p + bfi_n1_1 + bfi_c1_1\nhope_p ~ hope_a"
+    path <- "grit_p ~ grit_c + hope_p + bfi_n1_1 + bfi_c1_1\nhope_p ~~ hope_a"
     items <- paste0("bfi_", c("c", "n"), "1_1")
     sem_fit <- sem.path(path, BFIGritHope, cfa_fit, items, fit_save = FALSE)
     expect_equal(length(sem_fit), 5)

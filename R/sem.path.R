@@ -1,5 +1,6 @@
 #' Runs ESEM based on CFA and EFA model outputs.
 #'
+#' *WARNING* Experimental.
 #' `sem.path` runs latent variable structural equation models in lavaan.
 #' The function takes lists of fitted CFA lavaan model objects
 #' for the measurement models and lavaan code for the structural model and runs
@@ -43,12 +44,12 @@
 #' @param orth_items
 #' Logical.
 #' If `FALSE`, all single-item latent variable correlations with all other
-#' latent variables are freely estimated.
+#' single-item latent variables are freely estimated.
 #' If `TRUE`, single-item latent variables are fixed at 0 unless explicitly
 #' freed or set to an alternative value
 #' (using `extra`, see details for how to do this).
 #' Defaults to `TRUE`.
-#' Irrelevant if `items = NULL`.
+#' Irrelevant if `items = NULL` and no items are specified in `path` or `extra`.
 #'
 #' @return
 #' Returns a list of length 5 (if `fit_save = FALSE`) or
@@ -60,11 +61,102 @@
 #' and a data frame of R-squared values from the model (if applicable).
 #'
 #' @details
-#' TBD
-#' Mention semi-partial correlations and incremental validity analyses.
-#' What's orth items.
-#' 0 correlations assumed if not included in path, extra, or with orth_items
+#' *WARNING* Experimental.
 #'
+#' The function runs SEM with fitted CFA models, a specified path, and,
+#' optionally, items or 'extra' lavaan code.
+#' The function uses Burt's (1976) 2-stage procedure to control for
+#' interpretational confounding.
+#'
+#' If items are included, they are treated as single-item indicators of latent
+#' variables with loadings set according to the `item_loadings` argument.
+#' In some cases, it will be convenient for all single-item latent variables to
+#' be allowed to correlate.
+#' In these cases, setting `orth_items = FALSE` will achieve this without having
+#' to specify every correlation.
+#'
+#' The model relies on [sem.check()] for the back-end of running the models.
+#' This enables saving inputs and outputs from model runs
+#' (with `save_out = TRUE`) and checking to see if anything has changed from
+#' prior runs before running again (with `check = TRUE`).
+#' The functionality was included for a number of very slow models or a lot of
+#' faster models, such that time spent rerunning them would be onerous.
+#' Given `sem.path` runs a single model at a time, it is unlikely to be
+#' necessary for all but the most complex SEMs.
+#' For further details on how this works,
+#' see the [sem.check()] function  documentation.
+#'
+#' In SEM, standard methods do not distinguish between measurement and
+#' structural parameters. As a result, measurement model parameters can change
+#' with the addition of theoretically unrelated constructs in a structural
+#' model, and can change differently for different sets of unrelated constructs.
+#' This means that the unrelated constructs are changing the interpretation of
+#' the latent variable.
+#' This is known as "interpretational confounding" (Burt, 1976).
+#'
+#' There is some disagreement about how to deal with interpretational
+#' confounding. The standard solution (other than ignoring it) is to create good
+#' fitting measurement models first, then freely estimate the structural model
+#' with checks to ensure adequate fit of the model and that interpretational
+#' confounding is not an issue.
+#' This is sometimes a good solution, but, in other cases, simply moves the
+#' problem. If the measurement model was for a well-established scale and it is
+#' changed, it loses easy comparison with past research.
+#' This issue is most clearly relevant when changes to a measurement model
+#' require entirely different factors, or items to be removed.
+#' When a single scale is being assessed, these issues can be resolved by
+#' suggesting a thorough evaluation of the scale and, perhaps, the suggestion of
+#' a new measurement model or a new scale for a particular population.
+#' However, when many scales are being assessed this solution is impractical.
+#'
+#' An alternative solution, proposed by Burt (1976) is to fix measurement model
+#' parameters in a model estimating structural parameters.
+#' This method means that misspecification of one measurement model cannot
+#' affect other measurement models and that the interpretation of measured
+#' constructs cannot change based on unrelated factors.
+#' However, it is not a perfect solution because it underestimates uncertainty
+#' in the measurement part of the structural model (e.g., Nagy et al., 2017),
+#' which results in biased standard errors and fit statistics.
+#'
+#' A variety of options are available to correct these issues.
+#' One such option was proposed by Nagy and colleagues (2017),
+#' who propose and extension procedure such that item residuals are allowed to
+#' correlate with external variables (or factors).
+#' To ensure the model is identifiable these relationships are constrained using
+#' one of a number of methods.
+#' If the sums of squares of correlations between all combinations of factors'
+#' items and external factors are minimised,
+#' measurement parameters in isolated measurement models are preserved in the
+#' structural model without having to constrain them directly.
+#' As a result, unbiased standard errors are preserved while simultaneously
+#' eliminating interpretational confounding since the measurement parameters
+#' from the measurement models are preserved regardless of external factors.
+#' Unfortunately, estimating these models becomes increasingly slow with more
+#' items and factors, such that it quickly becomes untenable.
+#' Moreover, the method only works with correlations, not regressions,
+#' so some method to run regressions using the correlations needs to be
+#' implemented that does not itself result in biased estimates due to ignored
+#' uncertainty in the correlation estimates.
+#'
+#' Pragmatic solution to these issues include Rosseel and Loh's (2022)
+#' "Structural-After-Measurement" (SAM) approaches.
+#' These methods essentially follow Burt's (1976) method but adjust the
+#' procedure to overcome its issues. One method (labelled "local SAM") uses
+#' the observed summary statistics of the parameters of the measurement models
+#' to generate mean and covariance matrices to use in the structural model,
+#' which preserves the structure of the measurement models while also preserving
+#' the uncertainty. Another method ("global SAM") treats the measurement
+#' parameters as given, but corrects the standard errors.
+#'
+#' `sem.path` currently uses Burt's 2-stage procedure of fixing
+#' measurement parameters in the structural models due to its use in
+#' [esem.from.mods()], where point estimates were of primary concern in the
+#' research that inspired the function
+#' (i.e., Bainbridge, Ludeke, and Smillie, 2022).
+#' However, this is *not* the best method, especially in this context, and
+#' it is planned to change the default method to the local SAM method in the
+#' future. Therefore, results may change when the update occurs and the function
+#' should be considered experimental.
 #'
 #' @importFrom stringr string_extract_all
 #' @importFrom stringr str_split
@@ -77,9 +169,7 @@
 #' Behavior Research Methods, 53(5), 2127-2157.
 #' https://doi.org/10.3758/s13428-020-01532-y.
 
-
-# TODO: Add RMSEA-P as a fit stat.
-
+# TODO: Add references.
 
 sem.path <- function(
     path, data, cfa_fit, items = NULL, item_loadings = NULL, extra = NULL,
@@ -292,23 +382,29 @@ sem.path <- function(
           # Correlations with items
           # (excluding Y vars, where Y is regressed on items, so cannot also be
           # correlated)
-          if (length(items) > 0 & !orth_items) {
-            sapply(
-              i,
-              function(j) {
-                if (!j %in% y_vars) {
-                  paste(
-                    i, "~~", paste0(items, "_l", collapse = " + "),
-                    collapse = "\n"
-                  )
-                } else {
-                  ""
-                }
-              }
-            )
-          } else {
-            ""
-          }
+
+          # Why are items included if not to be part of the structural model?
+          # Structural relationships between items and latent variables MUST,
+          # therefore, be specified manually, with the exception of items with
+          # each other.
+
+          # if (length(items) > 0 & !orth_items) {
+          #   sapply(
+          #     i,
+          #     function(j) {
+          #       if (!j %in% y_vars) {
+          #         paste(
+          #           i, "~~", paste0(items, "_l", collapse = " + "),
+          #           collapse = "\n"
+          #         )
+          #       } else {
+          #         ""
+          #       }
+          #     }
+          #   )
+          # } else {
+          #   ""
+          # }
         ),
         collapse = "\n"
       )
