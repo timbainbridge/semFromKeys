@@ -19,7 +19,8 @@ sem.check(
   target = NULL,
   name = "sem",
   check = FALSE,
-  save_out = FALSE
+  save_out = FALSE,
+  use_sam = FALSE
 )
 }
 \arguments{
@@ -97,6 +98,12 @@ parameter values, and output will be saved;
 Selecting \code{save_out = TRUE} enables the function to not rerun models next
 time if \code{check = TRUE} the next time the code is run and nothing has changed
 in the meantime.}
+
+\item{use_sam}{Logical.
+\code{TRUE} indicates that the \code{\link[lavaan:sam]{lavaan::sam()}} function should be used for model
+estimation.
+\code{FALSE} indicates that the \code{\link[lavaan:sem]{lavaan::sem()}} function should be used for model
+estimation.}
 }
 \value{
 Returns a list of length 2 (if \code{fit_save = FALSE}) or
@@ -121,13 +128,12 @@ then the models are run as normal.
 }
 \details{
 The function is largely intended to be used as a helper function to upstream
-functions,
-including \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}}, and
-\code{\link[=esem.from.mods]{esem.from.mods()}}.
+functions, including \code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}},
+\code{\link[=efa.from.keys]{efa.from.keys()}}, and \code{\link[=esem.from.mods]{esem.from.mods()}}.
 Although it is recommended to use the appropriate upstream function whenever
-possible,
-there are not (currently) options to do so when customised lavaan models are
-required;
+possible, there are not (currently) options to do so when customised lavaan
+models are required (with the exception of the \code{extra} argument in
+\code{\link[=sem.path]{sem.path()}};
 for example, when allowing two items' residuals to correlate in a CFA.
 \code{sem.check()} can be used in these cases (see example).
 
