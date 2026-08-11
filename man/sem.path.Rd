@@ -9,14 +9,13 @@ sem.path(
   data,
   cfa_fit,
   items = NULL,
-  item_loadings = NULL,
   extra = NULL,
   fit_save = TRUE,
   fit_measures = "all",
   miss = "ML",
   est = "default",
-  orth_items = TRUE,
-  name = "sem",
+  orth_x = FALSE,
+  name = "sam",
   check = FALSE,
   save_out = FALSE
 )
@@ -35,14 +34,6 @@ Data must include all observed variables used in any of the models.}
 latent variable.
 If items are included in \code{path} but \code{items = NULL} and
 \code{item_loadings = NULL}, then the function will find the items automatically.}
-
-\item{item_loadings}{When single items are specified, items are included in models with single
-item latent variables.
-\code{item_loadings} sets the loading of the item on the factor.
-Set as \code{NULL} to allow the value to be freely estimated (default);
-set as a single number to set all item loadings equal to that number; or
-set as a vector of length equal to the length of items to set all loadings.
-Irrelevant if \code{items = NULL}.}
 
 \item{extra}{Extra lavaan code to be added that is not created from \code{cfa_fit}, or included
 in \code{path}.
@@ -72,13 +63,13 @@ Defaults to 'ML'.}
 Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
 
-\item{orth_items}{Logical.
-If \code{FALSE}, all single-item latent variable correlations with all other
-single-item latent variables are freely estimated.
-If \code{TRUE}, single-item latent variables are fixed at 0 unless explicitly
-freed or set to an alternative value
+\item{orth_x}{Logical.
+If \code{FALSE}, all independent variable correlations with all other
+independent variables are freely estimated.
+If \code{TRUE}, all independent variable correlations are fixed at 0 unless
+explicitly freed or set to an alternative value
 (using \code{extra}, see details for how to do this).
-Defaults to \code{TRUE}.
+Defaults to \code{FALSE}.
 Irrelevant if \code{items = NULL} and no items are specified in \code{path} or \code{extra}.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
@@ -102,37 +93,38 @@ parameter values, and output will be saved;
 Selecting \code{save_out = TRUE} enables the function to not rerun models next
 time if \code{check = TRUE} the next time the code is run and nothing has changed
 in the meantime.}
+
+\item{item_loadings}{When single items are specified, items are included in models with single
+item latent variables.
+\code{item_loadings} sets the loading of the item on the factor.
+Set as \code{NULL} to allow the value to be freely estimated (default);
+set as a single number to set all item loadings equal to that number; or
+set as a vector of length equal to the length of items to set all loadings.
+Irrelevant if \code{items = NULL}.}
 }
 \value{
 Returns a list of length 5 (if \code{fit_save = FALSE}) or
 6 (if \code{fit_save = TRUE}).
-The elements of the list are: a lavaan model output object;
-a data frame of parameter estimates from the model;
-a vector of fit measures for the model if \code{fit_save = TRUE};
-a list of structural regression and correlation parameters from the model;
-and a data frame of R-squared values from the model (if applicable).
+The elements of the list are: a lavaan model output object (fit);
+a data frame of standardised parameter estimates (par_std);
+a vector of fit measures for the model if \code{fit_save = TRUE} (fit_measures);
+a data frame of structural regression parameters (b);
+a data frame of R-squared values (r2); and
+a data frame of structural correlation parameters (cors).
 }
 \description{
-\emph{WARNING} Experimental.
 \code{sem.path} runs latent variable structural equation models in lavaan.
 The function takes lists of fitted CFA lavaan model objects
 for the measurement models and lavaan code for the structural model and runs
 uses these to create the model code and run the model.
 }
 \details{
-\emph{WARNING} Experimental.
-
-The function runs SEM with fitted CFA models, a specified path, and,
+The function runs an SEM with fitted CFA models, a specified path, and,
 optionally, items or 'extra' lavaan code.
-The function uses Burt's (1976) 2-stage procedure to control for
-interpretational confounding.
-
-If items are included, they are treated as single-item indicators of latent
-variables with loadings set according to the \code{item_loadings} argument.
-In some cases, it will be convenient for all single-item latent variables to
-be allowed to correlate.
-In these cases, setting \code{orth_items = FALSE} will achieve this without having
-to specify every correlation.
+The function uses Rosseel and Loh's (2022) "Structure-After-Measurement"
+(SAM) procedure to control for interpretational confounding and includes the
+\code{orth_x} argument to make it easy to allow all independent variables to
+correlate without having to explicitly allow them.
 
 The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
 This enables saving inputs and outputs from model runs
@@ -141,7 +133,7 @@ prior runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
 Given \code{sem.path} runs a single model at a time, it is unlikely to be
-necessary for all but the most complex SEMs.
+necessary except for extremely complex models.
 For further details on how this works,
 see the \code{\link[=sem.check]{sem.check()}} function  documentation.
 
@@ -153,9 +145,9 @@ This means that the unrelated constructs are changing the interpretation of
 the latent variable.
 This is known as "interpretational confounding" (Burt, 1976).
 
-There is some disagreement about how to deal with interpretational
-confounding. The standard solution (other than ignoring it) is to create good
-fitting measurement models first, then freely estimate the structural model
+There are various ways to deal with interpretational confounding.
+The standard solution (other than ignoring it) is to create good fitting
+measurement models first, then freely estimate the structural model
 with checks to ensure adequate fit of the model and that interpretational
 confounding is not an issue.
 This is sometimes a good solution, but, in other cases, simply moves the
@@ -166,7 +158,8 @@ require entirely different factors, or items to be removed.
 When a single scale is being assessed, these issues can be resolved by
 suggesting a thorough evaluation of the scale and, perhaps, the suggestion of
 a new measurement model or a new scale for a particular population.
-However, when many scales are being assessed this solution is impractical.
+However, when many scales are being assessed this solution is impractical,
+and may not solve the interpretational confounding issue regardless.
 
 An alternative solution, proposed by Burt (1976) is to fix measurement model
 parameters in a model estimating structural parameters.
@@ -197,30 +190,38 @@ so some method to run regressions using the correlations needs to be
 implemented that does not itself result in biased estimates due to ignored
 uncertainty in the correlation estimates.
 
-Pragmatic solution to these issues include Rosseel and Loh's (2022)
-"Structural-After-Measurement" (SAM) approaches.
-These methods essentially follow Burt's (1976) method but adjust the
-procedure to overcome its issues. One method (labelled "local SAM") uses
-the observed summary statistics of the parameters of the measurement models
-to generate mean and covariance matrices to use in the structural model,
-which preserves the structure of the measurement models while also preserving
-the uncertainty. Another method ("global SAM") treats the measurement
-parameters as given, but corrects the standard errors.
+A more practical solution to these issues was proposed by Rosseel and Loh
+(2022) with their SAM approach. This method essentially follows Burt's (1976)
+method but adjust the procedure to overcome its issues.
+They distinguish two SAM varieties--"local SAM" and "global SAM".
+Local SAM uses the observed summary statistics of the parameters of the
+measurement models to generate mean and covariance matrices to use in the
+structural model, which preserves the structure of the measurement models
+while also preserving the uncertainty.
+Global SAM treats the measurement parameters as given, but corrects the
+standard errors of the structural model.
 
-\code{sem.path} currently uses Burt's 2-stage procedure of fixing
-measurement parameters in the structural models due to its use in
-\code{\link[=esem.from.mods]{esem.from.mods()}}, where point estimates were of primary concern in the
-research that inspired the function
-(i.e., Bainbridge, Ludeke, and Smillie, 2022).
-However, this is \emph{not} the best method, especially in this context, and
-it is planned to change the default method to the local SAM method in the
-future. Therefore, results may change when the update occurs and the function
-should be considered experimental.
+\code{sem.path} uses the local SAM to prevent interpretational confounding, while,
+in principle, providing unbiased standard errors and fit statistics.
+To my knowledge, the performance of the fit statistics has not been
+adequately defended so care should be taken if using them for model
+selection. However, the SAM method is superior to the standard simultaneous
+estimation method, which can seriously bias structural parameter estimates,
+and it is the best or one of the best methods to use for latent variable SEM.
 }
 \references{
-Hayes, T. (2001).
-R-squared change in structural equation models with latent variables and
-missing data.
-Behavior Research Methods, 53(5), 2127-2157.
-https://doi.org/10.3758/s13428-020-01532-y.
+Burt, R. S. (1976).
+Interpretational confounding of unobserved variables in Structural Equation
+Models. Sociological Methods & Research, 5(1), 3-52.
+https://doi.org/10.1177/004912417600500101.
+
+Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
+Extension Procedures for Confirmatory Factor Analysis.
+Journal of Experimental Education, 85(4).
+https://doi.org/10.1080/00220973.2016.1260524.
+
+Rosseel, Y. & Loh, W. W. (2022).
+A structural after measurement approach to structural equation modeling.
+Psychological Methods, 29(3), 561-588.
+https://doi.org/10.1037/met0000503.
 }

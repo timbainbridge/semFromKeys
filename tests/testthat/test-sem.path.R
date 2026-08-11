@@ -1,12 +1,10 @@
 test_that(
-  "'sem.path' works with cfa_fit, extra, and items with 'orth_items = FALSE'",
+  "'sem.path' works with cfa_fit, extra, and items with 'orth_x = TRUE'",
   {
     path <- "grit_p ~ grit_c + hope_p + bfi_n1_1 + bfi_c1_1\nhope_p ~ hope_a"
     extra <- "grit_c ~~ hope_a + hope_p"
     items <- paste0("bfi_", c("c", "n"), "1_1")
-    sem_fit <- sem.path(
-      path, BFIGritHope, cfa_fit, items, extra = extra, orth_items = FALSE
-    )
+    sem_fit <- sem.path(path, BFIGritHope, cfa_fit, items, extra = extra)
     expect_equal(length(sem_fit), 6)
     expect_true(inherits(sem_fit$fit, "lavaan"))
     expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))

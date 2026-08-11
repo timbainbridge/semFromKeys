@@ -1,6 +1,5 @@
 #' Runs ESEM based on CFA and EFA model outputs.
 #'
-#' *WARNING* Experimental.
 #' `sem.path` runs latent variable structural equation models in lavaan.
 #' The function takes lists of fitted CFA lavaan model objects
 #' for the measurement models and lavaan code for the structural model and runs
@@ -41,39 +40,33 @@
 #' set as a single number to set all item loadings equal to that number; or
 #' set as a vector of length equal to the length of items to set all loadings.
 #' Irrelevant if `items = NULL`.
-#' @param orth_items
+#' @param orth_x
 #' Logical.
-#' If `FALSE`, all single-item latent variable correlations with all other
-#' single-item latent variables are freely estimated.
-#' If `TRUE`, single-item latent variables are fixed at 0 unless explicitly
-#' freed or set to an alternative value
+#' If `FALSE`, all independent variable correlations with all other
+#' independent variables are freely estimated.
+#' If `TRUE`, all independent variable correlations are fixed at 0 unless
+#' explicitly freed or set to an alternative value
 #' (using `extra`, see details for how to do this).
-#' Defaults to `TRUE`.
+#' Defaults to `FALSE`.
 #' Irrelevant if `items = NULL` and no items are specified in `path` or `extra`.
 #'
 #' @return
 #' Returns a list of length 5 (if `fit_save = FALSE`) or
 #' 6 (if `fit_save = TRUE`).
-#' The elements of the list are: a lavaan model output object;
-#' a data frame of parameter estimates from the model;
-#' a vector of fit measures for the model if `fit_save = TRUE`;
-#' a list of structural regression and correlation parameters from the model;
-#' and a data frame of R-squared values from the model (if applicable).
+#' The elements of the list are: a lavaan model output object (fit);
+#' a data frame of standardised parameter estimates (par_std);
+#' a vector of fit measures for the model if `fit_save = TRUE` (fit_measures);
+#' a data frame of structural regression parameters (b);
+#' a data frame of R-squared values (r2); and
+#' a data frame of structural correlation parameters (cors).
 #'
 #' @details
-#' *WARNING* Experimental.
-#'
-#' The function runs SEM with fitted CFA models, a specified path, and,
+#' The function runs an SEM with fitted CFA models, a specified path, and,
 #' optionally, items or 'extra' lavaan code.
-#' The function uses Burt's (1976) 2-stage procedure to control for
-#' interpretational confounding.
-#'
-#' If items are included, they are treated as single-item indicators of latent
-#' variables with loadings set according to the `item_loadings` argument.
-#' In some cases, it will be convenient for all single-item latent variables to
-#' be allowed to correlate.
-#' In these cases, setting `orth_items = FALSE` will achieve this without having
-#' to specify every correlation.
+#' The function uses Rosseel and Loh's (2022) "Structure-After-Measurement"
+#' (SAM) procedure to control for interpretational confounding and includes the
+#' `orth_x` argument to make it easy to allow all independent variables to
+#' correlate without having to explicitly allow them.
 #'
 #' The model relies on [sem.check()] for the back-end of running the models.
 #' This enables saving inputs and outputs from model runs
@@ -82,7 +75,7 @@
 #' The functionality was included for a number of very slow models or a lot of
 #' faster models, such that time spent rerunning them would be onerous.
 #' Given `sem.path` runs a single model at a time, it is unlikely to be
-#' necessary for all but the most complex SEMs.
+#' necessary except for extremely complex models.
 #' For further details on how this works,
 #' see the [sem.check()] function  documentation.
 #'
@@ -94,9 +87,9 @@
 #' the latent variable.
 #' This is known as "interpretational confounding" (Burt, 1976).
 #'
-#' There is some disagreement about how to deal with interpretational
-#' confounding. The standard solution (other than ignoring it) is to create good
-#' fitting measurement models first, then freely estimate the structural model
+#' There are various ways to deal with interpretational confounding.
+#' The standard solution (other than ignoring it) is to create good fitting
+#' measurement models first, then freely estimate the structural model
 #' with checks to ensure adequate fit of the model and that interpretational
 #' confounding is not an issue.
 #' This is sometimes a good solution, but, in other cases, simply moves the
@@ -107,7 +100,8 @@
 #' When a single scale is being assessed, these issues can be resolved by
 #' suggesting a thorough evaluation of the scale and, perhaps, the suggestion of
 #' a new measurement model or a new scale for a particular population.
-#' However, when many scales are being assessed this solution is impractical.
+#' However, when many scales are being assessed this solution is impractical,
+#' and may not solve the interpretational confounding issue regardless.
 #'
 #' An alternative solution, proposed by Burt (1976) is to fix measurement model
 #' parameters in a model estimating structural parameters.
@@ -138,44 +132,54 @@
 #' implemented that does not itself result in biased estimates due to ignored
 #' uncertainty in the correlation estimates.
 #'
-#' Pragmatic solution to these issues include Rosseel and Loh's (2022)
-#' "Structural-After-Measurement" (SAM) approaches.
-#' These methods essentially follow Burt's (1976) method but adjust the
-#' procedure to overcome its issues. One method (labelled "local SAM") uses
-#' the observed summary statistics of the parameters of the measurement models
-#' to generate mean and covariance matrices to use in the structural model,
-#' which preserves the structure of the measurement models while also preserving
-#' the uncertainty. Another method ("global SAM") treats the measurement
-#' parameters as given, but corrects the standard errors.
+#' A more practical solution to these issues was proposed by Rosseel and Loh
+#' (2022) with their SAM approach. This method essentially follows Burt's (1976)
+#' method but adjust the procedure to overcome its issues.
+#' They distinguish two SAM varieties--"local SAM" and "global SAM".
+#' Local SAM uses the observed summary statistics of the parameters of the
+#' measurement models to generate mean and covariance matrices to use in the
+#' structural model, which preserves the structure of the measurement models
+#' while also preserving the uncertainty.
+#' Global SAM treats the measurement parameters as given, but corrects the
+#' standard errors of the structural model.
 #'
-#' `sem.path` currently uses Burt's 2-stage procedure of fixing
-#' measurement parameters in the structural models due to its use in
-#' [esem.from.mods()], where point estimates were of primary concern in the
-#' research that inspired the function
-#' (i.e., Bainbridge, Ludeke, and Smillie, 2022).
-#' However, this is *not* the best method, especially in this context, and
-#' it is planned to change the default method to the local SAM method in the
-#' future. Therefore, results may change when the update occurs and the function
-#' should be considered experimental.
+#' `sem.path` uses the local SAM to prevent interpretational confounding, while,
+#' in principle, providing unbiased standard errors and fit statistics.
+#' To my knowledge, the performance of the fit statistics has not been
+#' adequately defended so care should be taken if using them for model
+#' selection. However, the SAM method is superior to the standard simultaneous
+#' estimation method, which can seriously bias structural parameter estimates,
+#' and it is the best or one of the best methods to use for latent variable SEM.
 #'
 #' @importFrom stringr str_extract_all
 #' @importFrom stringr str_split
 #' @export
 #'
 #' @references
-#' Hayes, T. (2001).
-#' R-squared change in structural equation models with latent variables and
-#' missing data.
-#' Behavior Research Methods, 53(5), 2127-2157.
-#' https://doi.org/10.3758/s13428-020-01532-y.
+#' Burt, R. S. (1976).
+#' Interpretational confounding of unobserved variables in Structural Equation
+#' Models. Sociological Methods & Research, 5(1), 3-52.
+#' https://doi.org/10.1177/004912417600500101.
+#'
+#' Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
+#' Extension Procedures for Confirmatory Factor Analysis.
+#' Journal of Experimental Education, 85(4).
+#' https://doi.org/10.1080/00220973.2016.1260524.
+#'
+#' Rosseel, Y. & Loh, W. W. (2022).
+#' A structural after measurement approach to structural equation modeling.
+#' Psychological Methods, 29(3), 561-588.
+#' https://doi.org/10.1037/met0000503.
 
-# TODO: Add references.
+
+# TODO: Remove items. Find in path and extra automatically.
+
 
 sem.path <- function(
-    path, data, cfa_fit, items = NULL, item_loadings = NULL, extra = NULL,
+    path, data, cfa_fit, items = NULL, extra = NULL,
     fit_save = TRUE, fit_measures = "all", miss = "ML", est = "default",
-    orth_items = TRUE,
-    name = "sem", check = FALSE, save_out = FALSE
+    orth_x = FALSE,
+    name = "sam", check = FALSE, save_out = FALSE
 ) {
   item_miss <- items[!items %in% names(data)]
   if (!is.null(items)) {
@@ -253,7 +257,7 @@ sem.path <- function(
       unique()
     extra_vars <- extra_vars[!extra_vars %in% c(x_vars, y_vars)]
   }
-  if (is.null(items) & is.null(item_loadings)) {
+  if (is.null(items)) {
     if (is.null(extra)) {
       all_vars <- c(y_vars, x_vars)
     } else {
@@ -347,24 +351,24 @@ sem.path <- function(
     #   ),
     #   collapse = "\n"
     # )
-    if (length(items) > 1 & !orth_items) {
-      item_cors <- paste(
+    if (length(items) > 1 & !orth_x) {
+      x_cors <- paste(
         sapply(
-          seq_along(items[-length(items)]),
+          seq_along(x_vars[-length(x_vars)]),
           function(x) {
             paste0(
-              "\n", items[x], " ~~ ",
-              paste0(items[(x + 1):length(items)], collapse = " + ")
+              "\n", x_vars[x], " ~~ ",
+              paste0(x_vars[(x + 1):length(x_vars)], collapse = " + ")
             )
           }
         ),
         collapse = "\n"
       )
     } else {
-      item_cors <- NULL
+      x_cors <- NULL
     }
   } else {
-    item_cors <- NULL
+    x_cors <- NULL
     mod_i <- NULL
   }
   # Full structural model
@@ -394,7 +398,7 @@ sem.path <- function(
     }
   ) |>
     paste0(collapse = "\n") |>
-    paste0(item_cors) |>
+    paste0(x_cors) |>
     paste0("\n", path) |>
     paste0("\n", extra)
   fit <- sem.check(
