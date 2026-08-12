@@ -173,6 +173,8 @@
 
 
 # TODO: Remove items. Find in path and extra automatically.
+# TODO: No need for y_miss, x_miss given they will be coded as items and checked
+# there.
 
 
 sem.path <- function(
@@ -331,7 +333,7 @@ sem.path <- function(
       }
     }
   }
-  if (!is.null(items)) {
+  # if (!is.null(items)) {
     # mod_i <- paste0(
     #   lapply(
     #     stats::setNames(nm = items),
@@ -351,7 +353,7 @@ sem.path <- function(
     #   ),
     #   collapse = "\n"
     # )
-    if (length(items) > 1 & !orth_x) {
+    if (length(x_vars) > 1 & !orth_x) {
       x_cors <- paste(
         sapply(
           seq_along(x_vars[-length(x_vars)]),
@@ -367,10 +369,10 @@ sem.path <- function(
     } else {
       x_cors <- NULL
     }
-  } else {
-    x_cors <- NULL
-    mod_i <- NULL
-  }
+  # } else {
+  #   x_cors <- NULL
+  #   mod_i <- NULL
+  # }
   # Full structural model
   mod <- sapply(
     cfa_par,
@@ -436,8 +438,9 @@ sem.path <- function(
     } else {
       message(
         paste(
-          "No correlations were found in the model. If that seems incorrect,",
-          "please check you have included them in 'extra'."
+          "No correlations were found in the model.",
+          "If that seems incorrect, please check you have included them in",
+          "'extra' or set 'orth_x = FALSE' if intended."
         )
       )
       return(
@@ -464,8 +467,9 @@ sem.path <- function(
     } else {
       message(
         paste(
-          "No correlations were found in the model. If that seems incorrect,",
-          "please check you have included them in 'extra'."
+          "No correlations were found in the model.",
+          "If that seems incorrect, please check you have included them in",
+          "'extra' or set 'orth_x = FALSE' if intended."
         )
       )
       return(

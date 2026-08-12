@@ -38,3 +38,22 @@ test_that(
     )
   }
 )
+test_that(
+  "'use_sam' is not logical.", {
+    mods <- mapply(
+      x = keys, y = names(keys), SIMPLIFY = FALSE,
+      FUN = function(x, y) paste(y, "=~", paste(x, collapse = " + "))
+    )
+    expect_error(sem.check(mods, BFIGritHope, keys, use_sam = "Hello"))
+  }
+)
+test_that(
+  "Names of mods and names of keys do not match", {
+    mods <- mapply(
+      x = keys, y = names(keys), SIMPLIFY = FALSE,
+      FUN = function(x, y) paste(y, "=~", paste(x, collapse = " + "))
+    )
+    names(mods)[1] <- "Hello"
+    expect_error(sem.check(mods, BFIGritHope, keys, use_sam = "Hello"))
+  }
+)
