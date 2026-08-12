@@ -8,7 +8,6 @@ sem.path(
   path,
   data,
   cfa_fit,
-  items = NULL,
   extra = NULL,
   fit_save = TRUE,
   fit_measures = "all",
@@ -28,12 +27,6 @@ lavaan code.}
 Data must include all observed variables used in any of the models.}
 
 \item{cfa_fit}{A named list of fitted lavaan objects of CFA models.}
-
-\item{items}{A vector of single-item indicators of structural elements.
-'items' must not include any items contributing to the measurement of a
-latent variable.
-If items are included in \code{path} but \code{items = NULL} and
-\code{item_loadings = NULL}, then the function will find the items automatically.}
 
 \item{extra}{Extra lavaan code to be added that is not created from \code{cfa_fit}, or included
 in \code{path}.
@@ -70,7 +63,9 @@ If \code{TRUE}, all independent variable correlations are fixed at 0 unless
 explicitly freed or set to an alternative value
 (using \code{extra}, see details for how to do this).
 Defaults to \code{FALSE}.
-Irrelevant if \code{items = NULL} and no items are specified in \code{path} or \code{extra}.}
+Similar to lavaan's \code{orthogonal = TRUE}, except it frees correlations with
+single-item structural independent variables as well as independent latent
+variables.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.
@@ -93,6 +88,12 @@ parameter values, and output will be saved;
 Selecting \code{save_out = TRUE} enables the function to not rerun models next
 time if \code{check = TRUE} the next time the code is run and nothing has changed
 in the meantime.}
+
+\item{items}{A vector of single-item indicators of structural elements.
+'items' must not include any items contributing to the measurement of a
+latent variable.
+If items are included in \code{path} but \code{items = NULL} and
+\code{item_loadings = NULL}, then the function will find the items automatically.}
 
 \item{item_loadings}{When single items are specified, items are included in models with single
 item latent variables.
@@ -120,11 +121,12 @@ uses these to create the model code and run the model.
 }
 \details{
 The function runs an SEM with fitted CFA models, a specified path, and,
-optionally, items or 'extra' lavaan code.
+optionally, 'extra' lavaan code.
 The function uses Rosseel and Loh's (2022) "Structure-After-Measurement"
 (SAM) procedure to control for interpretational confounding and includes the
-\code{orth_x} argument to make it easy to allow all independent variables to
-correlate without having to explicitly allow them.
+\code{orth_x} argument to make it easy to allow all independent variables
+(i.e., variables not predicted by any other variables) to correlate without
+having to explicitly allow them.
 
 The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
 This enables saving inputs and outputs from model runs
@@ -142,42 +144,42 @@ structural parameters. As a result, measurement model parameters can change
 with the addition of theoretically unrelated constructs in a structural
 model, and can change differently for different sets of unrelated constructs.
 This means that the unrelated constructs are changing the interpretation of
-the latent variable.
-This is known as "interpretational confounding" (Burt, 1976).
+the latent variable, which Burt (1976) referred to as
+"interpretational confounding".
 
 There are various ways to deal with interpretational confounding.
 The standard solution (other than ignoring it) is to create good fitting
 measurement models first, then freely estimate the structural model
-with checks to ensure adequate fit of the model and that interpretational
-confounding is not an issue.
-This is sometimes a good solution, but, in other cases, simply moves the
-problem. If the measurement model was for a well-established scale and it is
-changed, it loses easy comparison with past research.
+with checks to ensure adequate fit of the model and that measurement
+parameters do not substantially change with different combinations of
+factors. This is sometimes a good solution, but, in other cases, it is not.
+For example, if the measurement model was for a well-established scale and it
+requires changing, then it loses easy comparison with past research.
 This issue is most clearly relevant when changes to a measurement model
-require entirely different factors, or items to be removed.
-When a single scale is being assessed, these issues can be resolved by
-suggesting a thorough evaluation of the scale and, perhaps, the suggestion of
-a new measurement model or a new scale for a particular population.
-However, when many scales are being assessed this solution is impractical,
-and may not solve the interpretational confounding issue regardless.
+require entirely different factors, or items to be removed but it is still an
+issue for less dramatic changes. When a single scale is being assessed,
+these issues can be resolved by suggesting a thorough evaluation of the scale
+and, perhaps, the suggestion of a new measurement model or a new scale for a
+particular population; however, when many scales are being assessed this
+solution is impractical, and may not solve the interpretational confounding
+issue regardless.
 
 An alternative solution, proposed by Burt (1976) is to fix measurement model
 parameters in a model estimating structural parameters.
 This method means that misspecification of one measurement model cannot
 affect other measurement models and that the interpretation of measured
 constructs cannot change based on unrelated factors.
-However, it is not a perfect solution because it underestimates uncertainty
-in the measurement part of the structural model (e.g., Nagy et al., 2017),
-which results in biased standard errors and fit statistics.
+However, it is not a perfect solution because, by fixing measurement
+parameters, uncertainty in their estimation is neglected
+(e.g., Nagy et al., 2017), which results in biased standard errors and fit
+statistics.
 
-A variety of options are available to correct these issues.
-One such option was proposed by Nagy and colleagues (2017),
-who propose and extension procedure such that item residuals are allowed to
+A third option was proposed by Nagy and colleagues (2017),
+who introduced an extension procedure such that item residuals are allowed to
 correlate with external variables (or factors).
-To ensure the model is identifiable these relationships are constrained using
-one of a number of methods.
-If the sums of squares of correlations between all combinations of factors'
-items and external factors are minimised,
+To make the model identifiable, these relationships are constrained using
+one of a number of methods. If the sums of squares of correlations between
+all combinations of factors' items and external factors are minimised,
 measurement parameters in isolated measurement models are preserved in the
 structural model without having to constrain them directly.
 As a result, unbiased standard errors are preserved while simultaneously
@@ -190,9 +192,10 @@ so some method to run regressions using the correlations needs to be
 implemented that does not itself result in biased estimates due to ignored
 uncertainty in the correlation estimates.
 
-A more practical solution to these issues was proposed by Rosseel and Loh
-(2022) with their SAM approach. This method essentially follows Burt's (1976)
-method but adjust the procedure to overcome its issues.
+Although this latter issue may be solveable for Nagy and colleagues' (2017)
+method, a more practical solution to these issues was proposed by
+Rosseel and Loh (2022) with their SAM approach. This method essentially
+follows Burt's (1976) method but adjust the procedure to overcome its issues.
 They distinguish two SAM varieties--"local SAM" and "global SAM".
 Local SAM uses the observed summary statistics of the parameters of the
 measurement models to generate mean and covariance matrices to use in the
@@ -201,13 +204,11 @@ while also preserving the uncertainty.
 Global SAM treats the measurement parameters as given, but corrects the
 standard errors of the structural model.
 
-\code{sem.path} uses the local SAM to prevent interpretational confounding, while,
-in principle, providing unbiased standard errors and fit statistics.
-To my knowledge, the performance of the fit statistics has not been
-adequately defended so care should be taken if using them for model
-selection. However, the SAM method is superior to the standard simultaneous
-estimation method, which can seriously bias structural parameter estimates,
-and it is the best or one of the best methods to use for latent variable SEM.
+\code{sem.path} uses the local SAM method. The SAM methods are the only methods
+that efficiently deal with interpretational confounding while allowing
+regression paths during model estimation. Local SAM is preferred to global
+SAM because it Rosseel and Loh (2022) "recommend local SAM over global SAM
+whenever possible." (p. 21 of the pre-print version).
 }
 \references{
 Burt, R. S. (1976).
@@ -224,4 +225,7 @@ Rosseel, Y. & Loh, W. W. (2022).
 A structural after measurement approach to structural equation modeling.
 Psychological Methods, 29(3), 561-588.
 https://doi.org/10.1037/met0000503.
+}
+\seealso{
+\code{\link[lavaan:sam]{sam()}} \code{\link[=sem.check]{sem.check()}}
 }

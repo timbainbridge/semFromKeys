@@ -518,7 +518,8 @@ sem.check <- function(
                   model   = mods1,
                   data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                   missing = miss,
-                  std.lv  = std.lv
+                  std.lv  = std.lv,
+                  orthogonal = orthogonal
                 )
               } else {
                 sam(
@@ -527,7 +528,8 @@ sem.check <- function(
                   mm_args = list(estimator = est),
                   struc_args = list(estimator = est),
                   missing = miss,
-                  std.lv  = std.lv
+                  std.lv  = std.lv,
+                  orthogonal = orthogonal
                 )
               }
             }

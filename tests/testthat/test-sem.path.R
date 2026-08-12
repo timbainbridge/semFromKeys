@@ -1,32 +1,31 @@
 test_that(
   "'sem.path' works with cfa_fit, extra, and items with 'orth_x = TRUE'",
   {
-    path <- "grit_p ~ grit_c + hope_p + bfi_n1_1 + bfi_c1_1\nhope_p ~ hope_a"
-    extra <- "grit_c ~~ hope_a + hope_p"
-    items <- paste0("bfi_", c("c", "n"), "1_1")
-    sem_fit <- sem.path(path, BFIGritHope, cfa_fit, items, extra = extra)
+    path <- "grit_p ~ grit_c + hope_p + bfi_c1_1\nhope_p ~ hope_a"
+    extra <- "grit_c ~~ hope_p"
+    sem_fit <-
+      sem.path(path, BFIGritHope, cfa_fit, extra = extra, orth_x = TRUE)
     expect_equal(length(sem_fit), 6)
     expect_true(inherits(sem_fit$fit, "lavaan"))
     expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
-    expect_equal(nrow(sem_fit$b), 5)
+    expect_equal(nrow(sem_fit$b), 4)
     expect_equal(nrow(sem_fit$r2), 2)
-    expect_equal(nrow(sem_fit$cors), 7)
+    expect_equal(nrow(sem_fit$cors), 4)
   }
 )
 test_that(
   "'sem.path' works with cfa_fit and items with 'orth_x = FALSE'",
   {
-    path <- "grit_p ~ grit_c + hope_p + bfi_n1_1 + bfi_c1_1\nhope_p ~ hope_a"
-    items <- paste0("bfi_", c("c", "n"), "1_1")
+    path <- "grit_p ~ grit_c + hope_p + bfi_c1_1\nhope_p ~ hope_a"
     sem_fit <- sem.path(
-      path, BFIGritHope, cfa_fit, items, fit_save = FALSE, orth_x = FALSE
+      path, BFIGritHope, cfa_fit, fit_save = FALSE, orth_x = FALSE
     )
     expect_equal(length(sem_fit), 5)
     expect_true(inherits(sem_fit$fit, "lavaan"))
     expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
     expect_equal(nrow(sem_fit$b), 5)
     expect_equal(nrow(sem_fit$r2), 2)
-    expect_equal(nrow(sem_fit$cors), 6)
+    expect_equal(nrow(sem_fit$cors), 3)
   }
 )
 test_that(
