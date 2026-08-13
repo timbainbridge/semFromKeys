@@ -13,7 +13,6 @@ sem.path(
   fit_measures = "all",
   miss = "ML",
   est = "default",
-  orth_x = FALSE,
   name = "sam",
   check = FALSE,
   save_out = FALSE
@@ -56,17 +55,6 @@ Defaults to 'ML'.}
 Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
 The default ('default') uses the lavaan default for the model being run.}
 
-\item{orth_x}{Logical.
-If \code{FALSE}, all independent variable correlations with all other
-independent variables are freely estimated.
-If \code{TRUE}, all independent variable correlations are fixed at 0 unless
-explicitly freed or set to an alternative value
-(using \code{extra}, see details for how to do this).
-Defaults to \code{FALSE}.
-Similar to lavaan's \code{orthogonal = TRUE}, except it frees correlations with
-single-item structural independent variables as well as independent latent
-variables.}
-
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.
 Defaults to "sem".
@@ -88,20 +76,6 @@ parameter values, and output will be saved;
 Selecting \code{save_out = TRUE} enables the function to not rerun models next
 time if \code{check = TRUE} the next time the code is run and nothing has changed
 in the meantime.}
-
-\item{items}{A vector of single-item indicators of structural elements.
-'items' must not include any items contributing to the measurement of a
-latent variable.
-If items are included in \code{path} but \code{items = NULL} and
-\code{item_loadings = NULL}, then the function will find the items automatically.}
-
-\item{item_loadings}{When single items are specified, items are included in models with single
-item latent variables.
-\code{item_loadings} sets the loading of the item on the factor.
-Set as \code{NULL} to allow the value to be freely estimated (default);
-set as a single number to set all item loadings equal to that number; or
-set as a vector of length equal to the length of items to set all loadings.
-Irrelevant if \code{items = NULL}.}
 }
 \value{
 Returns a list of length 5 (if \code{fit_save = FALSE}) or
@@ -204,11 +178,13 @@ while also preserving the uncertainty.
 Global SAM treats the measurement parameters as given, but corrects the
 standard errors of the structural model.
 
-\code{sem.path} uses the local SAM method. The SAM methods are the only methods
-that efficiently deal with interpretational confounding while allowing
-regression paths during model estimation. Local SAM is preferred to global
-SAM because it Rosseel and Loh (2022) "recommend local SAM over global SAM
-whenever possible." (p. 21 of the pre-print version).
+Given its practicality, \code{sem.path} uses the local SAM method.
+Local SAM was selected over the global SAM because Rosseel and Loh (2022)
+"recommend local SAM over global SAM whenever possible."
+(p. 21 of the pre-print version).
+
+Note that variables that are included as structural parameters that are only
+involved in
 }
 \references{
 Burt, R. S. (1976).

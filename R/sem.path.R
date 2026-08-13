@@ -26,31 +26,6 @@
 #' or allow correlations between item residuals or latent variables.
 #' Notably, the argument can be used to free semi-partial correlations in
 #' incremental validity analyses (see Hayes, 2001).
-#' @param items
-#' A vector of single-item indicators of structural elements.
-#' 'items' must not include any items contributing to the measurement of a
-#' latent variable.
-#' If items are included in `path` but `items = NULL` and
-#' `item_loadings = NULL`, then the function will find the items automatically.
-#' @param item_loadings
-#' When single items are specified, items are included in models with single
-#' item latent variables.
-#' `item_loadings` sets the loading of the item on the factor.
-#' Set as `NULL` to allow the value to be freely estimated (default);
-#' set as a single number to set all item loadings equal to that number; or
-#' set as a vector of length equal to the length of items to set all loadings.
-#' Irrelevant if `items = NULL`.
-#' @param orth_x
-#' Logical.
-#' If `FALSE`, all independent variable correlations with all other
-#' independent variables are freely estimated.
-#' If `TRUE`, all independent variable correlations are fixed at 0 unless
-#' explicitly freed or set to an alternative value
-#' (using `extra`, see details for how to do this).
-#' Defaults to `FALSE`.
-#' Similar to lavaan's `orthogonal = TRUE`, except it frees correlations with
-#' single-item structural independent variables as well as independent latent
-#' variables.
 #'
 #' @return
 #' Returns a list of length 5 (if `fit_save = FALSE`) or
@@ -147,15 +122,16 @@
 #' Global SAM treats the measurement parameters as given, but corrects the
 #' standard errors of the structural model.
 #'
-#' `sem.path` uses the local SAM method. The SAM methods are the only methods
-#' that efficiently deal with interpretational confounding while allowing
-#' regression paths during model estimation. Local SAM is preferred to global
-#' SAM because it Rosseel and Loh (2022) "recommend local SAM over global SAM
-#' whenever possible." (p. 21 of the pre-print version).
+#' Given its practicality, `sem.path` uses the local SAM method.
+#' Local SAM was selected over the global SAM because Rosseel and Loh (2022)
+#' "recommend local SAM over global SAM whenever possible."
+#' (p. 21 of the pre-print version).
+#'
+#' Note that variables that are included as structural parameters that are only
+#' involved in
 #'
 #' @seealso [sam()] [sem.check()]
 #'
-#' @importFrom stringr str_extract_all
 #' @importFrom stringr str_split
 #' @export
 #'
@@ -174,15 +150,11 @@
 #' A structural after measurement approach to structural equation modeling.
 #' Psychological Methods, 29(3), 561-588.
 #' https://doi.org/10.1037/met0000503.
-
-
-# TODO: Add option for global vs local.
-
+#'
 
 sem.path <- function(
     path, data, cfa_fit, extra = NULL,
     fit_save = TRUE, fit_measures = "all", miss = "ML", est = "default",
-    orth_x = FALSE,
     name = "sam", check = FALSE, save_out = FALSE
 ) {
   # item_miss <- items[!items %in% names(data)]
@@ -245,40 +217,38 @@ sem.path <- function(
   ##### Above adapted from esem.from.mods() #####
 
   # Check which variables are outcomes and need free residual variance.
-  y_vars <- stringr::str_extract_all(path, "(^|\n) *.*( |)~") |>
+  path_vars <- gsub("((\\+|~~|~).*?(\\*))", " ", path) |>
+    # Remove punctuation
+    gsub("\\+|~|\n", " ", x = _) |>
+    stringr::str_split(" +") |>
     unlist() |>
-    gsub("~|\n| ", "", x = _) |>
     unique()
-  x_vars <- stringr::str_extract_all(path, "(~~|~|\\+) *.*?(\n| |$|~~)") |>
-    unlist() |>
-    gsub("~| |\\+|\n", "", x = _) |>
-    unique()
-  x_vars <- x_vars[!x_vars %in% y_vars]
+  y_vars <- sapply(path_vars, function(x) x[grep(paste0(x, "( |)~"), path)]) |>
+    unlist()
+  x_vars <- path_vars[!path_vars %in% y_vars]
   if (!is.null(extra)) {
-    extra_vars <- extra |>
-      stringr::str_split("\\s*(?:~~|=~|~|\\+|\n)\\s*") |>
+    # Removal all fixed values and parameter names
+    extra_vars <- gsub("((\\+|~~|~).*?(\\*))", " ", extra) |>
+      # Remove punctuation
+      gsub("\\+|~|\n", " ", x = _) |>
+      stringr::str_split(" +") |>
       unlist() |>
       unique()
     extra_vars <- extra_vars[!extra_vars %in% c(x_vars, y_vars)]
   }
-  if (is.null(extra)) {
-    all_vars <- c(y_vars, x_vars)
-  } else {
-    all_vars <- c(y_vars, x_vars, extra_vars)
-  }
-  items <- all_vars[!all_vars %in% names(cfa_par)]
-  if (length(items) > 0) {
-    item_miss <- items[!items %in% names(data)]
+  items_s <- path_vars[!path_vars %in% names(cfa_fit)]
+  if (length(items_s) > 0) {
+    item_miss <- items_s[!items_s %in% names(data)]
     if (length(item_miss) > 0) {
       stop(
         paste0(
-          "'", item_miss[1], "' is in 'path' but does not match either a ",
-          "latent variable name, nor a variable name in 'data'."
+          "'", item_miss[1], "' is in 'path' but does not match ",
+          "either a latent variable name, nor a variable name in 'data'."
         )
       )
     }
   }
-  item_in_cfa <- items[items %in% unlist(cfa_keys)]
+  item_in_cfa <- items_s[items_s %in% unlist(cfa_fit)]
   if (length(item_in_cfa) > 0) {
     stop(
       paste0(
@@ -288,6 +258,18 @@ sem.path <- function(
         "also be a structural variable."
       )
     )
+  }
+  items_m <- extra_vars[!extra_vars %in% names(cfa_fit)]
+  if (length(items_m) > 0) {
+    item_miss_m <- items_m[!items_m %in% names(data)]
+    if (length(item_miss_m) > 0) {
+      stop(
+        paste0(
+          "'", item_miss[1], "' is in 'extra' but does not match ",
+          "either a latent variable name, nor a variable name in 'data'."
+        )
+      )
+    }
   }
   # if (!is.null(extra)) {
   #   if (length(extra_vars) > 0) {
@@ -327,7 +309,7 @@ sem.path <- function(
     #   ),
     #   collapse = "\n"
     # )
-    if (length(x_vars) > 1 & !orth_x) {
+    if (length(x_vars) > 1) {
       x_cors <- paste(
         sapply(
           seq_along(x_vars[-length(x_vars)]),
@@ -381,7 +363,7 @@ sem.path <- function(
     setNames(list(mod), nm = name), data = data,
     keys_s = setNames(list(c(unlist(cfa_keys), items)), nm = name),
     fit_save = fit_save, fit_measures = fit_measures,
-    miss = miss, est = est, orthogonal = TRUE, std = TRUE,
+    miss = miss, est = est, std = TRUE,
     name = name, check = check, save_out = save_out, use_sam = TRUE
   )
   x <- fit$par_std[[name]]
@@ -410,13 +392,6 @@ sem.path <- function(
         )
       )
     } else {
-      message(
-        paste(
-          "No correlations were found in the model.",
-          "If that seems incorrect, please check you have included them in",
-          "'extra' or set 'orth_x = FALSE' if intended."
-        )
-      )
       return(
         list(
           fit = fit$fit[[name]],
@@ -439,13 +414,6 @@ sem.path <- function(
         )
       )
     } else {
-      message(
-        paste(
-          "No correlations were found in the model.",
-          "If that seems incorrect, please check you have included them in",
-          "'extra' or set 'orth_x = FALSE' if intended."
-        )
-      )
       return(
         list(
           fit = fit$fit[[name]],

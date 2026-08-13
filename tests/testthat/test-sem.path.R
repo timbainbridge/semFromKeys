@@ -1,10 +1,10 @@
 test_that(
-  "'sem.path' works with cfa_fit, extra, and items with 'orth_x = TRUE'",
+  "'sem.path' works with correlation between x var and y residual",
   {
     path <- "grit_p ~ grit_c + hope_p + bfi_c1_1\nhope_p ~ hope_a"
     extra <- "grit_c ~~ hope_p"
     sem_fit <-
-      sem.path(path, BFIGritHope, cfa_fit, extra = extra, orth_x = TRUE)
+      sem.path(path, BFIGritHope, cfa_fit, extra = extra, fit_save = TRUE)
     expect_equal(length(sem_fit), 6)
     expect_true(inherits(sem_fit$fit, "lavaan"))
     expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
@@ -14,22 +14,39 @@ test_that(
   }
 )
 test_that(
-  "'sem.path' works with cfa_fit and items with 'orth_x = FALSE'",
+  "'sem.path' works with a fixed 0 correlation between x vars",
   {
     path <- "grit_p ~ grit_c + hope_p + bfi_c1_1\nhope_p ~ hope_a"
-    sem_fit <- sem.path(
-      path, BFIGritHope, cfa_fit, fit_save = FALSE, orth_x = FALSE
-    )
+    extra <- "grit_c ~~ 0 * hope_a"
+    sem_fit <-
+      sem.path(path, BFIGritHope, cfa_fit, extra = extra, fit_save = FALSE)
     expect_equal(length(sem_fit), 5)
     expect_true(inherits(sem_fit$fit, "lavaan"))
     expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
-    expect_equal(nrow(sem_fit$b), 5)
+    expect_equal(nrow(sem_fit$b), 4)
     expect_equal(nrow(sem_fit$r2), 2)
     expect_equal(nrow(sem_fit$cors), 3)
+    expect_equal(sem_fit$cors$est.std[sem_fit$cors$rhs == "hope_a"], 0)
   }
 )
 test_that(
-  "'sem.path' with a specified estimator",
+  "'sem.path' works with fixed non-zero path",
+  {
+    path <- "grit_p ~ .5 * grit_c + .5 * hope_p + bfi_c1_1\nhope_p ~ hope_a"
+    sem_fit <- sem.path(path, BFIGritHope, cfa_fit, fit_save = FALSE)
+    expect_equal(length(sem_fit), 5)
+    expect_true(inherits(sem_fit$fit, "lavaan"))
+    expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
+    expect_equal(nrow(sem_fit$b), 4)
+    expect_equal(nrow(sem_fit$r2), 2)
+    expect_equal(nrow(sem_fit$cors), 3)
+    # No check for fixed values as these are unstandardised.
+    # The test is primarily to check that '.5's are correctly removed from
+    # x_vars and y_vars.
+  }
+)
+test_that(
+  "'sem.path' with a specified estimator (few work)",
   {
     path <- "grit_p ~ grit_c + hope_p\nhope_p ~ hope_a"
     sem_fit <-
@@ -42,67 +59,17 @@ test_that(
     expect_equal(nrow(sem_fit$cors), 1)
   }
 )
-
-# TODO: See if there's some way to get sam to include factors that are only
-# correlated in the sem. It appears to treat these correlations as 0.
-# TODO: Does this even matter? If interpretational confounding is not an issue,
-# then adding a variable should change estimates of other structural parameters.
-# Check that this is the case. If so then incremental validity will be much
-# easier.
-# TODO: If so, extra_vars can be removed as all vars will be x or y.
-
 test_that(
-  "Variable in 'extra' not in 'path' (typically for incremental validity)",
+  "Variable in 'path' not in data or a latent variable",
   {
-    path <- "grit_p ~ hope_p\nhope_p ~ hope_a"
-    extra <- "grit_c ~~ grit_p + hope_p + hope_a"
-    sem_fit <- sem.path(path, BFIGritHope, cfa_fit, extra = extra)
-    expect_equal(length(sem_fit), 6)
-    expect_true(inherits(sem_fit$fit, "lavaan"))
-    expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
-    expect_equal(nrow(sem_fit$b), 2)
-    expect_equal(nrow(sem_fit$r2), 2)
-    expect_equal(nrow(sem_fit$cors), 3)
-    expect_false(sem_fit$cors$est.std[1] == 0)
-  }
-)
-
-# TODO: Make this the standard.
-
-# test_that(
-#   "item in 'path' not in items, but in 'data'",
-#   {
-#     path <- "grit_p ~ grit_c + hope_p + bfi_n1_1 + bfi_c1_1\nhope_p ~ hope_a"
-#     sem_fit <- sem.path(path, BFIGritHope, cfa_fit, fit_save = FALSE)
-#     expect_equal(length(sem_fit), 5)
-#     expect_true(inherits(sem_fit$fit, "lavaan"))
-#     expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
-#     expect_equal(nrow(sem_fit$b), 5)
-#     expect_equal(nrow(sem_fit$r2), 2)
-#     expect_equal(nrow(sem_fit$cors), 6)
-#   }
-# )
-test_that(
-  "item in 'path' not in data",
-  {
-    path <- "grit_p ~ grit_c + hope_p + bfi_n10_1 + bfi_c1_1\nhope_p ~ hope_a"
+    path <- "grit_p ~ grit_c + hope_p + bfi_n1_10 + bfi_c1_1\nhope_p ~ hope_a"
     expect_error(
-      sem.path(path, BFIGritHope, cfa_fit), "'bfi_n10_1' is in 'path'"
+      sem.path(path, BFIGritHope, cfa_fit), "'bfi_n1_10' is in 'path'"
     )
-  }
-)
-test_that(
-  "y variable not a factor nor in data",
-  {
     path <- "grit_p1 ~ grit_c + hope_p + bfi_n10_1 + bfi_c1_1\nhope_p ~ hope_a"
     expect_error(
       sem.path(path, BFIGritHope, cfa_fit), "'grit_p1' is in 'path'"
     )
-  }
-)
-test_that(
-  "x variable not a factor nor in data",
-  {
     path <- "grit_p ~ grit_c1 + hope_p + bfi_n10_1 + bfi_c1_1\nhope_p ~ hope_a"
     expect_error(
       sem.path(path, BFIGritHope, cfa_fit), "'grit_c1' is in 'path'"
@@ -117,7 +84,7 @@ test_that(
     extra <- "grit_p1 ~~ hope_a"
     expect_error(
       sem.path(path, BFIGritHope, cfa_fit, items, extra = extra),
-      "'grit_p1' is in 'extra'"
+      "'grit_p1' is in 'path' or 'extra'"
     )
   }
 )
@@ -131,5 +98,46 @@ test_that(
     )
   }
 )
+test_that(
+  "'sem.path' with no correlations",
+  {
+    path <- "grit_p ~ hope_p\nhope_p ~ hope_a"
+    sem_fit <- sem.path(path, BFIGritHope, cfa_fit[2:4])
+    expect_equal(length(sem_fit), 5)
+    expect_true(inherits(sem_fit$fit, "lavaan"))
+    expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
+    expect_equal(nrow(sem_fit$b), 2)
+    expect_equal(nrow(sem_fit$r2), 2)
+    expect_true(!"cors" %in% names(sem_fit))
+  }
+)
+test_that(
+  "'sem.path' with no correlations",
+  {
+    path <- "grit_p ~ hope_p\nhope_p ~ hope_a"
+    sem_fit <- sem.path(path, BFIGritHope, cfa_fit[2:4], fit_save = FALSE)
+    expect_equal(length(sem_fit), 4)
+    expect_true(inherits(sem_fit$fit, "lavaan"))
+    expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
+    expect_equal(nrow(sem_fit$b), 2)
+    expect_equal(nrow(sem_fit$r2), 2)
+    expect_true(!"cors" %in% names(sem_fit))
+  }
+)
+test_that(
+  "Multi-line extra with correlated item-residuals",
+  {
+    path <- "grit_p ~ grit_c + hope_p\nhope_p ~ hope_a"
+    extra <- "grit_c ~~ hope_a\ngrit_c_1 ~~ grit_p_1"
+    sem_fit <- sem.path(path, BFIGritHope, cfa_fit, extra = extra)
+    expect_equal(length(sem_fit), 6)
+    expect_true(inherits(sem_fit$fit, "lavaan"))
+    expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
+    expect_equal(nrow(sem_fit$b), 3)
+    expect_equal(nrow(sem_fit$r2), 2)
+    expect_equal(nrow(sem_fit$cors), 2)
+  }
+)
 
-# TODO: Create tests with no correlations with both fit_save = TRUE and = FALSE.
+# TODO: Any weird and wonderful tests? Predicting latent variable indicator
+# residual perhaps? What should happen here?
