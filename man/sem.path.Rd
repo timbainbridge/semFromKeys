@@ -97,10 +97,13 @@ uses these to create the model code and run the model.
 The function runs an SEM with fitted CFA models, a specified path, and,
 optionally, 'extra' lavaan code.
 The function uses Rosseel and Loh's (2022) "Structure-After-Measurement"
-(SAM) procedure to control for interpretational confounding and includes the
-\code{orth_x} argument to make it easy to allow all independent variables
-(i.e., variables not predicted by any other variables) to correlate without
-having to explicitly allow them.
+(SAM) procedure to control for interpretational confounding.
+
+Like lavaan, the model assumes independent variables in the structural model
+should be allowed to correlate by default but extends the treatment to
+single-item variables. As a corollary, if you do not want any combination of
+independent variables to correlate freely, you will have to specify that in
+'extra' (see examples).
 
 The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
 This enables saving inputs and outputs from model runs
@@ -183,14 +186,25 @@ Local SAM was selected over the global SAM because Rosseel and Loh (2022)
 "recommend local SAM over global SAM whenever possible."
 (p. 21 of the pre-print version).
 
-Note that variables that are included as structural parameters that are only
-involved in
+Note that variables that are included as structural parameters that are not
+part of a regression path are assumed (by lavaan) to be unrelated, even if
+explicitly freed in the code. In most cases, you would not want such
+variables; however, if you are attempting to follow Hayes (2021)
+recommendations for incremental validity, then the model will not function
+correctly. (However, leaving the variable out of the first model \emph{may} work
+because interpretational confounding has been precluded by the SAM method.
+To my knowledge, this has not been tested though, so use at your own risk.)
 }
 \references{
 Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation
 Models. Sociological Methods & Research, 5(1), 3-52.
 https://doi.org/10.1177/004912417600500101.
+
+Hayes, T. (2021).
+R-squared change in structural equation models with latent variables and
+missing data, 53(5), 2127-2157.
+https://doi.org/10.3758/s13428-020-01532-y.
 
 Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
 Extension Procedures for Confirmatory Factor Analysis.

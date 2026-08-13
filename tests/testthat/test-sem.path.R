@@ -80,11 +80,10 @@ test_that(
   "'extra' variable not a factor nor in data",
   {
     path <- "grit_p ~ grit_c + hope_p + bfi_n1_1 + bfi_c1_1\nhope_p ~ hope_a"
-    items <- paste0("bfi_", c("c", "n"), "1_1")
     extra <- "grit_p1 ~~ hope_a"
     expect_error(
-      sem.path(path, BFIGritHope, cfa_fit, items, extra = extra),
-      "'grit_p1' is in 'path' or 'extra'"
+      sem.path(path, BFIGritHope, cfa_fit, extra = extra),
+      "'grit_p1' is in 'extra'"
     )
   }
 )
@@ -138,6 +137,48 @@ test_that(
     expect_equal(nrow(sem_fit$cors), 2)
   }
 )
+test_that(
+  "Not objects of type 'lavaan'",
+  {
+    path <- "grit_p ~ grit_c + hope_p\nhope_p ~ hope_a"
+    fit <- cfa_fit
+    fit[2] <- "Hello"
+    expect_error(
+      sem.path(path, BFIGritHope, fit),
+      "not objects of type lavaan"
+    )
+  }
+)
+test_that(
+  "Same name CFAs",
+  {
+    path <- "grit_p ~ grit_c + hope_p\nhope_p ~ hope_a"
+    fit <- cfa_fit
+    fit[2] <- cfa_fit[1]
+    expect_error(
+      sem.path(path, BFIGritHope, fit),
+      "two different models in 'cfa_fit' have factors with the same name."
+    )
+  }
+)
+test_that(
+  "Model with more than 1 factor",
+  {
+    path <- "grit_p ~ grit_c + hope_p\nhope_p ~ hope_a"
+    expect_error(
+      sem.path(path, BFIGritHope, bif_fit),
+      "A CFA containing more than one latent variable has been found"
+    )
+  }
+)
+test_that(
+  "Model with more than 1 factor",
+  {
+    path <- "grit_p ~ grit_c_1 + hope_p_1\nhope_p_1 ~ hope_a_1"
+    sem_fit <- sem.path(path, BFIGritHope, cfa_fit[[2]])
+  }
+)
+# TODO: Non-list single CFA as input.
 
 # TODO: Any weird and wonderful tests? Predicting latent variable indicator
 # residual perhaps? What should happen here?

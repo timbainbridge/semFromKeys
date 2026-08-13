@@ -41,10 +41,13 @@
 #' The function runs an SEM with fitted CFA models, a specified path, and,
 #' optionally, 'extra' lavaan code.
 #' The function uses Rosseel and Loh's (2022) "Structure-After-Measurement"
-#' (SAM) procedure to control for interpretational confounding and includes the
-#' `orth_x` argument to make it easy to allow all independent variables
-#' (i.e., variables not predicted by any other variables) to correlate without
-#' having to explicitly allow them.
+#' (SAM) procedure to control for interpretational confounding.
+#'
+#' Like lavaan, the model assumes independent variables in the structural model
+#' should be allowed to correlate by default but extends the treatment to
+#' single-item variables. As a corollary, if you do not want any combination of
+#' independent variables to correlate freely, you will have to specify that in
+#' 'extra' (see examples).
 #'
 #' The model relies on [sem.check()] for the back-end of running the models.
 #' This enables saving inputs and outputs from model runs
@@ -127,8 +130,14 @@
 #' "recommend local SAM over global SAM whenever possible."
 #' (p. 21 of the pre-print version).
 #'
-#' Note that variables that are included as structural parameters that are only
-#' involved in
+#' Note that variables that are included as structural parameters that are not
+#' part of a regression path are assumed (by lavaan) to be unrelated, even if
+#' explicitly freed in the code. In most cases, you would not want such
+#' variables; however, if you are attempting to follow Hayes (2021)
+#' recommendations for incremental validity, then the model will not function
+#' correctly. (However, leaving the variable out of the first model *may* work
+#' because interpretational confounding has been precluded by the SAM method.
+#' To my knowledge, this has not been tested though, so use at your own risk.)
 #'
 #' @seealso [sam()] [sem.check()]
 #'
@@ -140,6 +149,11 @@
 #' Interpretational confounding of unobserved variables in Structural Equation
 #' Models. Sociological Methods & Research, 5(1), 3-52.
 #' https://doi.org/10.1177/004912417600500101.
+#'
+#' Hayes, T. (2021).
+#' R-squared change in structural equation models with latent variables and
+#' missing data, 53(5), 2127-2157.
+#' https://doi.org/10.3758/s13428-020-01532-y.
 #'
 #' Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
 #' Extension Procedures for Confirmatory Factor Analysis.
@@ -248,87 +262,56 @@ sem.path <- function(
       )
     }
   }
-  item_in_cfa <- items_s[items_s %in% unlist(cfa_fit)]
-  if (length(item_in_cfa) > 0) {
-    stop(
-      paste0(
-        "'", item_in_cfa[1], "' is a structural variable but is also an item ",
-        "in a CFA model. ",
-        "Items that contribute to a CFA measurement model cannot ",
-        "also be a structural variable."
-      )
-    )
-  }
-  items_m <- extra_vars[!extra_vars %in% names(cfa_fit)]
-  if (length(items_m) > 0) {
-    item_miss_m <- items_m[!items_m %in% names(data)]
-    if (length(item_miss_m) > 0) {
+  if (length(items_s) > 0) {
+    item_in_cfa <- items_s[items_s %in% unlist(cfa_keys)]
+    if (length(item_in_cfa) > 0) {
       stop(
         paste0(
-          "'", item_miss[1], "' is in 'extra' but does not match ",
-          "either a latent variable name, nor a variable name in 'data'."
+          "'", item_in_cfa[1], "' is a structural variable but is also an ",
+          "item in a CFA model. ",
+          "Items that contribute to a CFA measurement model cannot ",
+          "also be a structural variable."
         )
       )
     }
   }
-  # if (!is.null(extra)) {
-  #   if (length(extra_vars) > 0) {
-  #     extra_miss <- extra_vars[!extra_vars %in% c(names(data), names(cfa_fit))]
-  #     if (length(extra_miss) > 0) {
-  #       # Note: it is possible to get here only if items is an entered argument.
-  #       stop(
-  #         paste0(
-  #           "'", extra_miss[1], "' is in 'extra' but is not in 'items', ",
-  #           "'cfa_fit', or a named variable in 'data'. ",
-  #           "Please check '", extra_miss[1], "' matches the name of ",
-  #           "the relevant CFA, item, or variable name as appropriate. ",
-  #           "Note that latent variable names must match that of the factor ",
-  #           "in the lavaan model (which could differ from the object name)."
-  #         )
-  #       )
-  #     }
-  #   }
-  # }
-  # if (!is.null(items)) {
-    # mod_i <- paste0(
-    #   lapply(
-    #     stats::setNames(nm = items),
-    #     function(i) {
-    #       if (!is.null(item_loadings)) {
-    #         if (length(item_loadings) == length(items)) {
-    #           i_r <- paste(item_loadings[i], " * ")
-    #         } else {
-    #           i_r <- paste(item_loadings, " * ")
-    #         }
-    #       } else {
-    #         i_r <- ""
-    #       }
-    #       i_l <- paste0(i, "_l")
-    #       paste0(i_l, " =~ ", i_r, i)
-    #     }
-    #   ),
-    #   collapse = "\n"
-    # )
-    if (length(x_vars) > 1) {
-      x_cors <- paste(
-        sapply(
-          seq_along(x_vars[-length(x_vars)]),
-          function(x) {
+  if (!is.null(extra)) {
+    if (length(extra_vars) > 0) {
+      items_m <- extra_vars[!extra_vars %in% names(cfa_keys)]
+      items <- c(items_s, items_m)
+      if (length(items_m) > 0) {
+        item_miss_m <- items_m[!items_m %in% names(data)]
+        if (length(item_miss_m) > 0) {
+          stop(
             paste0(
-              x_vars[x], " ~~ ",
-              paste0(x_vars[(x + 1):length(x_vars)], collapse = " + ")
+              "'", item_miss_m[1], "' is in 'extra' but does not match ",
+              "either a latent variable name, nor a variable name in 'data'."
             )
-          }
-        ),
-        collapse = "\n"
-      )
+          )
+        }
+      }
     } else {
-      x_cors <- NULL
+      items <- items_s
     }
-  # } else {
-  #   x_cors <- NULL
-  #   mod_i <- NULL
-  # }
+  } else {
+    items <- items_s
+  }
+  if (length(x_vars) > 1) {
+    x_cors <- paste(
+      sapply(
+        seq_along(x_vars[-length(x_vars)]),
+        function(x) {
+          paste0(
+            x_vars[x], " ~~ ",
+            paste0(x_vars[(x + 1):length(x_vars)], collapse = " + ")
+          )
+        }
+      ),
+      collapse = "\n"
+    )
+  } else {
+    x_cors <- NULL
+  }
   # Full structural model
   mod <- sapply(
     cfa_par,
@@ -336,20 +319,8 @@ sem.path <- function(
       x <- x[x$op %in% "=~", ]
       i <- x$lhs[x$op == "=~"] |> unique()
       xi <- lapply(i, function(y) x$rhs[x$lhs == y])
-      # if (sum(i %in% y_vars) >= 1) {
-      #   # Free residual variance for y factors.
-      #   # Overly complex for single-factor CFA only but could be important for
-      #   # multi-factor CFA or bifactor models.
-      #   for (j in i) {
-      #     x <- x[!(x$lhs == j & x$op == "~~" & x$rhs == j), ]
-      #   }
-      # }
-      # # CFA model
-      # paste(x$lhs, x$op, x$est, "*", x$rhs, collapse = "\n")
       mapply(
-        function(j, k) {
-          paste(j, "=~", paste(k, collapse = " + "))
-        },
+        function(j, k) paste(j, "=~", paste(k, collapse = " + ")),
         j = i, k = xi, SIMPLIFY = FALSE
       ) |>
         paste(collapse = "\n")

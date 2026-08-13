@@ -21,7 +21,6 @@ importFrom(lavaan,
 importFrom(matrixcalc,is.positive.definite)
 importFrom(openssl,md5)
 importFrom(stringr,
-  str_extract_all,
   str_replace_all,
   str_split
 )
