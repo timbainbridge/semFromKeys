@@ -29,10 +29,9 @@ Data must include all observed variables used in any of the models.}
 
 \item{extra}{Extra lavaan code to be added that is not created from \code{cfa_fit}, or included
 in \code{path}.
-For example, the argument can be used to set constraints, fix values,
-or allow correlations between item residuals or latent variables.
-Notably, the argument can be used to free semi-partial correlations in
-incremental validity analyses (see Hayes, 2001).}
+For example, the argument can be used to set constraints, fix parameters to
+specific values, or allow correlations between item residuals or latent
+variables.}
 
 \item{fit_save}{Logical.
 \code{TRUE} indicates model fit measures should be included in the output;
@@ -194,6 +193,31 @@ recommendations for incremental validity, then the model will not function
 correctly. (However, leaving the variable out of the first model \emph{may} work
 because interpretational confounding has been precluded by the SAM method.
 To my knowledge, this has not been tested though, so use at your own risk.)
+}
+\examples{
+# Create CFA keys
+keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
+keys <- sapply(
+  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+)
+# Run CFA models
+cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
+# Run a path model with grit_c allowed to correlate with hope_p's residual
+# and the correlation between hope_a and grit_c constrained to 0.
+# Note: "\n" indicates a new line and is interpreted identically to an new
+# line by lavaan.
+sem_fit <- sem.path(
+  path = "grit_p ~ grit_c + hope_p + bfi_c1_1\nhope_p ~ hope_a",
+  data = BFIGritHope,
+  cfa_fit = cfa_fit,
+  extra = "grit_c ~~ hope_p\nhope_a ~~ 0*grit_c"
+)
+# Examine results
+summary(sem_fit)      # Standard lavaan summary
+sem_fit$b             # Standardised regression path coefficients
+sem_fit$r2            # R^2 values
+sem_fit$cors          # Correlations
+sem_fit$fit_measures  # Fit measures
 }
 \references{
 Burt, R. S. (1976).

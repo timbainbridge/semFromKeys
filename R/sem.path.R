@@ -22,10 +22,9 @@
 #' @param extra
 #' Extra lavaan code to be added that is not created from `cfa_fit`, or included
 #' in `path`.
-#' For example, the argument can be used to set constraints, fix values,
-#' or allow correlations between item residuals or latent variables.
-#' Notably, the argument can be used to free semi-partial correlations in
-#' incremental validity analyses (see Hayes, 2001).
+#' For example, the argument can be used to set constraints, fix parameters to
+#' specific values, or allow correlations between item residuals or latent
+#' variables.
 #'
 #' @return
 #' Returns a list of length 5 (if `fit_save = FALSE`) or
@@ -165,24 +164,36 @@
 #' Psychological Methods, 29(3), 561-588.
 #' https://doi.org/10.1037/met0000503.
 #'
+#' @examples
+#' # Create CFA keys
+#' keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
+#' keys <- sapply(
+#'   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+#' )
+#' # Run CFA models
+#' cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
+#' # Run a path model with grit_c allowed to correlate with hope_p's residual
+#' # and the correlation between hope_a and grit_c constrained to 0.
+#' # Note: "\n" indicates a new line and is interpreted identically to an new
+#' # line by lavaan.
+#' sem_fit <- sem.path(
+#'   path = "grit_p ~ grit_c + hope_p + bfi_c1_1\nhope_p ~ hope_a",
+#'   data = BFIGritHope,
+#'   cfa_fit = cfa_fit,
+#'   extra = "grit_c ~~ hope_p\nhope_a ~~ 0*grit_c"
+#' )
+#' # Examine results
+#' summary(sem_fit)      # Standard lavaan summary
+#' sem_fit$b             # Standardised regression path coefficients
+#' sem_fit$r2            # R^2 values
+#' sem_fit$cors          # Correlations
+#' sem_fit$fit_measures  # Fit measures
 
 sem.path <- function(
     path, data, cfa_fit, extra = NULL,
     fit_save = TRUE, fit_measures = "all", miss = "ML", est = "default",
     name = "sam", check = FALSE, save_out = FALSE
 ) {
-  # item_miss <- items[!items %in% names(data)]
-  # if (!is.null(items)) {
-  #   if (length(item_miss) > 0) {
-  #     stop(
-  #       paste0(
-  #         "'", item_miss[1], "' is in 'items' but does not match ",
-  #         "a variable name in 'data'."
-  #       )
-  #     )
-  #   }
-  # }
-
   ##### Below adapted from esem.from.mods() #####
   if (!is.list(cfa_fit) & inherits(cfa_fit, "lavaan")) {
     cfa_fit <- list(factor = cfa_fit)
