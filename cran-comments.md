@@ -1,17 +1,9 @@
-## Latest submission (7-8-2026)
-
-### R CMD check results
-
-0 errors | 0 warnings | 1 notes
-
-* Examples with CPU (user + system) or elapsed time > 10s
-
-                     user system elapsed
-      efa.from.keys 15.14    0.3   15.47
+## Latest version
 
 ### Notes
 
 * Fixed an important bug whereby the `sem.cor()` function would fail if a factor name included a '.'.
+* Added a function to aid with running structural equation models (i.e., `sem.path()`).
 
 ## 28-7-2026 submission
 

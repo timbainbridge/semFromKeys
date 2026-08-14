@@ -1,3 +1,5 @@
+* Add the `sem.path()` function, which takes CFA outputs and SEM path code to run an SEM model.
+
 # semFromKeys 0.3.3
 
 * Fixed a bug in `sem.cor()` whereby variable names were not correctly extracted when '.'s were included in the name.
