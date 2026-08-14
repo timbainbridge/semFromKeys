@@ -172,13 +172,15 @@ test_that(
   }
 )
 test_that(
-  "Model with more than 1 factor",
+  "Non-list single CFA as cfa_fit input",
   {
     path <- "grit_p ~ grit_c_1 + hope_p_1\nhope_p_1 ~ hope_a_1"
-    sem_fit <- sem.path(path, BFIGritHope, cfa_fit[[2]])
+    sem_fit <- sem.path(path, BFIGritHope, cfa_fit[[2]], fit_save = FALSE)
+    expect_equal(length(sem_fit), 5)
+    expect_true(inherits(sem_fit$fit, "lavaan"))
+    expect_true(inherits(sem_fit$par_std, "lavaan.data.frame"))
+    expect_equal(nrow(sem_fit$b), 3)
+    expect_equal(nrow(sem_fit$r2), 2)
+    expect_equal(nrow(sem_fit$cors), 1)
   }
 )
-# TODO: Non-list single CFA as input.
-
-# TODO: Any weird and wonderful tests? Predicting latent variable indicator
-# residual perhaps? What should happen here?
