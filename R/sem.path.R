@@ -244,8 +244,8 @@ sem.path <- function(
   # Check which variables are outcomes and need free residual variance.
   path_vars0 <- gsub("((\\+|~~|~).*?(\\*))", " ", path)
   # Remove punctuation
-  path_vars1 <- gsub("\\+|~|\n", " ", x = _)
-  path_vars <- unique(unlist(stringr::str_split(" +")))
+  path_vars1 <- gsub("\\+|~|\n", " ", path_vars0)
+  path_vars <- unique(unlist(stringr::str_split(path_vars1, " +")))
   y_vars <-
     unlist(sapply(path_vars, function(x) x[grep(paste0(x, "( |)~"), path)]))
   x_vars <- path_vars[!path_vars %in% y_vars]
@@ -253,8 +253,8 @@ sem.path <- function(
     # Removal all fixed values and parameter names
     extra_vars0 <- gsub("((\\+|~~|~).*?(\\*))", " ", extra)
     # Remove punctuation
-    extra_vars1 <- gsub("\\+|~|\n", " ", x = _)
-    extra_vars2 <- unique(unlist(stringr::str_split(" +")))
+    extra_vars1 <- gsub("\\+|~|\n", " ", extra_vars0)
+    extra_vars2 <- unique(unlist(stringr::str_split(extra_vars1, " +")))
     extra_vars <- extra_vars2[!extra_vars2 %in% c(x_vars, y_vars)]
   }
   items_s <- path_vars[!path_vars %in% names(cfa_fit)]
@@ -341,7 +341,7 @@ sem.path <- function(
   mod1 <- paste0(mod0, "\n", x_cors, "\n", path, "\n", extra)
   mod <- list(mod1)
   names(mod) <- name
-  keys_s <- list(c(unlist(cfa_keys)))
+  keys_s <- list(c(unlist(cfa_keys), items))
   names(keys_s) <- name
   fit <- sem.check(
     mod, data = data, keys_s = keys_s,
