@@ -242,24 +242,20 @@ sem.path <- function(
   ##### Above adapted from esem.from.mods() #####
 
   # Check which variables are outcomes and need free residual variance.
-  path_vars <- gsub("((\\+|~~|~).*?(\\*))", " ", path) |>
-    # Remove punctuation
-    gsub("\\+|~|\n", " ", x = _) |>
-    stringr::str_split(" +") |>
-    unlist() |>
-    unique()
-  y_vars <- sapply(path_vars, function(x) x[grep(paste0(x, "( |)~"), path)]) |>
-    unlist()
+  path_vars0 <- gsub("((\\+|~~|~).*?(\\*))", " ", path)
+  # Remove punctuation
+  path_vars1 <- gsub("\\+|~|\n", " ", x = _)
+  path_vars <- unique(unlist(stringr::str_split(" +")))
+  y_vars <-
+    unlist(sapply(path_vars, function(x) x[grep(paste0(x, "( |)~"), path)]))
   x_vars <- path_vars[!path_vars %in% y_vars]
   if (!is.null(extra)) {
     # Removal all fixed values and parameter names
-    extra_vars <- gsub("((\\+|~~|~).*?(\\*))", " ", extra) |>
-      # Remove punctuation
-      gsub("\\+|~|\n", " ", x = _) |>
-      stringr::str_split(" +") |>
-      unlist() |>
-      unique()
-    extra_vars <- extra_vars[!extra_vars %in% c(x_vars, y_vars)]
+    extra_vars0 <- gsub("((\\+|~~|~).*?(\\*))", " ", extra)
+    # Remove punctuation
+    extra_vars1 <- gsub("\\+|~|\n", " ", x = _)
+    extra_vars2 <- unique(unlist(stringr::str_split(" +")))
+    extra_vars <- extra_vars2[!extra_vars2 %in% c(x_vars, y_vars)]
   }
   items_s <- path_vars[!path_vars %in% names(cfa_fit)]
   if (length(items_s) > 0) {
@@ -324,24 +320,26 @@ sem.path <- function(
     x_cors <- NULL
   }
   # Full structural model
-  mod0 <- sapply(
-    cfa_par,
-    function(x) {
-      x <- x[x$op %in% "=~", ]
-      i <- x$lhs[x$op == "=~"] |> unique()
-      xi <- lapply(i, function(y) x$rhs[x$lhs == y])
-      mapply(
-        function(j, k) paste(j, "=~", paste(k, collapse = " + ")),
-        j = i, k = xi, SIMPLIFY = FALSE
-      ) |>
-        paste(collapse = "\n")
-    }
-  ) |>
-    paste0(collapse = "\n") |>
-    paste0("\n", x_cors) |>
-    paste0("\n", path) |>
-    paste0("\n", extra)
-  mod <- list(mod0)
+  mod0 <- paste0(
+    sapply(
+      cfa_par,
+      function(x) {
+        x <- x[x$op %in% "=~", ]
+        i <- unique(x$lhs[x$op == "=~"])
+        xi <- lapply(i, function(y) x$rhs[x$lhs == y])
+        paste(
+          mapply(
+            function(j, k) paste(j, "=~", paste(k, collapse = " + ")),
+            j = i, k = xi, SIMPLIFY = FALSE
+          ),
+          collapse = "\n"
+        )
+      }
+    ),
+    collapse = "\n"
+  )
+  mod1 <- paste0(mod0, "\n", x_cors, "\n", path, "\n", extra)
+  mod <- list(mod1)
   names(mod) <- name
   keys_s <- list(c(unlist(cfa_keys)))
   names(keys_s) <- name

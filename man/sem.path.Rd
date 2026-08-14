@@ -209,7 +209,7 @@ cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
 sem_fit <- sem.path(
   path = "grit_p ~ grit_c + hope_p + bfi_c1_1\nhope_p ~ hope_a",
   data = BFIGritHope,
-  cfa_fit = cfa_fit,
+  cfa_fit = cfa_fit$fit,
   extra = "grit_c ~~ hope_p\nhope_a ~~ 0*grit_c"
 )
 # Examine results
