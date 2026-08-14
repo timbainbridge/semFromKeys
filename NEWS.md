@@ -1,6 +1,6 @@
 # semFromKeys 0.4.0
 
-* Add the `sem.path()` function, which takes CFA outputs and SEM path code to run an SEM model.
+* Added the `sem.path()` function, which takes CFA outputs and SEM path code to run an SEM model.
 
 # semFromKeys 0.3.3
 
