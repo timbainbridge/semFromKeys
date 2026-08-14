@@ -179,7 +179,7 @@
 #' sem_fit <- sem.path(
 #'   path = "grit_p ~ grit_c + hope_p + bfi_c1_1\nhope_p ~ hope_a",
 #'   data = BFIGritHope,
-#'   cfa_fit = cfa_fit,
+#'   cfa_fit = cfa_fit$fit,
 #'   extra = "grit_c ~~ hope_p\nhope_a ~~ 0*grit_c"
 #' )
 #' # Examine results
@@ -324,7 +324,7 @@ sem.path <- function(
     x_cors <- NULL
   }
   # Full structural model
-  mod <- sapply(
+  mod0 <- sapply(
     cfa_par,
     function(x) {
       x <- x[x$op %in% "=~", ]
@@ -341,9 +341,12 @@ sem.path <- function(
     paste0("\n", x_cors) |>
     paste0("\n", path) |>
     paste0("\n", extra)
+  mod <- list(mod0)
+  names(mod) <- name
+  keys_s <- list(c(unlist(cfa_keys)))
+  names(keys_s) <- name
   fit <- sem.check(
-    setNames(list(mod), nm = name), data = data,
-    keys_s = setNames(list(c(unlist(cfa_keys), items)), nm = name),
+    mod, data = data, keys_s = keys_s,
     fit_save = fit_save, fit_measures = fit_measures,
     miss = miss, est = est, std = TRUE,
     name = name, check = check, save_out = save_out, use_sam = TRUE
