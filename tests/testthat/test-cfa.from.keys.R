@@ -96,7 +96,7 @@ test_that(
     keys_mistake$grit_c[1] <- "mistake"
     expect_error(
       cfa.from.keys(keys_mistake, BFIGritHope, fit_save = FALSE),
-      "items are in 'keys_s' but they are not in 'data'"
+      "items are in a key but they are not in 'data'"
     )
   }
 )
