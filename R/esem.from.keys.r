@@ -177,6 +177,7 @@
 #' https://doi.org/10.1080/00220973.2016.1260524.
 #'
 #' @importFrom lavaan summary
+#' @export
 #'
 #' @examples
 #' # Create CFA / bifactor keys
