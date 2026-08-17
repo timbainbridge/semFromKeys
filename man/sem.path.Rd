@@ -168,7 +168,7 @@ so some method to run regressions using the correlations needs to be
 implemented that does not itself result in biased estimates due to ignored
 uncertainty in the correlation estimates.
 
-Although this latter issue may be solveable for Nagy and colleagues' (2017)
+Although this latter issue may be solvable for Nagy and colleagues' (2017)
 method, a more practical solution to these issues was proposed by
 Rosseel and Loh (2022) with their SAM approach. This method essentially
 follows Burt's (1976) method but adjust the procedure to overcome its issues.
@@ -185,14 +185,24 @@ Local SAM was selected over the global SAM because Rosseel and Loh (2022)
 "recommend local SAM over global SAM whenever possible."
 (p. 21 of the pre-print version).
 
-Note that variables that are included as structural parameters that are not
-part of a regression path are assumed (by lavaan) to be unrelated, even if
-explicitly freed in the code. In most cases, you would not want such
-variables; however, if you are attempting to follow Hayes (2021)
-recommendations for incremental validity, then the model will not function
-correctly. (However, leaving the variable out of the first model \emph{may} work
-because interpretational confounding has been precluded by the SAM method.
-To my knowledge, this has not been tested though, so use at your own risk.)
+Note that latent variables that are included in a measurement model that are
+not part of a regression path are assumed (by lavaan) to be unrelated,
+even if explicitly freed in the code. In most cases, you would not want such
+variables; however, if you include a bi-factor model, group variables that
+are not part of the structural path model will be assumed to be unrelated to
+other structural variables. Similarly, if you are attempting to follow Hayes
+(2021) recommendations for incremental validity, then there is no way to
+force the focal variable to correlate with the outcome using SAM.
+\code{sem.path} should, therefore, \emph{NOT} be used with bifactor models or to test
+for incremental validity using Hayes (2021) method.
+
+Finally, the function also does not currently work correctly with ESEM.
+The latest lavaan version (0.7-2 at time of writing) and earlier incorrectly
+treats factor covariances as equal in SAM with \code{sam_method = "local"}.
+In the future, the function may change to allow users to select
+\code{sem_method = "global"} or to select "global" dynamically when an ESEM is
+included but neither of these is currently implemented, so you should also
+\emph{NOT} include ESEM in \code{sem.path} models.
 }
 \examples{
 # Create CFA keys
