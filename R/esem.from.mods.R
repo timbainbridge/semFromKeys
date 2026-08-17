@@ -7,7 +7,8 @@
 #' The function takes a fitted lavaan object from an EFA and lists of fitted
 #' CFA and/or bifactor lavaan model objects as inputs so will typically
 #' use outputs from [efa.from.keys()], and [cfa.from.keys()] or
-#' [bifactor.from.keys()].
+#' [bifactor.from.keys()]. *NOTE:* It is recommended to use [esem.from.keys()]
+#' for CFA factors (see details).
 #'
 #' @inheritParams sem.check
 #' @param efa_fit A fitted lavaan object of an EFA model.
@@ -60,67 +61,105 @@
 #' see the [sem.check()] function  documentation.
 #'
 #' In SEM, standard methods do not distinguish between measurement and
-#' structural parameters. Therefore, measurement model parameters can change
+#' structural parameters. As a result, measurement model parameters can change
 #' with the addition of theoretically unrelated constructs in a structural
-#' model, thereby changing the interpretation of the latent variable.
-#' This is known as "interpretational confounding".
+#' model, and can change differently for different sets of unrelated constructs.
+#' This means that the unrelated constructs are changing the interpretation of
+#' the latent variable, which Burt (1976) referred to as
+#' "interpretational confounding".
 #'
-#' There is some disagreement about how to deal with interpretational
-#' confounding. The standard solution (other than ignoring it) is to create good
-#' fitting measurement models first, then freely estimate the structural model
-#' with checks to ensure adequate fit of the model and that interpretational
-#' confounding is not an issue.
-#' This is sometimes a good solution, but, in other cases, simply moves the
-#' problem. If the measurement model was for a well-established scale and it is
-#' changed, it loses easy comparison with past research.
+#' There are various ways to deal with interpretational confounding.
+#' The standard solution (other than ignoring it) is to create good fitting
+#' measurement models first, then freely estimate the structural model
+#' with checks to ensure adequate fit of the model and that measurement
+#' parameters do not substantially change with different combinations of
+#' factors. This is sometimes a good solution, but, in other cases, it is not.
+#' For example, if the measurement model was for a well-established scale and it
+#' requires changing, then it loses easy comparison with past research.
 #' This issue is most clearly relevant when changes to a measurement model
-#' require entirely different factors or items to be removed.
-#' When a single scale is being assessed, these issues can be resolved by
-#' suggesting a thorough evaluation of the scale and, perhaps, the suggestion of
-#' a new measurement model or a new scale for a particular population;
-#' however, when many scales are being assessed this solution is impractical.
+#' require entirely different factors, or items to be removed but it is still an
+#' issue for less dramatic changes. When a single scale is being assessed,
+#' these issues can be resolved by suggesting a thorough evaluation of the scale
+#' and, perhaps, the suggestion of a new measurement model or a new scale for a
+#' particular population; however, when many scales are being assessed this
+#' solution is impractical, and may not solve the interpretational confounding
+#' issue regardless.
 #'
-#' An alternative solution is to fix measurement model parameters in a model
-#' estimating structural parameters.
-#' This method means that less than ideal fit at the measurement level does not
-#' propagate though the model as the measurement parameters are fixed.
-#' It also solves interpretational confounding because the measurement of the
-#' latent variables is fixed so their interpretation cannot change with the
-#' inclusion of other variables in a model.
-#' However, it is not a perfect solution because it underestimates uncertainty
-#' in the measurement part of the structural model (e.g., Nagy et al., 2017),
-#' which results in biased standard errors and fit statistics.
+#' An alternative solution, proposed by Burt (1976) is to fix measurement model
+#' parameters in a model estimating structural parameters.
+#' This method means that misspecification of one measurement model cannot
+#' affect other measurement models and that the interpretation of measured
+#' constructs cannot change based on unrelated factors.
+#' However, it is not a perfect solution because, by fixing measurement
+#' parameters, uncertainty in their estimation is neglected
+#' (e.g., Nagy et al., 2017), which results in biased standard errors and fit
+#' statistics.
 #'
-#' A final option (among those noted here) was proposed by
-#' Nagy and colleagues (2017).
-#' It involves allowing item residuals to correlate with external variables
-#' (or factors) and constrains those relationships such that the model is
-#' identifiable.
-#' If the sums of squares of correlations between all combinations of factors'
-#' items and external factors are minimised,
+#' A third option was proposed by Nagy and colleagues (2017),
+#' who introduced an extension procedure such that item residuals are allowed to
+#' correlate with external variables (or factors).
+#' To make the model identifiable, these relationships are constrained using
+#' one of a number of methods. If the sums of squares of correlations between
+#' all combinations of factors' items and external factors are minimised,
 #' measurement parameters in isolated measurement models are preserved in the
 #' structural model without having to constrain them directly.
 #' As a result, unbiased standard errors are preserved while simultaneously
-#' eliminating interpretational confounding.
+#' eliminating interpretational confounding since the measurement parameters
+#' from the measurement models are preserved regardless of external factors.
 #' Unfortunately, estimating these models becomes increasingly slow with more
-#' items and factors, such that it quickly becomes untenable,
-#' especially for ESEM and when many models have to be run.
+#' items and factors, such that it quickly becomes untenable.
 #' Moreover, the method only works with correlations, not regressions,
 #' so some method to run regressions using the correlations needs to be
 #' implemented that does not itself result in biased estimates due to ignored
 #' uncertainty in the correlation estimates.
 #'
-#' As a result of these considerations, the 2-stage procedure of fixing
-#' measurement parameters in the structural models was chosen for the current
-#' function due to its simplicity and scalability.
+#' Although this latter issue may be solvable for Nagy and colleagues' (2017)
+#' method, a more practical solution to these issues was proposed by
+#' Rosseel and Loh (2022) with their SAM approach. This method essentially
+#' follows Burt's (1976) method but adjust the procedure to overcome its issues.
+#' They distinguish two SAM varieties--"local SAM" and "global SAM".
+#' Local SAM uses the observed summary statistics of the parameters of the
+#' measurement models to generate mean and covariance matrices to use in the
+#' structural model, which preserves the structure of the measurement models
+#' while also preserving the uncertainty.
+#' Global SAM treats the measurement parameters as given, but corrects the
+#' standard errors of the structural model. Although local SAM is preferable in
+#' most circumstances, it currently (as at version 0.7-2) sets ESEM factor
+#' covariances as equal, which is likely a bug.
 #'
-#' Note, however, that the solution to interpretational confounding means that
-#' fit statistics will be biased, so should not be used to determine an optimal
-#' model or that a model surpasses some cut-off of "good fit".
+#' Despite the benefits of the SAM methods, they are not used in
+#' `esem.from.mods`. Largely this is a legacy issues; however, the function is
+#' currently maintained due to [lavaan::sam()] currently treating all latent
+#' variables that are not in a regression path in the structural model as
+#' unrelated to the other factors. Given regressing the general factor of a
+#' bifactor model on EFA factors requires the group factors to correlate with
+#' the EFA factors, [lavaan::sam()] is currently inappropriate for bifactor
+#' models (as at lavaan version 0.7-2).
+#'
+#' As a result of these considerations, the 2-stage procedure of fixing
+#' measurement parameters in the structural models remains appropriate for
+#' bifactor models. Note, however, that the solution to interpretational
+#' confounding means that standard errors and fit statistics will be biased,
+#' so should not be used to infer precise p-values, to determine an optimal
+#' model, nor that a model surpasses some cut-off of "good fit".
 #' Instead, the function is intended to allow variables to be regressed on EFA
 #' factors with much better measurement than would be achieved with aggregate
 #' scores.
-#' Note also that the function will not complain if measurement models have poor
+#'
+#' A further complication occurs for bifactor models.
+#' Recall that bifactor models require orthogonal relationships between the
+#' general and group factors.
+#' When a factor is an outcome of a regression in a structural model,
+#' it is not possible to include such a constraint because the instructions
+#' normally used to do so will constrain residual variance instead.
+#' However, given the 2-stage procedure is employed, there is little room for
+#' measurement models to change to allow factor correlations to change.
+#' As a result, the parameter can be relaxed, and implied correlations between
+#' the group and general factors should remain close to zero.
+#' Given that the function already uses the 2-stage procedure,
+#' this method is employed when bifactor models are used in `esem.from.mods()`.
+#'
+#' Finally, `esem.from.mods()` will not complain if measurement models have poor
 #' fit or other undesirable characteristics
 #' (beyond warnings and errors produced by lavaan).
 #' In cases where keeping the same measurement model as prior research is
@@ -129,29 +168,6 @@
 #' In cases where the measurement model might reasonably be adjusted, however,
 #' it is important to check measurement model fit before running
 #' `esem.from.mods`.
-#'
-#' A further complication occurs for bifactor models.
-#' Recall that bifactor models require orthogonal relationships between the
-#' general and group factors.
-#' When a factor is an outcome of a regression in a structural model,
-#' it is not possible to include such a constraint because the instructions
-#' normally used to do so will constrain residual variance instead.
-#'
-#' There are three solutions to this problem.
-#' First, avoid using bifactor models.
-#' This may be possible in some cases (e.g., if the scale can be modified into
-#' a unidimentional scale), but frequently it is not.
-#' Second, avoid using regressions in models with bifactor models and compute
-#' regressions based on latent variable correlations.
-#' This method produces accurate point estimates in the regressions,
-#' but standard errors are biased as the method cannot account for uncertainty
-#' in the correlations.
-#' Finally, if the 2-stage procedure is employed, then there is little room for
-#' measurement models to change to allow factor correlations to change.
-#' Therefore, the parameter can be relaxed and implied correlations between the
-#' group and general factors should remain close to zero.
-#' Given that the function already uses the 2-stage procedure,
-#' this method is employed when bifactor models are used in `esem.from.mods()`.
 #'
 #' @seealso
 #' [sem.check()], which this function uses for all the back-end;

@@ -178,6 +178,9 @@ standard errors of the structural model. Although local SAM is preferable in
 most circumstances, it currently (as at version 0.7-2) sets ESEM factor
 covariances as equal, which is likely a bug.
 
+Given its practicality, \code{sem.path} and the absence of the aforementioned bug,
+\code{esem.from.keys} uses the global SAM method.
+
 Note that bifactor models are not currently supported in \code{esem.from.keys}.
 There is currently (as at version 0.7-2) no way to force lavaan to freely
 estimate covariances with factors that are not involved in a structural path.
@@ -192,7 +195,7 @@ options that are easily implemented.
 }
 \examples{
 # Create CFA / bifactor keys
-keys0 <- c("grit_c", "grit_p")
+keys0 <- c("hope_a", "hope_p")
 keys <- sapply(
   keys0,
   function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))],
