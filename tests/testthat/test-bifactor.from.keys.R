@@ -100,7 +100,7 @@ test_that(
           keys_g, keys_b, keys_mistake, BFIGritHope, fit_save = FALSE
         )
       ),
-      "items are in 'keys_s' but they are not in 'data'"
+      "items are in a key but they are not in 'data'"
     )
     expect_error(
       suppressWarnings(
@@ -108,7 +108,7 @@ test_that(
           keys_g_mistake, keys_b, keys, BFIGritHope, fit_save = FALSE
         )
       ),
-      "items are in 'keys_s' but they are not in 'data'"
+      "items are in a key but they are not in 'data'"
     )
     expect_error(
       bifactor.from.keys(

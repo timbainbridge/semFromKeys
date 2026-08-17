@@ -211,7 +211,7 @@ test_that(
     )
     expect_error(
       cfa.from.keys(keys, data = "cfa", fit_save = FALSE),
-      "items are in 'keys_s' but they are not in 'data'"
+      "items are in a key but they are not in 'data'"
     )
   }
 )

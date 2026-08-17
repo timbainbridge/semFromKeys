@@ -57,7 +57,7 @@ test_that(
     keys_mistake$bfi_e[1] <- "mistake"
     expect_error(
       efa.from.keys(keys_mistake, BFIGritHope, check = FALSE, fit_save = FALSE),
-      "items are in 'keys_e' but they are not in 'data'"
+      "items are in a key but they are not in 'data'"
     )
     expect_error(
       efa.from.keys(keys_e$bfi_e, BFIGritHope, check = FALSE, fit_save = FALSE),
