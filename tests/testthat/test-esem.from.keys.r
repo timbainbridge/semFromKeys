@@ -1,11 +1,27 @@
 test_that(
-  "Test normal behaviour",
+  "Test normal behaviour with 'save_out = TRUE'",
   {
     esam_fit <- suppressWarnings(esem.from.keys(
       BFIGritHope, keys_e, keys[1:2],
       fit_measures = c("cfi", "rmsea", "chisq", "df", "pvalue")
     ))
     expect_equal(length(esam_fit), 5)
+    expect_equal(length(esam_fit$fit), length(keys[1:2]))
+    expect_equal(length(esam_fit$par), length(keys[1:2]))
+    expect_equal(
+      sum(sapply(esam_fit$fit, function(x) !inherits(x, "lavaan"))), 0
+    )
+    expect_equal(length(esam_fit$b), length(keys[1:2]))
+    expect_equal(nrow(esam_fit$r2), length(keys[1:2]))
+  }
+)
+test_that(
+  "Test normal behaviour with 'save_out = FALSE'",
+  {
+    esam_fit <- suppressWarnings(esem.from.keys(
+      BFIGritHope, keys_e, keys[1:2], save_out = FALSE
+    ))
+    expect_equal(length(esam_fit), 4)
     expect_equal(length(esam_fit$fit), length(keys[1:2]))
     expect_equal(length(esam_fit$par), length(keys[1:2]))
     expect_equal(
@@ -46,5 +62,14 @@ test_that(
       esem.from.keys(BFIGritHope, keys_e, keys),
       "items are in a key but they are not in 'data'"
     ))
+  }
+)
+test_that(
+  "Non-list keys",
+  {
+    expect_error(
+      esem.from.keys(BFIGritHope, keys_e, keys$grit_c),
+      "'keys' is not a list"
+    )
   }
 )
