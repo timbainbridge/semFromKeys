@@ -27,8 +27,7 @@ Must be the same length as \code{keys_b}.}
 
 \item{keys_b}{A named list of group factors in general factors.
 Names must be the names of the general factors.
-Each list element must be a vector of group factors that load on the general
-factors.
+Each list element must be a vector of group factors.
 Must be the same length as \code{keys_g}.}
 
 \item{keys}{A named list of items in group factors.
