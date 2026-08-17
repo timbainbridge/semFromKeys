@@ -216,8 +216,8 @@ sem.check <- function(
     if (!found) {
       stop(
         paste(
-          "A cache directory is not configured so cannot be cleaned.",
-          "Use the 'cache.setup()' function to configure a directory to clean."
+          "A cache directory is not configured so cannot be used.",
+          "Use the 'cache.setup()' function to configure a cache directory."
         )
       )
     }
@@ -324,15 +324,12 @@ sem.check <- function(
     una_items <- unlist(keys_s)[!(unlist(keys_s)) %in% colnames(data)]
     stop(
       paste0(
-        "The following items are in 'keys_s' but they are not in 'data':",
+        "The following items are in a key but they are not in 'data':",
         "\n      ",
         paste0(una_items, collapse = "\n      "),
         paste0(
-          "\n\nEnsure that the column names of 'data' and keys list item ",
-          "names match and that 'data' is a dataframe or coercible to a ",
-          "dataframe.\n",
-          "If using bifactor.from.keys, ensure that you have not swapped keys ",
-          "inadvertently (e.g., keys_g for keys_b)."
+          "\n\nIf using bifactor.from.keys, ensure that you have not swapped ",
+          "keys inadvertently (e.g., keys_g for keys_b)."
         )
       )
     )
@@ -340,20 +337,13 @@ sem.check <- function(
   if (sum(!(unlist(keys_e)) %in% colnames(data)) > 0) {
     una_items <- unlist(keys_e)[!(unlist(keys_e)) %in% colnames(data)]
     message(paste0("  ", una_items, collapse = "  \n"))
-    stop(
-      paste(
-        "The above items are in 'keys_e' but they are not in 'data'.",
-        "Ensure that data is a data frame (or coercible into a data frame)",
-        "and that column names of 'data' and keys list item names match."
-      )
-    )
+    stop("The above items are in a key but they are not in 'data'.")
   }
   if (save_out) {
     if (!dir.exists(file.path(cache_dir, name))) {
       dir.create(file.path(cache_dir, name))
     }
   }
-  # Tell user which model set is running
   if (check) {
     # Load hashes, prior models, and critical parameters
     m0 <-
@@ -532,31 +522,72 @@ sem.check <- function(
               }
             }
           } else {
-            if (est == "default") {
-              sem(
-                model   = mods1,
-                data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                missing = miss,
-                std.lv  = std.lv,
-                rotation = "target",
-                rotation.args = list(
-                  rstarts = 30, row.weights = "none", algorithm = "gpa",
-                  std.ov = TRUE, target = target, orthogonal = orthogonal
+            if (!use_sam) {
+              if (est == "default") {
+                sem(
+                  model   = mods1,
+                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                  missing = miss,
+                  std.lv  = std.lv,
+                  rotation = "target",
+                  rotation.args = list(
+                    rstarts = 30, row.weights = "none", algorithm = "gpa",
+                    std.ov = TRUE, target = target, orthogonal = orthogonal
+                  )
                 )
-              )
+              } else {
+                sem(
+                  model   = mods1,
+                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                  missing = miss,
+                  estimator = est,
+                  std.lv  = std.lv,
+                  rotation = "target",
+                  rotation.args = list(
+                    rstarts = 30, row.weights = "none", algorithm = "gpa",
+                    std.ov = TRUE, target = target, orthogonal = orthogonal
+                  )
+                )
+              }
             } else {
-              sem(
-                model   = mods1,
-                data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                missing = miss,
-                estimator = est,
-                std.lv  = std.lv,
-                rotation = "target",
-                rotation.args = list(
-                  rstarts = 30, row.weights = "none", algorithm = "gpa",
-                  std.ov = TRUE, target = target, orthogonal = orthogonal
+              if (est == "default") {
+                sam(
+                  model   = mods1,
+                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                  # Local method sets factor covariances equal (lavaan v0.7-2).
+                  # Likely a bug.
+                  # Parameter estimates with the global method match Burt's
+                  # method exactly for CFA models.
+                  sam_method = "global",
+                  missing = miss,
+                  std.lv  = std.lv,
+                  rotation = "target",
+                  rotation.args = list(
+                    rstarts = 30, row.weights = "none", algorithm = "gpa",
+                    std.ov = TRUE, target = target, orthogonal = orthogonal
+                  )
                 )
-              )
+              } else {
+                sam(
+                  model   = mods1,
+                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                  mm_args = list(estimator = est),
+                  struc_args = list(estimator = est),
+                  # Local method sets factor covariances equal (lavaan v0.7-2).
+                  # Likely a bug.
+                  # Parameter estimates with the global method match Burt's
+                  # method exactly.
+                  sam_method = "global",
+                  missing = miss,
+                  estimator = est,
+                  std.lv  = std.lv,
+                  rotation = "target",
+                  rotation.args = list(
+                    rstarts = 30, row.weights = "none", algorithm = "gpa",
+                    std.ov = TRUE, target = target, orthogonal = orthogonal
+                  )
+                )
+              }
             }
           }
         }
