@@ -19,7 +19,7 @@ test_that(
   "Test normal behaviour with 'save_out = FALSE'",
   {
     esam_fit <- suppressWarnings(esem.from.keys(
-      BFIGritHope, keys_e, keys[1:2], save_out = FALSE
+      BFIGritHope, keys_e, keys[1:2], fit_save = FALSE
     ))
     expect_equal(length(esam_fit), 4)
     expect_equal(length(esam_fit$fit), length(keys[1:2]))
