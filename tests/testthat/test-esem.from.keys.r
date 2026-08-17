@@ -32,6 +32,22 @@ test_that(
   }
 )
 test_that(
+  "Test normal behaviour with alternative estimator",
+  {
+    esam_fit <- suppressWarnings(esem.from.keys(
+      BFIGritHope, keys_e, keys[1:2], fit_save = FALSE, est = "ULS"
+    ))
+    expect_equal(length(esam_fit), 4)
+    expect_equal(length(esam_fit$fit), length(keys[1:2]))
+    expect_equal(length(esam_fit$par), length(keys[1:2]))
+    expect_equal(
+      sum(sapply(esam_fit$fit, function(x) !inherits(x, "lavaan"))), 0
+    )
+    expect_equal(length(esam_fit$b), length(keys[1:2]))
+    expect_equal(nrow(esam_fit$r2), length(keys[1:2]))
+  }
+)
+test_that(
   "'keys_e' has an empty name",
   {
     keys_e <- keys_e
