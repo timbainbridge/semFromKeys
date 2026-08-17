@@ -194,7 +194,9 @@ options that are easily implemented.
 # Create CFA / bifactor keys
 keys0 <- c("grit_c", "grit_p")
 keys <- sapply(
-  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+  keys0,
+  function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))],
+  simplify = FALSE
 )
 # Create EFA keys
 # Using only 3 factors and fewer items to save time for a simple example
