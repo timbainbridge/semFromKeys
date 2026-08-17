@@ -13,8 +13,7 @@
 #' @param keys_b
 #' A named list of group factors in general factors.
 #' Names must be the names of the general factors.
-#' Each list element must be a vector of group factors that load on the general
-#' factors.
+#' Each list element must be a vector of group factors.
 #' Must be the same length as `keys_g`.
 #' @param keys
 #' A named list of items in group factors.
@@ -177,7 +176,6 @@ bifactor.from.keys <- function(
             "\n    ",
             paste(grps, collapse = "\n    "),
             "\n\nIf these are items, not group factors, ",
-            "and you are using bifactor.from.keys, ",
             "check that keys_b only contains group factor names."
           )
         )
@@ -209,7 +207,9 @@ bifactor.from.keys <- function(
             paste(
               "The following item(s) are in a group factor but not in the",
               "general factor:\n   ",
-              paste(unlist(keys[y])[!unlist(keys[y]) %in% x], collapse = "\n    ")
+              paste(
+                unlist(keys[y])[!unlist(keys[y]) %in% x], collapse = "\n    "
+              )
             )
           )
           c(x, unlist(keys[y])[!unlist(keys[y]) %in% x])
