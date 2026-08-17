@@ -198,7 +198,7 @@
 #'   simplify = FALSE
 #' )
 #' # Run models
-#' esem_fit <- esem.from.mods(
+#' esem_fit <- esem.from.keys(
 #'   BFIGritHope, keys_e, keys, fit_save = FALSE
 #' )
 #' # Examine results
