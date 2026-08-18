@@ -11,7 +11,7 @@
 The ‘semFromKeys’ package was designed to streamline running ‘lavaan’
 models with similar structures using keys lists to generate model code
 instead of writing out the code for models manually. For confirmatory
-factor analyses (CFAs) and bifactor models, the code creates and runs a
+factor analyses (CFAs) and bi-factor models, the code creates and runs a
 series of models based on keys indicating each of the factors in the
 models. For exploratory factor analyses (EFAs) keys list are used to
 create a target rotation for a single EFA. For latent variable
@@ -20,9 +20,9 @@ models computing correlations between latent variables and, optionally,
 single items. For exploratory structural equation models (ESEM), there
 are two options. In each case, EFA factors predict scale factors. The
 first option (`esem.from.keys`) takes EFA and CFA keys as inputs and
-uses Rosseel and Loh’s (2022) SAM method to prevent interpreational
+uses Rosseel and Loh’s (2022) SAM method to prevent interpretational
 confounding (Burt, 1976), and the second (`esem.from.mods`) takes a
-fitted EFA model and fitted CFA and/or bifactor models and uses Burt’s
+fitted EFA model and fitted CFA and/or bi-factor models and uses Burt’s
 (1976) 2-stage procedure to prevent interpretational confounding. The
 ESEM models were designed to run analyses analogous to those of
 Bainbridge, Ludeke, and Smillie (2022). Additionally, the `sem.path`
