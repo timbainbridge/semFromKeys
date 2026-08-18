@@ -75,7 +75,7 @@
 
 cfa.from.keys <- function(
     keys, data, fit_save = TRUE, fit_measures = "all",
-    std.lv = TRUE, miss = "ML", est = "default",
+    std.lv = TRUE, miss = "ML", est = "default", ordered = NULL,
     name = "cfa", check = FALSE, save_out = FALSE
 ) {
   mods <- mapply(
@@ -105,6 +105,7 @@ cfa.from.keys <- function(
     std.lv = std.lv,
     miss = miss,
     est = est,
+    ordered = ordered,
     check = check,
     save_out = save_out
   )

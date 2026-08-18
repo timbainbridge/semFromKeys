@@ -134,7 +134,7 @@
 
 bifactor.from.keys <- function(
   keys_g, keys_b, keys, data, fit_save = TRUE, fit_measures = "all",
-  std.lv = TRUE, miss = "ML", est = "default",
+  std.lv = TRUE, miss = "ML", est = "default", ordered = NULL,
   name = "bifactor", check = FALSE, save_out = FALSE
 ) {
   if (!is.list(keys_g)) {
@@ -248,6 +248,7 @@ bifactor.from.keys <- function(
     miss = miss,
     est = est,
     orthogonal = TRUE,  # Must be TRUE for bifactor models.
+    ordered = ordered,
     check = check,
     save_out = save_out
   )

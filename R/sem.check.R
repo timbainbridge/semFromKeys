@@ -72,6 +72,12 @@
 #' `FALSE` indicates that loadings of the first items of factors should be fixed
 #' to 1.
 #' Defaults to `FALSE`.
+#' @param ordered
+#' A character vector or `NULL`, as per the `ordered` lavaan argument of the
+#' same name (see, e.g., [lavaan::sem]).
+#' `NULL` indicates that all variables should be treated as continuous.
+#' Otherwise, variables matching an element of the vector will be treated as
+#' continuous. Defaults to `NULL`.
 #' @param check
 #' Logical.
 #' `TRUE` indicates that current inputs should be compared to previous inputs
@@ -187,7 +193,7 @@
 sem.check <- function(
     mods, data, keys_s = NULL, keys_e = NULL,
     fit_save = FALSE, fit_measures = "all",
-    miss = "ML", est = "default", std.lv = FALSE, std = TRUE,
+    miss = "ML", est = "default", std.lv = FALSE, std = TRUE, ordered = NULL,
     orthogonal = FALSE, target = NULL,
     name = "sem", check = FALSE, save_out = FALSE, use_sam = FALSE
 ) {
@@ -233,6 +239,9 @@ sem.check <- function(
   }
   if (!is.logical(std.lv)) {
     stop("'std.lv' is not logical. It should be 'TRUE' or 'FALSE'.")
+  }
+  if (!is.logical(ordered)) {
+    stop("'ordered' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (!is.logical(use_sam)) {
     stop("'use_sam' is not logical. It should be 'TRUE' or 'FALSE'.")
@@ -489,7 +498,8 @@ sem.check <- function(
                   data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                   missing = miss,
                   std.lv  = std.lv,
-                  orthogonal = orthogonal
+                  orthogonal = orthogonal,
+                  ordered = ordered
                 )
               } else {
                 sem(
@@ -498,7 +508,8 @@ sem.check <- function(
                   missing = miss,
                   estimator = est,
                   std.lv  = std.lv,
-                  orthogonal = orthogonal
+                  orthogonal = orthogonal,
+                  ordered = ordered
                 )
               }
             } else {
@@ -507,7 +518,8 @@ sem.check <- function(
                   model   = mods1,
                   data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                   missing = miss,
-                  std.lv  = std.lv
+                  std.lv  = std.lv,
+                  ordered = ordered
                 )
               } else {
                 sam(
@@ -516,7 +528,8 @@ sem.check <- function(
                   mm_args = list(estimator = est),
                   struc_args = list(estimator = est),
                   missing = miss,
-                  std.lv  = std.lv
+                  std.lv  = std.lv,
+                  ordered = ordered
                 )
               }
             }
@@ -528,6 +541,7 @@ sem.check <- function(
                   data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                   missing = miss,
                   std.lv  = std.lv,
+                  ordered = ordered,
                   rotation = "target",
                   rotation.args = list(
                     rstarts = 30, row.weights = "none", algorithm = "gpa",
@@ -541,6 +555,7 @@ sem.check <- function(
                   missing = miss,
                   estimator = est,
                   std.lv  = std.lv,
+                  ordered = ordered,
                   rotation = "target",
                   rotation.args = list(
                     rstarts = 30, row.weights = "none", algorithm = "gpa",
@@ -560,6 +575,7 @@ sem.check <- function(
                   sam_method = "global",
                   missing = miss,
                   std.lv  = std.lv,
+                  ordered = ordered,
                   rotation = "target",
                   rotation.args = list(
                     rstarts = 30, row.weights = "none", algorithm = "gpa",
@@ -580,6 +596,7 @@ sem.check <- function(
                   missing = miss,
                   estimator = est,
                   std.lv  = std.lv,
+                  ordered = ordered,
                   rotation = "target",
                   rotation.args = list(
                     rstarts = 30, row.weights = "none", algorithm = "gpa",

@@ -221,7 +221,7 @@ esem.from.keys <- function(
     data, keys_e, keys,
     # keys_b = NULL, exclude_factors = NULL,
     fit_save = TRUE, fit_measures = "all", miss = "ML", est = "default",
-    name = "esam", check = FALSE, save_out = FALSE
+    ordered = NULL, name = "esam", check = FALSE, save_out = FALSE
 ) {
   ####### Copied from bifactor.from.keys #######
   # if (!is.list(keys_b)) {
@@ -352,6 +352,7 @@ esem.from.keys <- function(
     miss = miss,
     est = est,
     std.lv = TRUE,
+    ordered = ordered,
     check = check,
     save_out = save_out,
     use_sam = TRUE,

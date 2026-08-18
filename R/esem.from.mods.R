@@ -224,7 +224,7 @@
 esem.from.mods <- function(
     data, efa_fit, cfa_fit = NULL, bif_fit = NULL,
     fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
-    name = "esem", check = FALSE, save_out = FALSE
+    ordered = NULL, name = "esem", check = FALSE, save_out = FALSE
 ) {
   if (is.null(cfa_fit) & is.null(bif_fit)) {
     stop("At least one of 'cfa_fit' and 'bif_fit' must be specified.")
@@ -452,6 +452,7 @@ esem.from.mods <- function(
     miss = miss,
     est = est,
     std.lv = FALSE,  # Params are set from measurement models.
+    ordered = ordered,
     check = check,
     save_out = save_out
   )
