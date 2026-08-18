@@ -68,14 +68,14 @@
 #' If you are using the function for a single model,
 #' transform inputs into lists as appropriate.
 #'
-#' The model relies on [sem.check()] for the back-end of running the models.
+#' The model relies on [sem.check] for the back-end of running the models.
 #' This enables saving inputs and outputs from model runs
 #' (with `save_out = TRUE`) and checking to see if anything has changed from
 #' prior runs before running again (with `check = TRUE`).
 #' The functionality was included for a number of very slow models or a lot of
 #' faster models, such that time spent rerunning them would be onerous.
 #' For further details on how this works,
-#' see the [sem.check()] function  documentation.
+#' see the [sem.check] function  documentation.
 #'
 #' In SEM, standard methods do not distinguish between measurement and
 #' structural parameters. As a result, measurement model parameters can change
@@ -144,23 +144,23 @@
 #' most circumstances, it currently (as at version 0.7-2) sets ESEM factor
 #' covariances as equal, which is likely a bug.
 #'
-#' Given its practicality, `sem.path` and the absence of the aforementioned bug,
+#' Given its practicality and the absence of the aforementioned bug,
 #' `esem.from.keys` uses the global SAM method.
 #'
 #' Note that bifactor models are not currently supported in `esem.from.keys`.
 #' There is currently (as at version 0.7-2) no way to force lavaan to freely
 #' estimate covariances with factors that are not involved in a structural path.
-#' Instead the [lavaan::sam()] function treats them as 0, which alters the
-#' model from what it ought to be. This may also be a bug in the `sam()`
+#' Instead the [lavaan::sam] function treats them as 0, which alters the
+#' model from what it ought to be. This may also be a bug in the [lavaan::sam]
 #' function.
 #'
-#' In the meantime, I suggest using [esem.from.mods()] for bifactor models.
+#' In the meantime, I suggest using [esem.from.mods] for bifactor models.
 #' Standard errors and fit statistics are not quite right with that method but
 #' they are likely close enough for most contexts and there are not any better
 #' options that are easily implemented.
 #'
 #' @seealso
-#' [sem.check()] [lavaan::sam()]
+#' [sem.check], [lavaan::sam]
 #'
 #' @references
 #' Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).

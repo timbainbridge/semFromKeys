@@ -26,7 +26,7 @@ vectors of items that should be targeted to load on the factor.}
 Data must include all observed variables in any of the keys.}
 
 \item{orthogonal}{Logical.
-Sets the \code{orthogonal} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{orthogonal} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 \code{TRUE} indicates that unspecified latent variable correlations should be
 fixed at 0;
 \code{FALSE} indicates that unspecified latent variable correlations should be
@@ -42,19 +42,19 @@ Fit can still be examined for individual models with,
 \verb{lavaan::fitMeasures(fit$fit$[model name])}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
-as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+as per the \code{fit.measures} parameter from lavaan's \link[lavaan:fitMeasures]{lavaan::fitMeasures}
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{std.lv}{Sets the \code{std.lv} param, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+\item{std.lv}{Sets the \code{std.lv} param, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 Defaults to \code{TRUE}.}
 
 \item{miss}{A string.
-Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 Defaults to 'ML'.}
 
 \item{est}{A string.
-Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 The default ('default') uses the lavaan default for the model being run.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
@@ -99,13 +99,13 @@ The function was designed for use with established multidimensional scales,
 such that a target is always reasonable.
 The function does not currently support untargeted rotations.
 
-The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
+The model relies on \link{sem.check} for the back-end of running the models.
 This enables saving inputs and outputs from model runs
 (with \code{save_out = TRUE}) and checking to see if anything has changed from
 prior runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
-For further details on how this works, see the \code{\link[=sem.check]{sem.check()}} function
+For further details on how this works, see the \link{sem.check} function
 documentation.
 }
 \examples{
@@ -138,6 +138,5 @@ Models. Sociological Methods & Research, 5(1), 3-52.
 https://doi.org/10.1177/004912417600500101.
 }
 \seealso{
-\code{\link[=sem.check]{sem.check()}}, which \code{efa.from.keys()} uses for all the back-end, and
-\code{\link[lavaan:sem]{lavaan::sem()}}, which is used to estimate the models.
+\link{sem.check}, \link[lavaan:sem]{lavaan::sem}
 }

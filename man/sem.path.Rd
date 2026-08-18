@@ -42,16 +42,16 @@ Fit can still be examined for individual models with,
 \verb{lavaan::fitMeasures(fit$fit$[model name])}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
-as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+as per the \code{fit.measures} parameter from lavaan's \link[lavaan:fitMeasures]{lavaan::fitMeasures}
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{miss}{A string.
-Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 Defaults to 'ML'.}
 
 \item{est}{A string.
-Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 The default ('default') uses the lavaan default for the model being run.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
@@ -104,7 +104,7 @@ single-item variables. As a corollary, if you do not want any combination of
 independent variables to correlate freely, you will have to specify that in
 'extra' (see examples).
 
-The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
+The model relies on \link{sem.check} for the back-end of running the models.
 This enables saving inputs and outputs from model runs
 (with \code{save_out = TRUE}) and checking to see if anything has changed from
 prior runs before running again (with \code{check = TRUE}).
@@ -113,7 +113,7 @@ faster models, such that time spent rerunning them would be onerous.
 Given \code{sem.path} runs a single model at a time, it is unlikely to be
 necessary except for extremely complex models.
 For further details on how this works,
-see the \code{\link[=sem.check]{sem.check()}} function  documentation.
+see the \link{sem.check} function  documentation.
 
 In SEM, standard methods do not distinguish between measurement and
 structural parameters. As a result, measurement model parameters can change
@@ -251,5 +251,5 @@ Psychological Methods, 29(3), 561-588.
 https://doi.org/10.1037/met0000503.
 }
 \seealso{
-\code{\link[lavaan:sam]{sam()}} \code{\link[=sem.check]{sem.check()}}
+\link[lavaan:sam]{lavaan::sam}, \link{sem.check}
 }

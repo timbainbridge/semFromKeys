@@ -23,7 +23,7 @@ Defaults to \code{TRUE}.}
 }
 \description{
 Functions in the package include options to write files to a cache directory,
-set up with the \code{\link[=cache.setup]{cache.setup()}} function.
+set up with the \link{cache.setup} function.
 Obsoletely files might be created if the \code{name} parameter in a function call
 is changed or if a function call is no longer being used.
 The \code{cache.clean()} function provides a way to find files that have not be
@@ -83,5 +83,5 @@ can be found and deleted.
 }
 }
 \seealso{
-\code{\link[=cache.setup]{cache.setup()}}
+\link{cache.setup}
 }

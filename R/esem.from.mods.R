@@ -1,14 +1,11 @@
 #' Runs ESEM based on CFA and EFA model outputs.
 #'
-#' `esem.from.keys` runs exploratory structural equation models (ESEM) in lavaan
+#' `esem.from.mods` runs exploratory structural equation models (ESEM) in lavaan
 #' where the exploratory factor analysis (EFA) factors predict confirmatory
 #' factor analysis (CFA) factors and/or bifactor factors in separate models
 #' for each CFA or bifactor model.
-#' The function takes a fitted lavaan object from an EFA and lists of fitted
-#' CFA and/or bifactor lavaan model objects as inputs so will typically
-#' use outputs from [efa.from.keys()], and [cfa.from.keys()] or
-#' [bifactor.from.keys()]. *NOTE:* It is recommended to use [esem.from.keys()]
-#' for CFA factors (see details).
+#' *NOTE:* It is recommended to use [esem.from.keys] for CFA factors (see
+#' details).
 #'
 #' @inheritParams sem.check
 #' @param efa_fit A fitted lavaan object of an EFA model.
@@ -44,21 +41,21 @@
 #'
 #' The function requires fitted lavaan objects as inputs in order to properly
 #' employ the 2-stage procedure.
-#' Using [efa.from.keys()], [cfa.from.keys()], and/or [bifactor.from.keys()]
+#' Using [efa.from.keys], [cfa.from.keys], and/or [bifactor.from.keys]
 #' should make this relatively straight-forward.
 #'
 #' The function is designed to run for multiple models with a similar design.
 #' If you are using the function for a single model,
 #' transform inputs into lists as appropriate.
 #'
-#' The model relies on [sem.check()] for the back-end of running the models.
+#' The model relies on [sem.check] for the back-end of running the models.
 #' This enables saving inputs and outputs from model runs
 #' (with `save_out = TRUE`) and checking to see if anything has changed from
 #' prior runs before running again (with `check = TRUE`).
 #' The functionality was included for a number of very slow models or a lot of
 #' faster models, such that time spent rerunning them would be onerous.
 #' For further details on how this works,
-#' see the [sem.check()] function  documentation.
+#' see the [sem.check] function  documentation.
 #'
 #' In SEM, standard methods do not distinguish between measurement and
 #' structural parameters. As a result, measurement model parameters can change
@@ -113,8 +110,7 @@
 #' implemented that does not itself result in biased estimates due to ignored
 #' uncertainty in the correlation estimates.
 #'
-#' Although this latter issue may be solvable for Nagy and colleagues' (2017)
-#' method, a more practical solution to these issues was proposed by
+#' A more practical solution than Nagy and colleague's method was proposed by
 #' Rosseel and Loh (2022) with their SAM approach. This method essentially
 #' follows Burt's (1976) method but adjust the procedure to overcome its issues.
 #' They distinguish two SAM varieties--"local SAM" and "global SAM".
@@ -123,17 +119,15 @@
 #' structural model, which preserves the structure of the measurement models
 #' while also preserving the uncertainty.
 #' Global SAM treats the measurement parameters as given, but corrects the
-#' standard errors of the structural model. Although local SAM is preferable in
-#' most circumstances, it currently (as at version 0.7-2) sets ESEM factor
-#' covariances as equal, which is likely a bug.
+#' standard errors of the structural model.
 #'
 #' Despite the benefits of the SAM methods, they are not used in
 #' `esem.from.mods`. Largely this is a legacy issues; however, the function is
-#' currently maintained due to [lavaan::sam()] currently treating all latent
+#' currently maintained due to [lavaan::sam] currently treating all latent
 #' variables that are not in a regression path in the structural model as
 #' unrelated to the other factors. Given regressing the general factor of a
 #' bifactor model on EFA factors requires the group factors to correlate with
-#' the EFA factors, [lavaan::sam()] is currently inappropriate for bifactor
+#' the EFA factors, [lavaan::sam] is currently inappropriate for bifactor
 #' models (as at lavaan version 0.7-2).
 #'
 #' As a result of these considerations, the 2-stage procedure of fixing
@@ -157,23 +151,19 @@
 #' As a result, the parameter can be relaxed, and implied correlations between
 #' the group and general factors should remain close to zero.
 #' Given that the function already uses the 2-stage procedure,
-#' this method is employed when bifactor models are used in `esem.from.mods()`.
+#' this method is employed when bifactor models are used in `esem.from.mods`.
 #'
-#' Finally, `esem.from.mods()` will not complain if measurement models have poor
-#' fit or other undesirable characteristics
-#' (beyond warnings and errors produced by lavaan).
-#' In cases where keeping the same measurement model as prior research is
-#' important, it may make sense to include a poor fitting measurement model in
-#' the ESEM.
-#' In cases where the measurement model might reasonably be adjusted, however,
-#' it is important to check measurement model fit before running
-#' `esem.from.mods`.
+#' Finally, `esem.from.mods` will not complain if measurement models have poor
+#' fit or other undesirable characteristics (beyond warnings and errors produced
+#' by lavaan). In cases where keeping the same measurement model as prior
+#' research is important, it may make sense to include a poor fitting
+#' measurement model in the ESEM. In cases where the measurement model might
+#' reasonably be adjusted, however, it is important to check measurement model
+#' fit before running `esem.from.mods`.
 #'
 #' @seealso
-#' [sem.check()], which this function uses for all the back-end;
-#' [cfa.from.keys()], [efa.from.keys()], and [bifactor.from.keys()],
-#' which are useful functions for creating inputs into `esem.from.mods()`; and
-#' [lavaan::sem()], which is used to estimate the models.
+#' [sem.check], [cfa.from.keys], [efa.from.keys], [bifactor.from.keys],
+#' [lavaan::sem].
 #'
 #' @references
 #' Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).

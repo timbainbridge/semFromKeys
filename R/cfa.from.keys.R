@@ -23,7 +23,7 @@
 #' the same name will be overwritten.
 #' @param std.lv
 #' Logical.
-#' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions]).
 #' `TRUE` indicates that factor variances should be fixed to 1.
 #' `FALSE` indicates that loadings of the first items of factors should be fixed
 #' to 1.
@@ -37,13 +37,13 @@
 #' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
-#' The model relies on [sem.check()] for the back-end of running the models.
+#' The model relies on [sem.check] for the back-end of running the models.
 #' This enables saving inputs and outputs from model runs
 #' (with `save_out = TRUE`) and checking to see if anything has changed from
 #' prior runs before running again (with `check = TRUE`).
 #' The functionality was included for a number of very slow models or a lot of
 #' faster models, such that time spent rerunning them would be onerous.
-#' For further details on how this works, see the [sem.check()] function
+#' For further details on how this works, see the [sem.check] function
 #' documentation.
 #'
 #' The function does not provide any warnings for poor fit beyond those provided
@@ -56,8 +56,7 @@
 #' which could help with manually updating models.)
 #'
 #' @seealso
-#' [sem.check()], which `cfa.from.keys()` uses for all the back-end, and
-#' [lavaan::sem()], which is used to estimate the models.
+#' [sem.check], [lavaan::sem]
 #'
 #' @importFrom lavaan summary
 #' @export

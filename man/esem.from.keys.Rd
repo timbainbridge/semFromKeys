@@ -38,16 +38,16 @@ Fit can still be examined for individual models with,
 \verb{lavaan::fitMeasures(fit$fit$[model name])}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
-as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+as per the \code{fit.measures} parameter from lavaan's \link[lavaan:fitMeasures]{lavaan::fitMeasures}
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{miss}{A string.
-Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 Defaults to 'ML'.}
 
 \item{est}{A string.
-Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 The default ('default') uses the lavaan default for the model being run.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
@@ -102,14 +102,14 @@ The function is designed to run for multiple models with a similar design.
 If you are using the function for a single model,
 transform inputs into lists as appropriate.
 
-The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
+The model relies on \link{sem.check} for the back-end of running the models.
 This enables saving inputs and outputs from model runs
 (with \code{save_out = TRUE}) and checking to see if anything has changed from
 prior runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
 For further details on how this works,
-see the \code{\link[=sem.check]{sem.check()}} function  documentation.
+see the \link{sem.check} function  documentation.
 
 In SEM, standard methods do not distinguish between measurement and
 structural parameters. As a result, measurement model parameters can change
@@ -178,17 +178,17 @@ standard errors of the structural model. Although local SAM is preferable in
 most circumstances, it currently (as at version 0.7-2) sets ESEM factor
 covariances as equal, which is likely a bug.
 
-Given its practicality, \code{sem.path} and the absence of the aforementioned bug,
+Given its practicality and the absence of the aforementioned bug,
 \code{esem.from.keys} uses the global SAM method.
 
 Note that bifactor models are not currently supported in \code{esem.from.keys}.
 There is currently (as at version 0.7-2) no way to force lavaan to freely
 estimate covariances with factors that are not involved in a structural path.
-Instead the \code{\link[lavaan:sam]{lavaan::sam()}} function treats them as 0, which alters the
-model from what it ought to be. This may also be a bug in the \code{sam()}
+Instead the \link[lavaan:sam]{lavaan::sam} function treats them as 0, which alters the
+model from what it ought to be. This may also be a bug in the \link[lavaan:sam]{lavaan::sam}
 function.
 
-In the meantime, I suggest using \code{\link[=esem.from.mods]{esem.from.mods()}} for bifactor models.
+In the meantime, I suggest using \link{esem.from.mods} for bifactor models.
 Standard errors and fit statistics are not quite right with that method but
 they are likely close enough for most contexts and there are not any better
 options that are easily implemented.
@@ -240,5 +240,5 @@ Journal of Experimental Education, 85(4).
 https://doi.org/10.1080/00220973.2016.1260524.
 }
 \seealso{
-\code{\link[=sem.check]{sem.check()}} \code{\link[lavaan:sam]{lavaan::sam()}}
+\link{sem.check}, \link[lavaan:sam]{lavaan::sam}
 }

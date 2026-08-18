@@ -48,7 +48,7 @@
 #' independent variables to correlate freely, you will have to specify that in
 #' 'extra' (see examples).
 #'
-#' The model relies on [sem.check()] for the back-end of running the models.
+#' The model relies on [sem.check] for the back-end of running the models.
 #' This enables saving inputs and outputs from model runs
 #' (with `save_out = TRUE`) and checking to see if anything has changed from
 #' prior runs before running again (with `check = TRUE`).
@@ -57,7 +57,7 @@
 #' Given `sem.path` runs a single model at a time, it is unlikely to be
 #' necessary except for extremely complex models.
 #' For further details on how this works,
-#' see the [sem.check()] function  documentation.
+#' see the [sem.check] function  documentation.
 #'
 #' In SEM, standard methods do not distinguish between measurement and
 #' structural parameters. As a result, measurement model parameters can change
@@ -148,7 +148,7 @@
 #' included but neither of these is currently implemented, so you should also
 #' *NOT* include ESEM in `sem.path` models.
 #'
-#' @seealso [sam()] [sem.check()]
+#' @seealso [lavaan::sam], [sem.check]
 #'
 #' @importFrom stringr str_split
 #' @export

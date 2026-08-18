@@ -32,7 +32,7 @@
 #' the same name will be overwritten.
 #' @param std.lv
 #' Logical.
-#' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions]).
 #' `TRUE` indicates that factor variances should be fixed to 1.
 #' `FALSE` indicates that loadings of the first items of factors should be fixed
 #' to 1.
@@ -52,13 +52,13 @@
 #' that is, `keys_g` and `keys_b` names must be the general factor names,
 #' and `keys` must be the group factor names.
 #'
-#' The model relies on [sem.check()] for the back-end of running the models.
+#' The model relies on [sem.check] for the back-end of running the models.
 #' This enables saving inputs and outputs from model runs
 #' (with `save_out = TRUE`) and checking to see if anything has changed from
 #' prior runs before running again (with `check = TRUE`).
 #' The functionality was included for a number of very slow models or a lot of
 #' faster models, such that time spent rerunning them would be onerous.
-#' For further details on how this works, see the [sem.check()] function
+#' For further details on how this works, see the [sem.check] function
 #' documentation.
 #'
 #' Please be careful with bifactor models.
@@ -99,8 +99,7 @@
 #' https://doi.org/10.1016/j.intell.2013.06.004.
 #'
 #' @seealso
-#' [sem.check()], which `bifactor.from.keys()` uses for all the back-end, and
-#' [lavaan::sem()], which is used to estimate the models.
+#' [sem.check], [lavaan::sem]
 #'
 #' @importFrom lavaan summary
 #' @export

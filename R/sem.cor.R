@@ -95,31 +95,27 @@
 #' especially when closely related factors are included.
 #' If the matrix of latent variables is not positive definite,
 #' then the matrix will be adjusted to the nearest positive definite
-#' matrix using the [Matrix::nearPD()] function,
+#' matrix using the [Matrix::nearPD] function,
 #' which employs the method developed by Higham (2002),
 #' and a message will state that the matrix was adjusted and the maximum
 #' adjustment to any cell.
 #' Confidence intervals will be adjusted by the same amount.
 #'
-#' The model relies on [sem.check()] for the back-end of running the models,
+#' The model relies on [sem.check] for the back-end of running the models,
 #' which enables saving inputs and outputs from model runs
 #' (with `save_out = TRUE`) and checking to see if anything has changed from
 #' prior runs before running again (with `check = TRUE`).
 #' The functionality was included for a number of very slow models or a lot of
 #' faster models, such that time spent rerunning them would be onerous.
-#' In the case of `sem.cor()`, the number of correlations can add up quickly,
+#' In the case of `sem.cor`, the number of correlations can add up quickly,
 #' so the functionality may be useful
 #' (e.g., with 20 scales, there are 19 + 18 + 17 + ... + 1 = 190 correlations).
-#' For further details on how this works, see the [sem.check()] function
+#' For further details on how this works, see the [sem.check] function
 #' documentation.
 #'
 #' @seealso
-#' [sem.check()], which `sem.cor()` uses for all the back-end;
-#' [lavaan::sem()], which is used to estimate the models;
-#' [matrixcalc::is.positive.definite], which is used to assess whether the
-#' correlation matrix between `fit_y` constructs is positive definite; and
-#' [Matrix::nearPD()] for the function used to transform non-positive definite
-#' matrices into positive definite matrices.
+#' [sem.check], [lavaan::sem], [matrixcalc::is.positive.definite],
+#' [Matrix::nearPD]
 #'
 #' @importFrom matrixcalc is.positive.definite
 #' @importFrom Matrix nearPD

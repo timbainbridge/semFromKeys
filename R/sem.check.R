@@ -34,12 +34,12 @@
 #' `lavaan::fitMeasures(fit$fit$[model name])`.
 #' @param fit_measures
 #' A vector of fit measures to save or 'all' to select all fit measures,
-#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures()]
+#' as per the `fit.measures` parameter from lavaan's [lavaan::fitMeasures]
 #' function.
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param target
 #' A matrix indicating a rotation target,
-#' as used in the `rotation.args` argument in lavaan (see [lavaan::efa()].
+#' as used in the `rotation.args` argument in lavaan (see [lavaan::efa]).
 #' If `NULL` (default),
 #' target is not specified and lavaan uses default behaviour.
 #' Irrelevant when the model does not include an EFA or ESEM.
@@ -51,7 +51,7 @@
 #' the same name will be overwritten.
 #' @param orthogonal
 #' Logical.
-#' Sets the `orthogonal` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' Sets the `orthogonal` parameter, as per lavaan (see [lavaan::lavOptions]).
 #' `TRUE` indicates that unspecified latent variable correlations should be
 #' fixed at 0;
 #' `FALSE` indicates that unspecified latent variable correlations should be
@@ -59,15 +59,15 @@
 #' Defaults to `FALSE`.
 #' @param miss
 #' A string.
-#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions]).
 #' Defaults to 'ML'.
 #' @param est
 #' A string.
-#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions]).
 #' The default ('default') uses the lavaan default for the model being run.
 #' @param std.lv
 #' Logical.
-#' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions()]).
+#' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions]).
 #' `TRUE` indicates that factor variances should be fixed to 1.
 #' `FALSE` indicates that loadings of the first items of factors should be fixed
 #' to 1.
@@ -88,9 +88,9 @@
 #' in the meantime.
 #' @param use_sam
 #' Logical.
-#' `TRUE` indicates that the [lavaan::sam()] function should be used for model
+#' `TRUE` indicates that the [lavaan::sam] function should be used for model
 #' estimation.
-#' `FALSE` indicates that the [lavaan::sem()] function should be used for model
+#' `FALSE` indicates that the [lavaan::sem] function should be used for model
 #' estimation.
 #'
 #' @return
@@ -102,14 +102,14 @@
 #'
 #' @details
 #' The function is largely intended to be used as a helper function to upstream
-#' functions, including [cfa.from.keys()], [bifactor.from.keys()],
-#' [efa.from.keys()], and [esem.from.mods()].
+#' functions, including [cfa.from.keys], [bifactor.from.keys],
+#' [efa.from.keys], and [esem.from.keys], among others.
 #' Although it is recommended to use the appropriate upstream function whenever
 #' possible, there are not (currently) options to do so when customised lavaan
 #' models are required (with the exception of the `extra` argument in
-#' [sem.path()];
+#' [sem.path];
 #' for example, when allowing two items' residuals to correlate in a CFA.
-#' `sem.check()` can be used in these cases (see example).
+#' `sem.check` can be used in these cases (see example).
 #'
 #' Matching the philosophy of the package, the function is designed to run for
 #' multiple models with a similar design. If you are using the function for a
@@ -131,15 +131,15 @@
 #'
 #' For either `save_out = TRUE` or `check = TRUE`,
 #' the function will look for a cache directory set and created by the
-#' [cache.setup()] function.
+#' [cache.setup] function.
 #' If a cache directory has not been set for the current session,
 #' then the function will exit with an error suggesting that either
-#' [cache.setup()] be run or `save_out` and `check` set to `FALSE`.
+#' [cache.setup] be run or `save_out` and `check` set to `FALSE`.
 #'
 #' When the cache directory is found and output from previous runs are detected,
 #' the comparisons performed are for:
 #' * model code;
-#' * hashes of the data (using [openssl::md5()]);
+#' * hashes of the data (using [openssl::md5]);
 #' * values of the `miss`, `est`, `std`, `std.lv`, and `orthogonal`parameters;
 #' * the class of model objects (i.e., class lavaan); and,
 #' * the class of parameter estimates (i.e., class lavaan.data.frame).
@@ -151,12 +151,11 @@
 #' However, the functionality can be safely used for faster runs too.
 #'
 #' @seealso
-#' [cfa.from.keys()], [efa.from.keys()], [bifactor.from.keys()], and
-#' [esem.from.mods()]---all these function depend upon `sem.check()` to work;
-#' [lavaan::sem()], which is used to estimate the models;
-#' [lavaan::parameterEstimates()], which is used to estimate parameter values;
-#' and [lavaan::fitMeasures()], which is used to estimate fit statistics when
-#' `fit_save = TRUE`.
+#' [cfa.from.keys], [efa.from.keys], [bifactor.from.keys], [esem.from.mods],
+#' [esem.from.keys], [sem.cor], [sem.path], [cache.setup], [lavaan::sem],
+#' [lavaan::sam], [lavaan::efa], [lavaan::parameterEstimates],
+#' [lavaan::standardizedSolution], [lavaan::fitMeasures], [openssl::md5],
+#' [lavaan::lavOptions]
 #'
 #' @importFrom stringr str_replace_all
 #' @importFrom lavaan sem

@@ -11,8 +11,8 @@ cache.setup(location = "user", interactive = TRUE)
 If \code{location = "user"} (default, recommended if unsure),
 then the system's default cache location is used.
 If any other string is used a folder will be created within either the
-\code{\link[=getwd]{getwd()}} directory or,
-if available, within the directory identified by \code{\link[here:here]{here::here()}}.
+\link{getwd} directory or,
+if available, within the directory identified by \link[here:here]{here::here}.
 If using an RStudio project, these will create the directory in the
 project directory.}
 
@@ -29,15 +29,12 @@ The cache directory path (invisibly).
 Primarily called to set up the cache configuration.
 }
 \description{
-Using \code{save_out = TRUE} or \code{check = TRUE} from
-\code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}}, or
-\code{\link[=esem.from.mods]{esem.from.mods()}} requires a cache directory to save model objects to or
-to check against.
-By default, \code{cache.setup} uses the system's default cache location,
+Using \code{save_out = TRUE} or \code{check = TRUE} from various \code{semFromKeys}
+functions requires a cache directory to save model objects to or to check
+against. By default, \code{cache.setup} uses the system's default cache location,
 otherwise a location within the current working directory or project can be
-selected.
-The function needs to be run once after the environment is cleared whenever
-a cache directory is required.
+selected. The function needs to be run once after the environment is cleared
+whenever a cache directory is required.
 }
 \details{
 Saving outputs to save time running identical models more than once requires
@@ -90,8 +87,8 @@ Either of these will enable easy detection, so that unneeded cached files
 can be found and deleted.
 
 Functions that directly or indirectly might require a cache directory are:
-\code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}},
-\code{\link[=esem.from.mods]{esem.from.mods()}}, and \code{\link[=sem.check]{sem.check()}}.
+\link{cfa.from.keys}, \link{bifactor.from.keys}, \link{efa.from.keys}, \link{esem.from.mods},
+\link{esem.from.keys}, \link{sem.cor}, \link{sem.path}, and \link{sem.check}.
 }
 \examples{
 \dontrun{
@@ -114,9 +111,6 @@ Functions that directly or indirectly might require a cache directory are:
 }
 }
 \seealso{
-\code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}},
-\code{\link[=esem.from.mods]{esem.from.mods()}}, and \code{\link[=sem.check]{sem.check()}} for dependent functions;
-\code{\link[tools:R_user_dir]{tools::R_user_dir()}} for default cache directories;
-\code{\link[here:here]{here::here()}} for project-based cache directory setting; and
-\code{\link[=cache.clean]{cache.clean()}} for a function to clean cache.
+\link{cfa.from.keys}, \link{bifactor.from.keys}, \link{efa.from.keys}, \link{esem.from.mods},
+\link{sem.check}, \link[tools:R_user_dir]{tools::R_user_dir}, \link[here:here]{here::here}, \link{cache.clean}
 }

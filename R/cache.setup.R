@@ -1,22 +1,19 @@
 #' Sets up a cache directory for storing model inputs and outputs
 #'
-#' Using `save_out = TRUE` or `check = TRUE` from
-#' [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()], or
-#' [esem.from.mods()] requires a cache directory to save model objects to or
-#' to check against.
-#' By default, `cache.setup` uses the system's default cache location,
+#' Using `save_out = TRUE` or `check = TRUE` from various `semFromKeys`
+#' functions requires a cache directory to save model objects to or to check
+#' against. By default, `cache.setup` uses the system's default cache location,
 #' otherwise a location within the current working directory or project can be
-#' selected.
-#' The function needs to be run once after the environment is cleared whenever
-#' a cache directory is required.
+#' selected. The function needs to be run once after the environment is cleared
+#' whenever a cache directory is required.
 #'
 #' @param location
 #' The cache location to save model objects to to enable checking.
 #' If `location = "user"` (default, recommended if unsure),
 #' then the system's default cache location is used.
 #' If any other string is used a folder will be created within either the
-#' [getwd()] directory or,
-#' if available, within the directory identified by [here::here()].
+#' [getwd] directory or,
+#' if available, within the directory identified by [here::here].
 #' If using an RStudio project, these will create the directory in the
 #' project directory.
 #' @param interactive
@@ -83,15 +80,12 @@
 #' can be found and deleted.
 #'
 #' Functions that directly or indirectly might require a cache directory are:
-#' [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()],
-#' [esem.from.mods()], and [sem.check()].
+#' [cfa.from.keys], [bifactor.from.keys], [efa.from.keys], [esem.from.mods],
+#' [esem.from.keys], [sem.cor], [sem.path], and [sem.check].
 #'
 #' @seealso
-#' [cfa.from.keys()], [bifactor.from.keys()], [efa.from.keys()],
-#' [esem.from.mods()], and [sem.check()] for dependent functions;
-#' [tools::R_user_dir()] for default cache directories;
-#' [here::here()] for project-based cache directory setting; and
-#' [cache.clean()] for a function to clean cache.
+#' [cfa.from.keys], [bifactor.from.keys], [efa.from.keys], [esem.from.mods],
+#' [sem.check], [tools::R_user_dir], [here::here], [cache.clean]
 #'
 #' @export
 #'

@@ -1,7 +1,7 @@
 #' Cleans selected files from the current cache directory
 #'
 #' Functions in the package include options to write files to a cache directory,
-#' set up with the [cache.setup()] function.
+#' set up with the [cache.setup] function.
 #' Obsoletely files might be created if the `name` parameter in a function call
 #' is changed or if a function call is no longer being used.
 #' The `cache.clean()` function provides a way to find files that have not be
@@ -45,7 +45,7 @@
 #' Either of these will enable easy detection, so that unneeded cached files
 #' can be found and deleted.
 #'
-#' @seealso [cache.setup()]
+#' @seealso [cache.setup]
 #'
 #' @export
 #'

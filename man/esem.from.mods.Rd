@@ -39,16 +39,16 @@ Fit can still be examined for individual models with,
 \verb{lavaan::fitMeasures(fit$fit$[model name])}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
-as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+as per the \code{fit.measures} parameter from lavaan's \link[lavaan:fitMeasures]{lavaan::fitMeasures}
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{miss}{A string.
-Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 Defaults to 'ML'.}
 
 \item{est}{A string.
-Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 The default ('default') uses the lavaan default for the model being run.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
@@ -82,15 +82,12 @@ a list of regression beta parameters from each model;
 and a dataframe of R-squared values from each model.
 }
 \description{
-\code{esem.from.keys} runs exploratory structural equation models (ESEM) in lavaan
+\code{esem.from.mods} runs exploratory structural equation models (ESEM) in lavaan
 where the exploratory factor analysis (EFA) factors predict confirmatory
 factor analysis (CFA) factors and/or bifactor factors in separate models
 for each CFA or bifactor model.
-The function takes a fitted lavaan object from an EFA and lists of fitted
-CFA and/or bifactor lavaan model objects as inputs so will typically
-use outputs from \code{\link[=efa.from.keys]{efa.from.keys()}}, and \code{\link[=cfa.from.keys]{cfa.from.keys()}} or
-\code{\link[=bifactor.from.keys]{bifactor.from.keys()}}. \emph{NOTE:} It is recommended to use \code{\link[=esem.from.keys]{esem.from.keys()}}
-for CFA factors (see details).
+\emph{NOTE:} It is recommended to use \link{esem.from.keys} for CFA factors (see
+details).
 }
 \details{
 The function was designed to streamline running exploratory structural
@@ -101,21 +98,21 @@ analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 
 The function requires fitted lavaan objects as inputs in order to properly
 employ the 2-stage procedure.
-Using \code{\link[=efa.from.keys]{efa.from.keys()}}, \code{\link[=cfa.from.keys]{cfa.from.keys()}}, and/or \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}
+Using \link{efa.from.keys}, \link{cfa.from.keys}, and/or \link{bifactor.from.keys}
 should make this relatively straight-forward.
 
 The function is designed to run for multiple models with a similar design.
 If you are using the function for a single model,
 transform inputs into lists as appropriate.
 
-The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models.
+The model relies on \link{sem.check} for the back-end of running the models.
 This enables saving inputs and outputs from model runs
 (with \code{save_out = TRUE}) and checking to see if anything has changed from
 prior runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
 For further details on how this works,
-see the \code{\link[=sem.check]{sem.check()}} function  documentation.
+see the \link{sem.check} function  documentation.
 
 In SEM, standard methods do not distinguish between measurement and
 structural parameters. As a result, measurement model parameters can change
@@ -170,8 +167,7 @@ so some method to run regressions using the correlations needs to be
 implemented that does not itself result in biased estimates due to ignored
 uncertainty in the correlation estimates.
 
-Although this latter issue may be solvable for Nagy and colleagues' (2017)
-method, a more practical solution to these issues was proposed by
+A more practical solution than Nagy and colleague's method was proposed by
 Rosseel and Loh (2022) with their SAM approach. This method essentially
 follows Burt's (1976) method but adjust the procedure to overcome its issues.
 They distinguish two SAM varieties--"local SAM" and "global SAM".
@@ -180,17 +176,15 @@ measurement models to generate mean and covariance matrices to use in the
 structural model, which preserves the structure of the measurement models
 while also preserving the uncertainty.
 Global SAM treats the measurement parameters as given, but corrects the
-standard errors of the structural model. Although local SAM is preferable in
-most circumstances, it currently (as at version 0.7-2) sets ESEM factor
-covariances as equal, which is likely a bug.
+standard errors of the structural model.
 
 Despite the benefits of the SAM methods, they are not used in
 \code{esem.from.mods}. Largely this is a legacy issues; however, the function is
-currently maintained due to \code{\link[lavaan:sam]{lavaan::sam()}} currently treating all latent
+currently maintained due to \link[lavaan:sam]{lavaan::sam} currently treating all latent
 variables that are not in a regression path in the structural model as
 unrelated to the other factors. Given regressing the general factor of a
 bifactor model on EFA factors requires the group factors to correlate with
-the EFA factors, \code{\link[lavaan:sam]{lavaan::sam()}} is currently inappropriate for bifactor
+the EFA factors, \link[lavaan:sam]{lavaan::sam} is currently inappropriate for bifactor
 models (as at lavaan version 0.7-2).
 
 As a result of these considerations, the 2-stage procedure of fixing
@@ -214,17 +208,15 @@ measurement models to change to allow factor correlations to change.
 As a result, the parameter can be relaxed, and implied correlations between
 the group and general factors should remain close to zero.
 Given that the function already uses the 2-stage procedure,
-this method is employed when bifactor models are used in \code{esem.from.mods()}.
+this method is employed when bifactor models are used in \code{esem.from.mods}.
 
-Finally, \code{esem.from.mods()} will not complain if measurement models have poor
-fit or other undesirable characteristics
-(beyond warnings and errors produced by lavaan).
-In cases where keeping the same measurement model as prior research is
-important, it may make sense to include a poor fitting measurement model in
-the ESEM.
-In cases where the measurement model might reasonably be adjusted, however,
-it is important to check measurement model fit before running
-\code{esem.from.mods}.
+Finally, \code{esem.from.mods} will not complain if measurement models have poor
+fit or other undesirable characteristics (beyond warnings and errors produced
+by lavaan). In cases where keeping the same measurement model as prior
+research is important, it may make sense to include a poor fitting
+measurement model in the ESEM. In cases where the measurement model might
+reasonably be adjusted, however, it is important to check measurement model
+fit before running \code{esem.from.mods}.
 }
 \examples{
 # Create CFA keys
@@ -280,8 +272,6 @@ Journal of Experimental Education, 85(4).
 https://doi.org/10.1080/00220973.2016.1260524.
 }
 \seealso{
-\code{\link[=sem.check]{sem.check()}}, which this function uses for all the back-end;
-\code{\link[=cfa.from.keys]{cfa.from.keys()}}, \code{\link[=efa.from.keys]{efa.from.keys()}}, and \code{\link[=bifactor.from.keys]{bifactor.from.keys()}},
-which are useful functions for creating inputs into \code{esem.from.mods()}; and
-\code{\link[lavaan:sem]{lavaan::sem()}}, which is used to estimate the models.
+\link{sem.check}, \link{cfa.from.keys}, \link{efa.from.keys}, \link{bifactor.from.keys},
+\link[lavaan:sem]{lavaan::sem}.
 }

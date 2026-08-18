@@ -54,16 +54,16 @@ Fit can still be examined for individual models with,
 \verb{lavaan::fitMeasures(fit$fit$[model name])}.}
 
 \item{fit_measures}{A vector of fit measures to save or 'all' to select all fit measures,
-as per the \code{fit.measures} parameter from lavaan's \code{\link[lavaan:fitMeasures]{lavaan::fitMeasures()}}
+as per the \code{fit.measures} parameter from lavaan's \link[lavaan:fitMeasures]{lavaan::fitMeasures}
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{miss}{A string.
-Sets the \code{missing} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 Defaults to 'ML'.}
 
 \item{est}{A string.
-Sets the \code{estimator} parameter, as per lavaan (see \code{\link[lavaan:lavOptions]{lavaan::lavOptions()}}).
+Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 The default ('default') uses the lavaan default for the model being run.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
@@ -154,22 +154,22 @@ definite correlation matrix between variables included in \code{fit_y},
 especially when closely related factors are included.
 If the matrix of latent variables is not positive definite,
 then the matrix will be adjusted to the nearest positive definite
-matrix using the \code{\link[Matrix:nearPD]{Matrix::nearPD()}} function,
+matrix using the \link[Matrix:nearPD]{Matrix::nearPD} function,
 which employs the method developed by Higham (2002),
 and a message will state that the matrix was adjusted and the maximum
 adjustment to any cell.
 Confidence intervals will be adjusted by the same amount.
 
-The model relies on \code{\link[=sem.check]{sem.check()}} for the back-end of running the models,
+The model relies on \link{sem.check} for the back-end of running the models,
 which enables saving inputs and outputs from model runs
 (with \code{save_out = TRUE}) and checking to see if anything has changed from
 prior runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
-In the case of \code{sem.cor()}, the number of correlations can add up quickly,
+In the case of \code{sem.cor}, the number of correlations can add up quickly,
 so the functionality may be useful
 (e.g., with 20 scales, there are 19 + 18 + 17 + ... + 1 = 190 correlations).
-For further details on how this works, see the \code{\link[=sem.check]{sem.check()}} function
+For further details on how this works, see the \link{sem.check} function
 documentation.
 }
 \examples{
@@ -211,10 +211,6 @@ Journal of Experimental Education, 85(4), 574-596.
 https://doi.org/10.1080/00220973.2016.1260524.
 }
 \seealso{
-\code{\link[=sem.check]{sem.check()}}, which \code{sem.cor()} uses for all the back-end;
-\code{\link[lavaan:sem]{lavaan::sem()}}, which is used to estimate the models;
-\link[matrixcalc:is.positive.definite]{matrixcalc::is.positive.definite}, which is used to assess whether the
-correlation matrix between \code{fit_y} constructs is positive definite; and
-\code{\link[Matrix:nearPD]{Matrix::nearPD()}} for the function used to transform non-positive definite
-matrices into positive definite matrices.
+\link{sem.check}, \link[lavaan:sem]{lavaan::sem}, \link[matrixcalc:is.positive.definite]{matrixcalc::is.positive.definite},
+\link[Matrix:nearPD]{Matrix::nearPD}
 }
