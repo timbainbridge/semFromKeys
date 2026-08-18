@@ -161,8 +161,8 @@
 
 sem.cor <- function(
     data, fit_y, fit_x = NULL, items = NULL,  item_loadings = NULL, nagy = TRUE,
-    fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
-    ordered = NULL, name = "cors", check = FALSE, save_out = FALSE
+    fit_save = FALSE, fit_measures = "all", miss = "default", est = "default",
+    name = "cors", check = FALSE, save_out = FALSE
 ) {
   # Single model instead of list.
   if (!is.list(fit_y) & inherits(fit_y, "lavaan")) {
@@ -619,7 +619,7 @@ sem.cor <- function(
     check = check,
     save_out = save_out,
     std.lv = TRUE,
-    ordered = ordered
+    ordered = NULL
   )
   if (!is.null(fit_x) | length(fit_y) > 1) {
     cors_y <- mapply(

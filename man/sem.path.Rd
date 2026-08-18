@@ -11,7 +11,7 @@ sem.path(
   extra = NULL,
   fit_save = TRUE,
   fit_measures = "all",
-  miss = "ML",
+  miss = "default",
   est = "default",
   name = "sam",
   check = FALSE,
@@ -48,7 +48,8 @@ Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{miss}{A string.
 Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
-Defaults to 'ML'.}
+Defaults to 'default', which uses 'ML' for \code{ordered = NULL} and 'pairwise'
+for any other value of \code{ordered}.}
 
 \item{est}{A string.
 Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).

@@ -84,7 +84,7 @@
 
 efa.from.keys <- function(
     keys, data, orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
-    std.lv = TRUE, miss = "ML", est = "default", ordered = NULL,
+    std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
     name = "efa", check = FALSE, save_out = FALSE
 ) {
   target <- sapply(keys, function(y) ifelse(!unlist(keys) %in% y, 0, NA))

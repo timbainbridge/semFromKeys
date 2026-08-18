@@ -11,10 +11,11 @@ sem.check(
   keys_e = NULL,
   fit_save = FALSE,
   fit_measures = "all",
-  miss = "ML",
+  miss = "default",
   est = "default",
   std.lv = FALSE,
   std = TRUE,
+  ordered = NULL,
   orthogonal = FALSE,
   target = NULL,
   name = "sem",
@@ -48,7 +49,8 @@ Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
 \item{miss}{A string.
 Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
-Defaults to 'ML'.}
+Defaults to 'default', which uses 'ML' for \code{ordered = NULL} and 'pairwise'
+for any other value of \code{ordered}.}
 
 \item{est}{A string.
 Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
@@ -64,6 +66,12 @@ Defaults to \code{FALSE}.}
 \item{std}{Logical.
 \code{TRUE} indicates that standardised parameter estimates should be saved;
 \code{FALSE} indicates that unstandardised parameters estimates should be saved.}
+
+\item{ordered}{A character vector or \code{NULL}, as per the \code{ordered} lavaan argument of the
+same name (see, e.g., \link[lavaan:sem]{lavaan::sem}).
+\code{NULL} indicates that all variables should be treated as continuous.
+Otherwise, variables matching an element of the vector will be treated as
+continuous. Defaults to \code{NULL}.}
 
 \item{orthogonal}{Logical.
 Sets the \code{orthogonal} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).

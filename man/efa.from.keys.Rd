@@ -11,8 +11,9 @@ efa.from.keys(
   fit_save = TRUE,
   fit_measures = "all",
   std.lv = TRUE,
-  miss = "ML",
+  miss = "default",
   est = "default",
+  ordered = NULL,
   name = "efa",
   check = FALSE,
   save_out = FALSE
@@ -51,11 +52,18 @@ Defaults to \code{TRUE}.}
 
 \item{miss}{A string.
 Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
-Defaults to 'ML'.}
+Defaults to 'default', which uses 'ML' for \code{ordered = NULL} and 'pairwise'
+for any other value of \code{ordered}.}
 
 \item{est}{A string.
 Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
 The default ('default') uses the lavaan default for the model being run.}
+
+\item{ordered}{A character vector or \code{NULL}, as per the \code{ordered} lavaan argument of the
+same name (see, e.g., \link[lavaan:sem]{lavaan::sem}).
+\code{NULL} indicates that all variables should be treated as continuous.
+Otherwise, variables matching an element of the vector will be treated as
+continuous. Defaults to \code{NULL}.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.

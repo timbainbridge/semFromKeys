@@ -201,8 +201,8 @@
 
 sem.path <- function(
     path, data, cfa_fit, extra = NULL,
-    fit_save = TRUE, fit_measures = "all", miss = "ML", est = "default",
-    ordered = NULL, name = "sam", check = FALSE, save_out = FALSE
+    fit_save = TRUE, fit_measures = "all", miss = "default", est = "default",
+    name = "sam", check = FALSE, save_out = FALSE
 ) {
   ##### Below adapted from esem.from.mods() #####
   if (!is.list(cfa_fit) & inherits(cfa_fit, "lavaan")) {
@@ -356,7 +356,7 @@ sem.path <- function(
   fit <- sem.check(
     mod, data = data, keys_s = keys_s,
     fit_save = fit_save, fit_measures = fit_measures,
-    miss = miss, est = est, std = TRUE, ordered = ordered,
+    miss = miss, est = est, std = TRUE, ordered = NULL,
     name = name, check = check, save_out = save_out, use_sam = TRUE
   )
   x <- fit$par_std[[name]]

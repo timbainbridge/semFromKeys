@@ -60,7 +60,8 @@
 #' @param miss
 #' A string.
 #' Sets the `missing` parameter, as per lavaan (see [lavaan::lavOptions]).
-#' Defaults to 'ML'.
+#' Defaults to 'default', which uses 'ML' for `ordered = NULL` and 'pairwise'
+#' for any other value of `ordered`.
 #' @param est
 #' A string.
 #' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions]).
@@ -193,8 +194,8 @@
 sem.check <- function(
     mods, data, keys_s = NULL, keys_e = NULL,
     fit_save = FALSE, fit_measures = "all",
-    miss = "ML", est = "default", std.lv = FALSE, std = TRUE, ordered = NULL,
-    orthogonal = FALSE, target = NULL,
+    miss = "default", est = "default", std.lv = FALSE, std = TRUE,
+    ordered = NULL, orthogonal = FALSE, target = NULL,
     name = "sem", check = FALSE, save_out = FALSE, use_sam = FALSE
 ) {
   if (!is.logical(fit_save)) {
@@ -239,9 +240,6 @@ sem.check <- function(
   }
   if (!is.logical(std.lv)) {
     stop("'std.lv' is not logical. It should be 'TRUE' or 'FALSE'.")
-  }
-  if (!is.logical(ordered)) {
-    stop("'ordered' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (!is.logical(use_sam)) {
     stop("'use_sam' is not logical. It should be 'TRUE' or 'FALSE'.")
@@ -346,6 +344,26 @@ sem.check <- function(
     una_items <- unlist(keys_e)[!(unlist(keys_e)) %in% colnames(data)]
     message(paste0("  ", una_items, collapse = "  \n"))
     stop("The above items are in a key but they are not in 'data'.")
+  }
+  if (is.null(ordered)) {
+    ordered_key <- "NULL"
+  } else {
+    if (is.null(keys_s)) {
+      ordered_key <- list(ordered[ordered %in% unlist(keys_e)])
+    } else {
+      ordered_key <- sapply(
+        keys_s,
+        function(x) ordered[ordered %in% c(x, unlist(keys_e))],
+        simplify = FALSE
+      )
+    }
+  }
+  if (miss == "default") {
+    if (is.null(ordered)) {
+      miss <- "ML"
+    } else {
+      miss <- "pairwise"
+    }
   }
   if (save_out) {
     if (!dir.exists(file.path(cache_dir, name))) {
@@ -477,7 +495,7 @@ sem.check <- function(
   fit <- with_options(
     list(warn = 1),
     mapply(
-      function(m1, hash_d1, n_mod, mods1, ft, n) {
+      function(m1, hash_d1, n_mod, mods1, ft, n, ord_k) {
         if (hash_d1 & m1 & ft & param_test) {
           fit0[[n_mod]]
         } else {
@@ -493,78 +511,161 @@ sem.check <- function(
           if (is.null(target)) {
             if (!use_sam) {
               if (est == "default") {
-                sem(
-                  model   = mods1,
-                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                  missing = miss,
-                  std.lv  = std.lv,
-                  orthogonal = orthogonal,
-                  ordered = ordered
-                )
+                if (ord_k[1] == "NULL") {
+                  sem(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    std.lv  = std.lv,
+                    orthogonal = orthogonal
+                  )
+                } else {
+                  sem(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    std.lv  = std.lv,
+                    orthogonal = orthogonal,
+                    ordered = ord_k
+                  )
+                }
               } else {
-                sem(
-                  model   = mods1,
-                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                  missing = miss,
-                  estimator = est,
-                  std.lv  = std.lv,
-                  orthogonal = orthogonal,
-                  ordered = ordered
-                )
+                if (ord_k[1] == "NULL") {
+                  sem(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    estimator = est,
+                    std.lv  = std.lv,
+                    orthogonal = orthogonal
+                  )
+                } else {
+                  sem(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    estimator = est,
+                    std.lv  = std.lv,
+                    orthogonal = orthogonal,
+                    ordered = ord_k
+                  )
+                }
               }
             } else {
               if (est == "default") {
-                sam(
-                  model   = mods1,
-                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                  missing = miss,
-                  std.lv  = std.lv,
-                  ordered = ordered
-                )
+                if (ord_k[1] == "NULL") {
+                  sam(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    std.lv  = std.lv
+                  )
+                } else {
+                  sam(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    std.lv  = std.lv,
+                    ordered = ord_k
+                  )
+                }
               } else {
-                sam(
-                  model   = mods1,
-                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                  mm_args = list(estimator = est),
-                  struc_args = list(estimator = est),
-                  missing = miss,
-                  std.lv  = std.lv,
-                  ordered = ordered
-                )
+                if (ord_k[1] == "NULL") {
+                  sam(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    mm_args = list(estimator = est),
+                    struc_args = list(estimator = est),
+                    missing = miss,
+                    std.lv  = std.lv
+                  )
+                } else {
+                  sam(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    mm_args = list(estimator = est),
+                    struc_args = list(estimator = est),
+                    missing = miss,
+                    std.lv  = std.lv,
+                    ordered = ord_k
+                  )
+                }
               }
             }
           } else {
             if (!use_sam) {
               if (est == "default") {
-                sem(
-                  model   = mods1,
-                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                  missing = miss,
-                  std.lv  = std.lv,
-                  ordered = ordered,
-                  rotation = "target",
-                  rotation.args = list(
-                    rstarts = 30, row.weights = "none", algorithm = "gpa",
-                    std.ov = TRUE, target = target, orthogonal = orthogonal
+                if (ord_k[1] == "NULL") {
+                  sem(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    std.lv  = std.lv,
+                    rotation = "target",
+                    rotation.args = list(
+                      rstarts = 30, row.weights = "none", algorithm = "gpa",
+                      std.ov = TRUE, target = target, orthogonal = orthogonal
+                    )
                   )
-                )
+                } else {
+                  sem(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    std.lv  = std.lv,
+                    ordered = ord_k,
+                    rotation = "target",
+                    rotation.args = list(
+                      rstarts = 30, row.weights = "none", algorithm = "gpa",
+                      std.ov = TRUE, target = target, orthogonal = orthogonal
+                    )
+                  )
+                }
               } else {
-                sem(
-                  model   = mods1,
-                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                  missing = miss,
-                  estimator = est,
-                  std.lv  = std.lv,
-                  ordered = ordered,
-                  rotation = "target",
-                  rotation.args = list(
-                    rstarts = 30, row.weights = "none", algorithm = "gpa",
-                    std.ov = TRUE, target = target, orthogonal = orthogonal
+                if (ord_k[1] == "NULL") {
+                  sem(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    estimator = est,
+                    std.lv  = std.lv,
+                    rotation = "target",
+                    rotation.args = list(
+                      rstarts = 30, row.weights = "none", algorithm = "gpa",
+                      std.ov = TRUE, target = target, orthogonal = orthogonal
+                    )
                   )
-                )
+                } else {
+                  sem(
+                    model   = mods1,
+                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                    missing = miss,
+                    estimator = est,
+                    std.lv  = std.lv,
+                    ordered = ord_k,
+                    rotation = "target",
+                    rotation.args = list(
+                      rstarts = 30, row.weights = "none", algorithm = "gpa",
+                      std.ov = TRUE, target = target, orthogonal = orthogonal
+                    )
+                  )
+                }
               }
             } else {
               if (est == "default") {
+                if (ord_k[1] != "NULL") {
+                  warning(
+                    paste(
+                      "The SAM method, used to estimate the latent variable",
+                      "model you are attempting to run, does not support",
+                      "'ordered' variables in ESEM.",
+                      "Therefore, the model will be run as though",
+                      "'ordered = NULL'.",
+                      "To run an ESEM with ordered variables,",
+                      "use 'esem.from.mods'."
+                    )
+                  )
+                }
                 sam(
                   model   = mods1,
                   data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -575,7 +676,6 @@ sem.check <- function(
                   sam_method = "global",
                   missing = miss,
                   std.lv  = std.lv,
-                  ordered = ordered,
                   rotation = "target",
                   rotation.args = list(
                     rstarts = 30, row.weights = "none", algorithm = "gpa",
@@ -583,6 +683,19 @@ sem.check <- function(
                   )
                 )
               } else {
+                if (ord_k[1] != "NULL") {
+                  warning(
+                    paste(
+                      "The SAM method, used to estimate the latent variable",
+                      "model you are attempting to run, does not support",
+                      "'ordered' variables in ESEM.",
+                      "Therefore, the model will be run as though",
+                      "'ordered = NULL'.",
+                      "To run an ESEM with ordered variables,",
+                      "use 'esem.from.mods'."
+                    )
+                  )
+                }
                 sam(
                   model   = mods1,
                   data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -596,7 +709,6 @@ sem.check <- function(
                   missing = miss,
                   estimator = est,
                   std.lv  = std.lv,
-                  ordered = ordered,
                   rotation = "target",
                   rotation.args = list(
                     rstarts = 30, row.weights = "none", algorithm = "gpa",
@@ -614,6 +726,7 @@ sem.check <- function(
       n_mod = names(mods),
       ft = fit_type,
       n = seq_along(mods),
+      ord_k = ordered_key,
       SIMPLIFY = FALSE
     )
   )

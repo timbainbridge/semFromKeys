@@ -223,8 +223,8 @@
 
 esem.from.mods <- function(
     data, efa_fit, cfa_fit = NULL, bif_fit = NULL,
-    fit_save = FALSE, fit_measures = "all", miss = "ML", est = "default",
-    ordered = NULL, name = "esem", check = FALSE, save_out = FALSE
+    fit_save = FALSE, fit_measures = "all", miss = "default", est = "default",
+    name = "esem", check = FALSE, save_out = FALSE
 ) {
   if (is.null(cfa_fit) & is.null(bif_fit)) {
     stop("At least one of 'cfa_fit' and 'bif_fit' must be specified.")
@@ -361,7 +361,7 @@ esem.from.mods <- function(
   }
   efa_par <- parameterEstimates(efa_fit)
   efa_par1 <-
-    efa_par[efa_par$op %in% c("=~", "~~"), c("lhs", "op", "rhs", "est")]
+    efa_par[efa_par$op %in% c("=~", "~~", "|"), c("lhs", "op", "rhs", "est")]
   efa_mod <- paste(
     efa_par1$lhs, efa_par1$op, efa_par1$est, "*", efa_par1$rhs, collapse = "\n"
   )
@@ -452,7 +452,7 @@ esem.from.mods <- function(
     miss = miss,
     est = est,
     std.lv = FALSE,  # Params are set from measurement models.
-    ordered = ordered,
+    ordered = NULL,
     check = check,
     save_out = save_out
   )
