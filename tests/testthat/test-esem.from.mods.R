@@ -170,3 +170,25 @@ test_that(
     expect_identical(check_fit, check_fit2)
   }
 )
+# test_that(
+#   "Test ordered",
+#   {
+#     cfa_fit <-
+#       cfa.from.keys(keys, BFIGritHope, FALSE, ordered = names(BFIGritHope))$fit
+#     efa_fit <- efa.from.keys(
+#       keys_e, BFIGritHope, fit_save = FALSE, ordered = names(BFIGritHope)
+#     )$fit$efa
+#     esem_fit <- esem.from.mods(
+#       efa_fit, cfa_fit, data = BFIGritHope, fit_save = FALSE,
+#       ordered = names(BFIGritHope)
+#     )
+#     expect_equal(length(esem_fit), 4)
+#     expect_equal(length(esem_fit$fit), length(keys))
+#     expect_equal(length(esem_fit$par), length(keys))
+#     expect_equal(
+#       sum(sapply(esem_fit$fit, function(x) !inherits(x, "lavaan"))), 0
+#     )
+#     expect_equal(length(esem_fit$b), length(keys))
+#     expect_equal(nrow(esem_fit$r2), length(keys))
+#   }
+# )

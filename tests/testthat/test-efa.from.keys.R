@@ -1,7 +1,8 @@
 test_that(
   "Test normal behaviour when fit_save = FALSE",
   {
-    efa_fit <- efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = FALSE)
+    efa_fit <-
+      efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = FALSE)
     expect_equal(length(efa_fit), 2)
     expect_equal(length(efa_fit$fit), 1)
     expect_equal(length(efa_fit$par), 1)
@@ -127,5 +128,17 @@ test_that(
       ),
       "1 / \\d"
     )
+  }
+)
+test_that(
+  "Test ordered",
+  {
+    efa_fit <- efa.from.keys(
+      keys_e, BFIGritHope, fit_save = FALSE, ordered = names(BFIGritHope)
+    )
+    expect_equal(length(efa_fit), 2)
+    expect_equal(length(efa_fit$fit), 1)
+    expect_equal(length(efa_fit$par), 1)
+    expect_equal(sum(sapply(efa_fit$fit, function(x) class(x) != "lavaan")), 0)
   }
 )

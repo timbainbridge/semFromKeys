@@ -468,3 +468,16 @@ test_that(
     )
   }
 )
+test_that(
+  "Test ordered",
+  {
+    cfa_fit <-
+      cfa.from.keys(keys, BFIGritHope, fit_save = FALSE, ordered = names(data))
+    expect_equal(length(cfa_fit), 2)
+    expect_equal(length(cfa_fit$fit), length(keys))
+    expect_equal(length(cfa_fit$par), length(keys))
+    expect_equal(
+      sum(sapply(cfa_fit$fit, function(x) !inherits(x, "lavaan"))), 0
+    )
+  }
+)

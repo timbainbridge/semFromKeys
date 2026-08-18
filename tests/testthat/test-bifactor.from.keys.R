@@ -179,3 +179,16 @@ test_that(
     )
   }
 )
+test_that(
+  "Test ordered",
+  {
+    bif_fit <- bifactor.from.keys(
+      keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE,
+      ordered = names(BFIGritHope)
+    )
+    expect_equal(length(bif_fit), 2)
+    expect_equal(length(bif_fit$fit), length(keys_g))
+    expect_equal(length(bif_fit$par), length(keys_g))
+    expect_equal(sum(sapply(bif_fit$fit, function(x) class(x) != "lavaan")), 0)
+  }
+)
