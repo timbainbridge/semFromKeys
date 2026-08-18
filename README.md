@@ -17,13 +17,17 @@ models. For exploratory factor analyses (EFAs) keys list are used to
 create a target rotation for a single EFA. For latent variable
 correlations, the model takes fitted CFA models and runs a series of
 models computing correlations between latent variables and, optionally,
-single items. For exploratory structural equation models (ESEM), the
-code takes a fitted EFA model and fitted CFA and/or bifactor models and
-runs an ESEM for each CFA or bifactor model input. In the ESEM, the EFA
-factors predict a series of latent variables in separate models using
-Burt’s (1976) 2-stage procedure to prevent interpretational confounding.
-The ESEM models were designed to run analyses equivalent to that of
-Bainbridge, Ludeke, and Smillie (2022).
+single items. For exploratory structural equation models (ESEM), there
+are two options. In each case, EFA factors predict scale factors. The
+first option (`esem.from.keys`) takes EFA and CFA keys as inputs and
+uses Rosseel and Loh’s (2022) SAM method to prevent interpreational
+confounding (Burt, 1976), and the second (`esem.from.mods`) takes a
+fitted EFA model and fitted CFA and/or bifactor models and uses Burt’s
+(1976) 2-stage procedure to prevent interpretational confounding. The
+ESEM models were designed to run analyses analogous to those of
+Bainbridge, Ludeke, and Smillie (2022). Additionally, the `sem.path`
+function runs traditional latent variable structural equation models
+(SEM) using fitted CFA objects and path code as input.
 
 Although the package might be of most use to those running ESEM similar
 to those of Bainbridge and colleagues (2022), it could also be very
@@ -31,7 +35,9 @@ helpful to anyone wanting to create a correlation matrix based on latent
 variables rather than sum scores or to estimate a CFA measurement model
 for each scale in a sample to either check measurement characteristics
 before proceeding with further analyses or to simply compute measurement
-model based reliability statistics.
+model based reliability statistics. It may also be useful to those
+wanting to preclude interpretational confounding in a standard latent
+variable SEM.
 
 For sets of models that take a long time to run, code has been included
 to allow the first run to save outputs that can be checked against in
@@ -75,7 +81,8 @@ install.packages("semFromKeys")
 
 The following example generates keys, runs CFAs and an EFA using these
 keys, computes correlations between CFA latent variables, and uses
-outputs from these to run ESEMs.
+outputs from these to run ESEMs. The alternative `esem.from.keys`
+function is also demonstrated.
 
 ### CFAs
 
@@ -284,10 +291,9 @@ latent_cors$cor_mat
 
 ### ESEM
 
-Finally, outputs from CFA, bifactor, and EFA models can be used as
-inputs into ESEMs where the scales of the CFAs and bifactor models are
-regressed on the EFA factors. In this example, bifactor models are not
-included.
+Outputs from CFA, bifactor, and EFA models can be used as inputs into
+ESEMs where the scales of the CFAs and bifactor models are regressed on
+the EFA factors. In this example, bifactor models are not included.
 
 ``` r
 esem_fit <- esem.from.mods(
@@ -333,6 +339,108 @@ To take advantage of functions’ time-saving `check = TRUE` for
 subsequent running of code, a cache directory will need to be set. To
 see how to do this, see `?cache.setup`.
 
+Alternatively, keys lists can be used. In general, the `esem.from.keys`
+function is recommended for CFA models (see `?esem.from.keys`).
+
+``` r
+esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
+#> Fitting models
+#> 1 / 4   grit_c
+#> 2 / 4   grit_p
+#> 3 / 4   hope_a
+#> 4 / 4   hope_p
+#> Generating parameter estimates
+#> 1 / 4   grit_c
+#> 2 / 4   grit_p
+#> 3 / 4   hope_a
+#> 4 / 4   hope_p
+```
+
+The function provides the same outputs as `esem.from.mods`, only with
+better standard error estimates.
+
+``` r
+lavaan::summary(esam_fit$fit$grit_c)  # lavaan summary for the SAM method
+#> This is lavaan 0.7-2 -- using the SAM approach to SEM
+#> 
+#>   SAM method                                    GLOBAL
+#>   Number of measurement blocks                       2
+#>   Estimator measurement part                        ML
+#>   Estimator  structural part                        ML
+#> 
+#>   Number of observations                           388
+#>   Number of missing patterns                         1
+#> 
+#> Summary Information Measurement Part:
+#> 
+#>   Block                        Latent Nind    Chisq   Df
+#>       1 bfi_e,bfi_a,bfi_c,bfi_n,bfi_o   60 4808.621 1480
+#>       2                        grit_c    6   64.001    9
+#> 
+#> Model Test User Model:
+#>                                               Standard      Scaled
+#>   Test Statistic                              5500.324    3876.504
+#>   Degrees of freedom                              1824        1824
+#>   P-value (Chi-square)                           0.000       0.000
+#>   Scaling correction factor                                  1.419
+#>     Yuan-Chan (2002) correction                                   
+#> 
+#> Parameter Estimates:
+#> 
+#>   Standard errors                              Twostep
+#>   Information                                 Observed
+#>   Observed information based on                Hessian
+#> 
+#> Regressions:
+#>                    Estimate  Std.Err  z-value  P(>|z|)
+#>   grit_c ~                                            
+#>     bfi_e            -0.155    0.049   -3.153    0.002
+#>     bfi_a             0.077    0.050    1.549    0.121
+#>     bfi_c             0.432    0.059    7.367    0.000
+#>     bfi_n            -0.367    0.056   -6.558    0.000
+#>     bfi_o             0.100    0.049    2.031    0.042
+#> 
+#> Covariances:
+#>                    Estimate  Std.Err  z-value  P(>|z|)
+#>   bfi_e ~~                                            
+#>     bfi_a             0.144    0.058    2.470    0.014
+#>     bfi_c             0.172    0.057    3.027    0.002
+#>     bfi_n            -0.259    0.055   -4.705    0.000
+#>     bfi_o             0.161    0.057    2.813    0.005
+#>   bfi_a ~~                                            
+#>     bfi_c             0.276    0.054    5.093    0.000
+#>     bfi_n            -0.244    0.055   -4.398    0.000
+#>     bfi_o             0.233    0.056    4.196    0.000
+#>   bfi_c ~~                                            
+#>     bfi_n            -0.421    0.049   -8.670    0.000
+#>     bfi_o             0.285    0.054    5.326    0.000
+#>   bfi_n ~~                                            
+#>     bfi_o            -0.194    0.055   -3.511    0.000
+#> 
+#> Variances:
+#>                    Estimate  Std.Err  z-value  P(>|z|)
+#>    .grit_c            0.492    0.085    5.793    0.000
+```
+
+``` r
+round(esam_fit$r2, 3)
+#>           R2    se ci.lower ci.upper
+#> grit_c 0.508 0.042    0.426    0.590
+#> grit_p 0.731 0.029    0.675    0.788
+#> hope_a 0.782 0.024    0.736    0.828
+#> hope_p 0.610 0.038    0.535    0.685
+```
+
+``` r
+esam_fit$b$grit_c
+#>       rhs est.std    se      z pvalue ci.lower ci.upper
+#> 307 bfi_e  -0.155 0.048 -3.223  0.001   -0.248   -0.061
+#> 308 bfi_a   0.077 0.049  1.557  0.120   -0.020    0.174
+#> 309 bfi_c   0.432 0.050  8.669  0.000    0.334    0.530
+#> 310 bfi_n  -0.367 0.050 -7.328  0.000   -0.465   -0.269
+#> 311 bfi_o   0.100 0.049  2.051  0.040    0.004    0.196
+```
+
 ## References
 
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022). Evaluating
@@ -352,5 +460,9 @@ Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017). Extension
 Procedures for Confirmatory Factor Analysis. Journal of Experimental
 Education, 85(4), 574-596.
 <https://doi.org/10.1080/00220973.2016.1260524>.
+
+Rosseel, Y. & Loh, W. W. (2022). A structural after measurement approach
+to structural equation modeling. Psychological Methods, 29(3), 561-588.
+<https://doi.org/10.1037/met0000503>.
 
 <!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
