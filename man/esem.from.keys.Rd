@@ -238,6 +238,11 @@ Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
 Extension Procedures for Confirmatory Factor Analysis.
 Journal of Experimental Education, 85(4).
 https://doi.org/10.1080/00220973.2016.1260524.
+
+Rosseel, Y. & Loh, W. W. (2022).
+A structural after measurement approach to structural equation modeling.
+Psychological Methods, 29(3), 561-588.
+https://doi.org/10.1037/met0000503.
 }
 \seealso{
 \link{sem.check}, \link[lavaan:sam]{lavaan::sam}
