@@ -1,3 +1,5 @@
+* Added the `esem.from.keys` function, which takes EFA and CFA keys to run ESEM.
+
 # semFromKeys 0.4.0
 
 * Added the `sem.path()` function, which takes CFA outputs and SEM path code to run an SEM model.

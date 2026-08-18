@@ -2,8 +2,9 @@
 
 ### Notes
 
-* Fixed an important bug whereby the `sem.cor()` function would fail if a factor name included a '.'.
-* Added a function to aid with running structural equation models (i.e., `sem.path()`).
+* Fixed an important bug whereby the `sem.cor` function would fail if a factor name included a '.'.
+* Added a function to aid with running structural equation models (i.e., `sem.path`).
+* Added a function to run ESEM models from keys using the SAM method (i.e., `esem.from.keys`).
 
 ## 28-7-2026 submission
 
