@@ -660,9 +660,7 @@ sem.check <- function(
                       "model you are attempting to run, does not support",
                       "'ordered' variables in ESEM.",
                       "Therefore, the model will be run as though",
-                      "'ordered = NULL'.",
-                      "To run an ESEM with ordered variables,",
-                      "use 'esem.from.mods'."
+                      "'ordered = NULL'."
                     )
                   )
                 }
@@ -690,9 +688,7 @@ sem.check <- function(
                       "model you are attempting to run, does not support",
                       "'ordered' variables in ESEM.",
                       "Therefore, the model will be run as though",
-                      "'ordered = NULL'.",
-                      "To run an ESEM with ordered variables,",
-                      "use 'esem.from.mods'."
+                      "'ordered = NULL'."
                     )
                   )
                 }
