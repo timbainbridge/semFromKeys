@@ -3,8 +3,8 @@
 ### Notes
 
 * Fixed an important bug whereby the `sem.cor` function would fail if a factor name included a '.'.
-* Added a function to aid with running structural equation models (i.e., `sem.path`).
-* Added a function to run ESEM models from keys using the SAM method (i.e., `esem.from.keys`).
+* Added two functions (i.e., `sem.path` and `esem.from.keys`).
+* Added `ordered` as an argument for measurement model functions.
 
 ## 28-7-2026 submission
 

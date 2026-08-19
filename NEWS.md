@@ -1,3 +1,5 @@
+* Added `ordered` as an argument for measurement model functions.
+
 # semFromKeys 0.5.0
 
 * Added the `esem.from.keys` function, which takes EFA and CFA keys to run ESEM.
