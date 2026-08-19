@@ -40,9 +40,10 @@
 #' analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 #'
 #' The function requires fitted lavaan objects as inputs in order to properly
-#' employ the 2-stage procedure.
-#' Using [efa.from.keys], [cfa.from.keys], and/or [bifactor.from.keys]
-#' should make this relatively straight-forward.
+#' employ the 2-stage procedure. Using [efa.from.keys], [cfa.from.keys], and/or
+#' [bifactor.from.keys] should make this relatively straight-forward. The
+#' function currently does not support ordinal variables, so inputs should be
+#' created with `ordered = NULL`.
 #'
 #' The function is designed to run for multiple models with a similar design.
 #' If you are using the function for a single model,
@@ -301,6 +302,21 @@ esem.from.mods <- function(
       }
     )
     names(cfa_fit) <- names(cfa_par) <- names(cfa_keys) <- cfa_names
+    lapply(
+      cfa_par,
+      function(x) {
+        if (sum(x$op == "|") > 0) {
+          stop(
+            paste(
+              "At least one element of 'cfa_fit' is a model with ordinal",
+              "variables, which are not currently supported in",
+              "'esem.from.mods'. To use the function, re-run the input models",
+              "with all variables treated as continuous."
+            )
+          )
+        }
+      }
+    )
     if (sum(table(names(cfa_keys)) > 1) > 0) {
       stop(
         paste(
@@ -322,6 +338,21 @@ esem.from.mods <- function(
       }
     )
     names(bif_par) <- bif_names
+    lapply(
+      bif_par,
+      function(x) {
+        if (sum(x$op == "|") > 0) {
+          stop(
+            paste(
+              "At least one element of 'bif_fit' is a model with ordinal",
+              "variables, which are not currently supported in",
+              "'esem.from.mods'. To use the function, re-run the input models",
+              "with all variables treated as continuous."
+            )
+          )
+        }
+      }
+    )
     if (!is.null(names(bif_fit))) {
       if (sum(names(bif_fit) != bif_names) > 0) {
         warning(
@@ -360,8 +391,18 @@ esem.from.mods <- function(
     }
   }
   efa_par <- parameterEstimates(efa_fit)
+  if (sum(efa_par$op == "|") > 0) {
+    stop(
+      paste(
+        "At least one element of 'efa_fit' is a model with ordinal",
+        "variables, which are not currently supported in",
+        "'esem.from.mods'. To use the function, re-run the input models",
+        "with all variables treated as continuous."
+      )
+    )
+  }
   efa_par1 <-
-    efa_par[efa_par$op %in% c("=~", "~~", "|"), c("lhs", "op", "rhs", "est")]
+    efa_par[efa_par$op %in% c("=~", "~~"), c("lhs", "op", "rhs", "est")]
   efa_mod <- paste(
     efa_par1$lhs, efa_par1$op, efa_par1$est, "*", efa_par1$rhs, collapse = "\n"
   )

@@ -98,9 +98,10 @@ interpretational confounding (see below). The function is designed to run
 analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 
 The function requires fitted lavaan objects as inputs in order to properly
-employ the 2-stage procedure.
-Using \link{efa.from.keys}, \link{cfa.from.keys}, and/or \link{bifactor.from.keys}
-should make this relatively straight-forward.
+employ the 2-stage procedure. Using \link{efa.from.keys}, \link{cfa.from.keys}, and/or
+\link{bifactor.from.keys} should make this relatively straight-forward. The
+function currently does not support ordinal variables, so inputs should be
+created with \code{ordered = NULL}.
 
 The function is designed to run for multiple models with a similar design.
 If you are using the function for a single model,

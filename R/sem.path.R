@@ -204,6 +204,7 @@ sem.path <- function(
     fit_save = TRUE, fit_measures = "all", miss = "default", est = "default",
     name = "sam", check = FALSE, save_out = FALSE
 ) {
+
   ##### Below adapted from esem.from.mods() #####
   if (!is.list(cfa_fit) & inherits(cfa_fit, "lavaan")) {
     cfa_fit <- list(factor = cfa_fit)
@@ -240,6 +241,15 @@ sem.path <- function(
     }
   )
   names(cfa_fit) <- names(cfa_par) <- names(cfa_keys) <- cfa_names
+  if (sum(sapply(cfa_par, function(x) sum(x$op == "|") > 0)) > 0) {
+    warning(
+      paste(
+        "At least one element of 'cfa_fit' is a model with ordinal",
+        "variables, which are not currently supported in 'sem.path'.",
+        "The model treated all variables as continuous."
+      )
+    )
+  }
   if (sum(table(names(cfa_keys)) > 1) > 0) {
     stop(
       paste(

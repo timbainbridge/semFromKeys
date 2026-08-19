@@ -184,3 +184,16 @@ test_that(
     expect_equal(nrow(sem_fit$cors), 1)
   }
 )
+test_that(
+  "'ordered' used in input models",
+  {
+    cfa_fit_ord <- cfa.from.keys(
+      keys, BFIGritHope, fit_save = FALSE, ordered = names(BFIGritHope)
+    )$fit
+    path <- "grit_p ~ grit_c + hope_p\nhope_p ~ hope_a"
+    expect_warning(
+      sem.path(path, BFIGritHope, cfa_fit_ord),
+      "one element of 'cfa_fit' is a model with ordinal variables"
+    )
+  }
+)

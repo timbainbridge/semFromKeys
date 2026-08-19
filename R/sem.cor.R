@@ -160,7 +160,7 @@
 #' cors2$cor_mat
 
 sem.cor <- function(
-    data, fit_y, fit_x = NULL, items = NULL,  item_loadings = NULL, nagy = TRUE,
+    data, fit_y, fit_x = NULL, items = NULL, item_loadings = NULL, nagy = TRUE,
     fit_save = FALSE, fit_measures = "all", miss = "default", est = "default",
     name = "cors", check = FALSE, save_out = FALSE
 ) {
@@ -249,6 +249,36 @@ sem.cor <- function(
     }
   }
   par1 <- lapply(fit_y, parameterEstimates)
+  if (!nagy) {
+    lapply(
+      par1,
+      function(x) {
+        if (sum(x$op == "|") > 0) {
+          stop(
+            paste(
+              "At least one element of 'fit_y' is a model with ordinal",
+              "variables, which are not currently supported in 'sem.cor'.",
+              "Using 'sem.cor' with 'nagy = TRUE' can run the models with the",
+              "current inputs, but variables will not be treated as ordinal.",
+              "Alternatively, re-run the input models with all variables",
+              "treated as continuous."
+            )
+          )
+        }
+      }
+    )
+  } else {
+    if (sum(sapply(par1, function(x) sum(x$op == "|") > 0)) > 0) {
+      warning(
+        paste(
+          "At least one element of 'fit_y' is a model with ordinal",
+          "variables, which are not currently supported in 'sem.cor'.",
+          "Given 'nagy = TRUE', the models can run with the",
+          "current inputs, but variables have not be treated as ordinal."
+        )
+      )
+    }
+  }
   # Rename y objects to match factors
   names(fit_y) <- names(par1) <- sapply(
     par1,
@@ -309,6 +339,36 @@ sem.cor <- function(
         }
       }
     )
+    if (!nagy) {
+      lapply(
+        par2,
+        function(x) {
+          if (sum(x$op == "|") > 0) {
+            stop(
+              paste(
+                "At least one element of 'fit_x' is a model with ordinal",
+                "variables, which are not currently supported in 'sem.cor'.",
+                "Using 'sem.cor' with 'nagy = TRUE' can run the models with",
+                "the current inputs, but variables will not be treated as",
+                "ordinal. Alternatively, re-run the input models with all",
+                "variables treated as continuous."
+              )
+            )
+          }
+        }
+      )
+    } else {
+      if (sum(sapply(par2, function(x) sum(x$op == "|") > 0)) > 0) {
+        warning(
+          paste(
+            "At least one element of 'fit_x' is a model with ordinal",
+            "variables, which are not currently supported in 'sem.cor'.",
+            "Given 'nagy = TRUE', the models can run with the",
+            "current inputs, but variables have not be treated as ordinal."
+          )
+        )
+      }
+    }
     pars <- sapply(
       par1,
       function(y) {

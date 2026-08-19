@@ -441,3 +441,27 @@ test_that(
     )
   }
 )
+test_that(
+  "'ordered' used in input models",
+  {
+    cfa_fit_ord <- cfa.from.keys(
+      keys[1:2], BFIGritHope, fit_save = FALSE, ordered = names(BFIGritHope)
+    )$fit
+    expect_error(
+      sem.cor(BFIGritHope, cfa_fit_ord, nagy = FALSE),
+      "one element of 'fit_y' is a model with ordinal variables"
+    )
+    expect_error(
+      sem.cor(BFIGritHope, cfa_fit[3:4], cfa_fit_ord, nagy = FALSE),
+      "one element of 'fit_x' is a model with ordinal variables"
+    )
+    expect_warning(
+      sem.cor(BFIGritHope, cfa_fit_ord),
+      "one element of 'fit_y' is a model with ordinal variables"
+    )
+    expect_warning(
+      sem.cor(BFIGritHope, cfa_fit[3:4], cfa_fit_ord),
+      "one element of 'fit_x' is a model with ordinal variables"
+    )
+  }
+)
