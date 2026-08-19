@@ -188,7 +188,7 @@
 #' @export
 #'
 #' @examples
-#' # Create CFA / bifactor keys
+#' # Create CFA keys
 #' keys0 <- c("hope_a", "hope_p")
 #' keys <- sapply(
 #'   keys0,
