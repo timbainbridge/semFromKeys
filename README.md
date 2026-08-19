@@ -281,66 +281,29 @@ latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit, nagy = FALSE)
 #> 4 / 6   grit_p.hope_a
 #> 5 / 6   grit_p.hope_p
 #> 6 / 6   hope_a.hope_p
-latent_cors$cor_mat
-#>           grit_c    grit_p    hope_a    hope_p
-#> grit_c 1.0000000 0.4962176 0.3724859 0.3002280
-#> grit_p 0.4962176 1.0000000 0.8993154 0.8325711
-#> hope_a 0.3724859 0.8993154 1.0000000 0.9276052
-#> hope_p 0.3002280 0.8325711 0.9276052 1.0000000
+```
+
+``` r
+round(latent_cors$cor_mat, 3)
+#>        grit_c grit_p hope_a hope_p
+#> grit_c  1.000  0.496  0.372  0.300
+#> grit_p  0.496  1.000  0.899  0.833
+#> hope_a  0.372  0.899  1.000  0.928
+#> hope_p  0.300  0.833  0.928  1.000
 ```
 
 ### ESEM
 
-Outputs from CFA, bifactor, and EFA models can be used as inputs into
-ESEMs where the scales of the CFAs and bifactor models are regressed on
-the EFA factors. In this example, bifactor models are not included.
-
-``` r
-esem_fit <- esem.from.mods(
-  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
-)
-#> Fitting models
-#> 1 / 4   grit_c
-#> 2 / 4   grit_p
-#> 3 / 4   hope_a
-#> 4 / 4   hope_p
-#> Generating parameter estimates
-#> 1 / 4   grit_c
-#> 2 / 4   grit_p
-#> 3 / 4   hope_a
-#> 4 / 4   hope_p
-```
-
-The function provides standard ‘lavaan’ outputs, as well as r-squared
-values and regression parameters.
-
-``` r
-# Not run due to length
-# lavaan::summary(esem_fit$fit$grit_c)  # Standard lavaan summary
-round(esem_fit$r2, 3)
-#>           R2    se ci.lower ci.upper
-#> grit_c 0.508 0.041    0.428    0.588
-#> grit_p 0.731 0.035    0.663    0.799
-#> hope_a 0.782 0.030    0.724    0.840
-#> hope_p 0.610 0.040    0.532    0.688
-```
-
-``` r
-esem_fit$b$grit_c
-#>       rhs est.std    se      z pvalue ci.lower ci.upper
-#> 388 bfi_e  -0.155 0.046 -3.369  0.001   -0.244   -0.065
-#> 389 bfi_a   0.077 0.048  1.607  0.108   -0.017    0.171
-#> 390 bfi_c   0.432 0.048  8.995  0.000    0.338    0.526
-#> 391 bfi_n  -0.367 0.048 -7.606  0.000   -0.461   -0.272
-#> 392 bfi_o   0.100 0.048  2.112  0.035    0.007    0.193
-```
-
-To take advantage of functions’ time-saving `check = TRUE` for
-subsequent running of code, a cache directory will need to be set. To
-see how to do this, see `?cache.setup`.
-
-Alternatively, keys lists can be used. In general, the `esem.from.keys`
-function is recommended for CFA models (see `?esem.from.keys`).
+Two function run ESEM with EFA factors predicting measurement model
+latent variables. The first of these—`esem.from.keys`—uses keys lists to
+run the models using Rosseel and Loh’s (2022) “Structure After
+Measurement” (SAM) method, and the second—`esem.from.mods`—uses fitted
+CFA, bi-factor, and EFA models to run the models using Burt’s (1976)
+2-stage procedure. In general, the SAM method is superior, so
+`esem.from.keys` should be used whenever possible. However,
+`esem.from.keys` currently only supports single-factor measurement
+models and `esem.from.mods` should be used for bi-factor models. See
+`?esem.from.keys` for details.
 
 ``` r
 esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
@@ -356,8 +319,8 @@ esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
 #> 4 / 4   hope_p
 ```
 
-The function provides the same outputs as `esem.from.mods`, only with
-better standard error estimates.
+The function provides standard ‘lavaan’ outputs, as well as r-squared
+values and regression parameters.
 
 ``` r
 lavaan::summary(esam_fit$fit$grit_c)  # lavaan summary for the SAM method
@@ -439,6 +402,104 @@ esam_fit$b$grit_c
 #> 309 bfi_c   0.432 0.050  8.669  0.000    0.334    0.530
 #> 310 bfi_n  -0.367 0.050 -7.328  0.000   -0.465   -0.269
 #> 311 bfi_o   0.100 0.049  2.051  0.040    0.004    0.196
+```
+
+The `esem.from.mods` function provides the same outputs as
+`esem.from.keys`, only with somewhat biased standard error estimates.
+
+``` r
+esem_fit <- esem.from.mods(
+  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
+)
+#> Fitting models
+#> 1 / 4   grit_c
+#> 2 / 4   grit_p
+#> 3 / 4   hope_a
+#> 4 / 4   hope_p
+#> Generating parameter estimates
+#> 1 / 4   grit_c
+#> 2 / 4   grit_p
+#> 3 / 4   hope_a
+#> 4 / 4   hope_p
+```
+
+``` r
+# Not run due to length
+# lavaan::summary(esem_fit$fit$grit_c)  # Standard lavaan summary
+round(esem_fit$r2, 3)
+#>           R2    se ci.lower ci.upper
+#> grit_c 0.508 0.041    0.428    0.588
+#> grit_p 0.731 0.035    0.663    0.799
+#> hope_a 0.782 0.030    0.724    0.840
+#> hope_p 0.610 0.040    0.532    0.688
+```
+
+``` r
+esem_fit$b$grit_c
+#>       rhs est.std    se      z pvalue ci.lower ci.upper
+#> 388 bfi_e  -0.155 0.046 -3.369  0.001   -0.244   -0.065
+#> 389 bfi_a   0.077 0.048  1.607  0.108   -0.017    0.171
+#> 390 bfi_c   0.432 0.048  8.995  0.000    0.338    0.526
+#> 391 bfi_n  -0.367 0.048 -7.606  0.000   -0.461   -0.272
+#> 392 bfi_o   0.100 0.048  2.112  0.035    0.007    0.193
+```
+
+### SEM
+
+Finally, `semFromkeys` includes a function to help run standard
+structural equation models (SEM). The function takes fitted CFA models
+for the measurement models and lavaan code for the structural path(s)
+and uses Rosseel and Loh’s (2022) method to run the model.
+
+``` r
+path <- "grit_p ~ grit_c + hope_p\nhope_p ~ hope_a"
+sem_fit <- sem.path(path, BFIGritHope, cfa_fit$fit, fit_save = TRUE)
+#> Fitting models
+#> 1 / 1   sam
+#> Generating parameter estimates
+#> 1 / 1   sam
+#> Generating model fit statistics
+#> 1 / 1   sam
+#> lavaan NOTE:  
+#>    the fit measures are computed for the structural part only, conditional on 
+#>    the (fixed) measurement model of step 1.
+```
+
+The function outputs include a standard lavaan summary, r-squared
+values, regression path coefficients and correlations, and fit measures.
+
+``` r
+print(summary(sem_fit$fit))      # Standard lavaan summary
+#> Length  Class   Mode 
+#>      1 lavaan     S4
+```
+
+``` r
+sem_fit$b      # Standardised regression path coefficients
+#>     y_var  x_var est.std    se      z pvalue ci.lower ci.upper
+#> 22 grit_p grit_c   0.268 0.045  5.907      0    0.179    0.357
+#> 23 grit_p hope_p   0.744 0.042 17.871      0    0.663    0.826
+#> 24 hope_p hope_a   0.928 0.026 36.248      0    0.877    0.978
+```
+
+``` r
+sem_fit$r2        # R^2 values
+#>    y_var        R2        se  ci.lower  ci.upper
+#> 1 grit_p 0.7641687 0.0512538 0.6637131 0.8646243
+#> 2 hope_p 0.8604516 0.0474752 0.7674019 0.9535013
+```
+
+``` r
+sem_fit$cors          # Correlations
+#>       lhs op    rhs est.std    se    z pvalue ci.lower ci.upper
+#> 21 grit_c ~~ hope_a   0.372 0.052 7.11      0     0.27    0.475
+```
+
+``` r
+# Fit measures
+round(sem_fit$fit_measures[c("chisq", "df", "pvalue", "cfi", "rmsea")], 3)
+#>   chisq      df  pvalue     cfi   rmsea 
+#> 162.576   2.000   0.000   0.895   0.455
 ```
 
 ## References

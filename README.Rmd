@@ -122,40 +122,21 @@ The fitted CFA models can also be used to calculate latent variable correlations
 
 ```{r example-lavaco}
 latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit, nagy = FALSE)
-latent_cors$cor_mat
+```
+
+```{r example-lavaco-matrix}
+round(latent_cors$cor_mat, 3)
 ```
 
 ### ESEM
 
-Outputs from CFA, bifactor, and EFA models can be used as inputs into ESEMs where the scales of the CFAs and bifactor models are regressed on the EFA factors. In this example, bifactor models are not included.
-
-```{r example-esem}
-esem_fit <- esem.from.mods(
-  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
-)
-```
-
-The function provides standard 'lavaan' outputs, as well as r-squared values and regression parameters.
-
-```{r example-esem2}
-# Not run due to length
-# lavaan::summary(esem_fit$fit$grit_c)  # Standard lavaan summary
-round(esem_fit$r2, 3)
-```
-
-```{r example-esem3}
-esem_fit$b$grit_c
-```
-
-To take advantage of functions' time-saving `check = TRUE` for subsequent running of code, a cache directory will need to be set. To see how to do this, see `?cache.setup`.
-
-Alternatively, keys lists can be used. In general, the `esem.from.keys` function is recommended for CFA models (see `?esem.from.keys`).
+Two function run ESEM with EFA factors predicting measurement model latent variables. The first of these---`esem.from.keys`---uses keys lists to run the models using Rosseel and Loh's (2022) "Structure After Measurement" (SAM) method, and the second---`esem.from.mods`---uses fitted CFA, bi-factor, and EFA models to run the models using Burt's (1976) 2-stage procedure. In general, the SAM method is superior, so `esem.from.keys` should be used whenever possible. However, `esem.from.keys` currently only supports single-factor measurement models and `esem.from.mods` should be used for bi-factor models. See `?esem.from.keys` for details.
 
 ```{r example-esam}
 esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
 ```
 
-The function provides the same outputs as `esem.from.mods`, only with better standard error estimates.
+The function provides standard 'lavaan' outputs, as well as r-squared values and regression parameters.
 
 ```{r example-esam2}
 lavaan::summary(esam_fit$fit$grit_c)  # lavaan summary for the SAM method
@@ -167,6 +148,56 @@ round(esam_fit$r2, 3)
 
 ```{r example-esam4}
 esam_fit$b$grit_c
+```
+
+The `esem.from.mods` function provides the same outputs as `esem.from.keys`, only with somewhat biased standard error estimates.
+
+```{r example-esem}
+esem_fit <- esem.from.mods(
+  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
+)
+```
+
+```{r example-esem2}
+# Not run due to length
+# lavaan::summary(esem_fit$fit$grit_c)  # Standard lavaan summary
+round(esem_fit$r2, 3)
+```
+
+```{r example-esem3}
+esem_fit$b$grit_c
+```
+
+### SEM
+
+Finally, `semFromkeys` includes a function to help run standard structural equation models (SEM). The function takes fitted CFA models for the measurement models and lavaan code for the structural path(s) and uses Rosseel and Loh's (2022) method to run the model.
+
+```{r example-sem}
+path <- "grit_p ~ grit_c + hope_p\nhope_p ~ hope_a"
+sem_fit <- sem.path(path, BFIGritHope, cfa_fit$fit, fit_save = TRUE)
+```
+
+The function outputs include a standard lavaan summary, r-squared values, regression path coefficients and correlations, and fit measures.
+
+```{r example-sem2}
+print(summary(sem_fit$fit))      # Standard lavaan summary
+```
+
+```{r example-sem3}
+sem_fit$b      # Standardised regression path coefficients
+```
+
+```{r example-sem4}
+sem_fit$r2        # R^2 values
+```
+
+```{r example-sem5}
+sem_fit$cors          # Correlations
+```
+
+```{r example-sem6}
+# Fit measures
+round(sem_fit$fit_measures[c("chisq", "df", "pvalue", "cfi", "rmsea")], 3)
 ```
 
 ## References
