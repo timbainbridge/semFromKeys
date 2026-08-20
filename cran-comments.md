@@ -1,10 +1,10 @@
-## Latest version
+## Latest submission
 
 ### Notes
 
 * Fixed an important bug whereby the `sem.cor` function would fail if a factor name included a '.'.
 * Added two functions (i.e., `sem.path` and `esem.from.keys`).
-* Added `ordered` as an argument for measurement model functions.
+* Various updates to other functions (see NEWS.md since v0.3.0).
 
 ## 28-7-2026 submission
 

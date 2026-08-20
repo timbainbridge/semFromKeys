@@ -1,3 +1,6 @@
+* Added item residual correlations to `sem.cor` output.
+* Simplified how `items` works in `sem.cor`.
+
 # semFromKeys 0.5.1
 
 * Added `ordered` as an argument for measurement model functions.
@@ -8,7 +11,7 @@
 
 # semFromKeys 0.4.0
 
-* Added the `sem.path()` function, which takes CFA outputs and SEM path code to run an SEM model.
+* Added the `sem.path` function, which takes CFA outputs and SEM path code to run an SEM model.
 
 # semFromKeys 0.3.3
 
