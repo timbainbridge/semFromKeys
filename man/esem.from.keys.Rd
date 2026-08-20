@@ -195,7 +195,7 @@ they are likely close enough for most contexts and there are not any better
 options that are easily implemented.
 }
 \examples{
-# Create CFA / bifactor keys
+# Create CFA keys
 keys0 <- c("hope_a", "hope_p")
 keys <- sapply(
   keys0,
