@@ -1102,7 +1102,7 @@ sem.cor <- function(
             residual_cors_y = rcy,
             residual_cors_y_ci = list(ci_lower = rcy_l, ci_upper = rcy_u),
             residual_cors_x = rcx,
-            residual_cors_x_ci = list(ci_lower_x = rcx_l, ci_upper_x = rcx_u)
+            residual_cors_x_ci = list(ci_lower = rcx_l, ci_upper = rcx_u)
           )
         )
       } else {
@@ -1114,7 +1114,7 @@ sem.cor <- function(
             residual_cors_y = rcy,
             residual_cors_y_ci = list(ci_lower = rcy_l, ci_upper = rcy_u),
             residual_cors_x = rcx,
-            residual_cors_x_ci = list(ci_lower_x = rcx_l, ci_upper_x = rcx_u)
+            residual_cors_x_ci = list(ci_lower = rcx_l, ci_upper = rcx_u)
           )
         )
       }
@@ -1127,7 +1127,7 @@ sem.cor <- function(
           ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
           fit_measures = fit$fit_measures,
           residual_cors = rcy,
-          residual_cors_ci = list(ci_lower = rcy_l, ci_upper_y = rcy_u)
+          residual_cors_ci = list(ci_lower = rcy_l, ci_upper = rcy_u)
         )
       )
     } else {
@@ -1137,7 +1137,7 @@ sem.cor <- function(
           cor_mat = cor_mat,
           ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
           residual_cors = rcy,
-          residual_cors_ci = list(ci_lower = rcy_l, ci_upper_y = rcy_u)
+          residual_cors_ci = list(ci_lower = rcy_l, ci_upper = rcy_u)
         )
       )
     }
