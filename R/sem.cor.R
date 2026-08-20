@@ -934,7 +934,8 @@ sem.cor <- function(
       simplify = FALSE
     )
     if (!is.null(fit_x) | !is.null(items)) {
-      rcy <- do.call(cbind, rcy0)
+      names(rcy0) <- NULL
+      rcy <- do.call(rbind, rcy0)
     } else {
       rcy <- do.call(
         cbind,
@@ -971,16 +972,20 @@ sem.cor <- function(
       simplify = FALSE
     )
     if (!is.null(fit_x) | !is.null(items)) {
-      rcy_l <- do.call(cbind, rcy_l0)
+      names(rcy_l0) <- NULL
+      rcy_l <- do.call(rbind, rcy_l0)
     } else {
       rcy_l <- do.call(
         cbind,
         lapply(
-          rcy_l0,
+          names(rcy_l0),
           function(x) {
-            x1 <- x[unlist(key), , drop = FALSE]
-            rownames(x1) <- unlist(key)
-            x1
+            x1 <- rcy_l0[names(rcy_l0) != x]
+            names(x1) <- rep("", length(x1))
+            x2 <- do.call(rbind, lapply(x1, function(y) y[names(y) == x]))
+            x3 <- x2[unique(unlist(key)), , drop = FALSE]
+            rownames(x3) <- unique(unlist(key))
+            x3
           }
         )
       )
@@ -1005,16 +1010,20 @@ sem.cor <- function(
       simplify = FALSE
     )
     if (!is.null(fit_x) | !is.null(items)) {
-      rcy_u <- do.call(cbind, rcy_u0)
+      names(rcy_u0) <- NULL
+      rcy_u <- do.call(rbind, rcy_u0)
     } else {
       rcy_u <- do.call(
         cbind,
         lapply(
-          rcy_u0,
+          names(rcy_u0),
           function(x) {
-            x1 <- x[unlist(key), , drop = FALSE]
-            rownames(x1) <- unlist(key)
-            x1
+            x1 <- rcy_u0[names(rcy_u0) != x]
+            names(x1) <- rep("", length(x1))
+            x2 <- do.call(rbind, lapply(x1, function(y) y[names(y) == x]))
+            x3 <- x2[unique(unlist(key)), , drop = FALSE]
+            rownames(x3) <- unique(unlist(key))
+            x3
           }
         )
       )
