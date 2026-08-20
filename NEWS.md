@@ -1,3 +1,5 @@
+# semFromKeys 0.5.2
+
 * Added item residual correlations to `sem.cor` output.
 * Simplified how `items` works in `sem.cor`.
 
