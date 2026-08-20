@@ -30,7 +30,7 @@ Data must include all observed variables used in any of the models.}
 \item{fit_x}{A named list of CFA fitted objects to be correlated with fit_y variables
 or 'NULL'.}
 
-\item{items}{A vector of single-item variables to correlate with 'fit_y' latent variables.
+\item{items}{A vector of single-item variables to correlate with \code{fit_y} latent variables.
 Must not include any items contributing to the measurement of a \code{fit_y}
 latent variable.}
 
@@ -94,10 +94,14 @@ The first element is the fitted lavaan models ('fit').
 The second element is the correlation matrix ('cor_mat').
 The third and fourth elements are the upper and lower confidence intervals
 from the models ('ci_lower' and 'ci_upper', respectively).
+If both \code{fit_x = NULL} and \code{items = NULL}, then correlations between all
+\code{fit_y} latent variables will be computed. If either of \code{fit_x} and \code{items}
+are specified, then correlations will be computed between \code{fit_y} latent
+variables and any specified \code{fit_x} latent variables and \code{items}.
 }
 \description{
-sem.cor takes CFA outputs and produces a correlation matrix between latent
-variables and/or single items.
+\code{sem.cor} takes CFA outputs and produces a correlation matrix between latent
+variables.
 }
 \details{
 The function computes correlations between latent variables from fitted CFA
@@ -112,7 +116,7 @@ set \code{fit_x} as a list of fitted CFA models of independent variables.
 Correlations between the \code{fit_y} latent variables and single items can also
 be optionally included by setting \code{items} as a vector of item names.
 In this case, items will be treated as single item latent variables with
-reliability = \code{item_loadings}.
+loadings of \code{item_loadings} (equal to reliability if standardised).
 
 Each correlation is calculated in a separate model.
 This approach saves time for longer lists of variables compared to including

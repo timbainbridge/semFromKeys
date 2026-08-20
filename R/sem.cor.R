@@ -1,8 +1,8 @@
 #' Creates a latent variable correlation matrix from fitted lavaan measurement
 #' models
 #'
-#' sem.cor takes CFA outputs and produces a correlation matrix between latent
-#' variables and/or single items.
+#' `sem.cor` takes CFA outputs and produces a correlation matrix between latent
+#' variables.
 #'
 #' @inheritParams sem.check
 #' @param fit_y A named list of CFA fitted objects.
@@ -10,7 +10,7 @@
 #' A named list of CFA fitted objects to be correlated with fit_y variables
 #' or 'NULL'.
 #' @param items
-#' A vector of single-item variables to correlate with 'fit_y' latent variables.
+#' A vector of single-item variables to correlate with `fit_y` latent variables.
 #' Must not include any items contributing to the measurement of a `fit_y`
 #' latent variable.
 #' @param item_loadings
@@ -38,6 +38,10 @@
 #' The second element is the correlation matrix ('cor_mat').
 #' The third and fourth elements are the upper and lower confidence intervals
 #' from the models ('ci_lower' and 'ci_upper', respectively).
+#' If both `fit_x = NULL` and `items = NULL`, then correlations between all
+#' `fit_y` latent variables will be computed. If either of `fit_x` and `items`
+#' are specified, then correlations will be computed between `fit_y` latent
+#' variables and any specified `fit_x` latent variables and `items`.
 #'
 #' @details
 #' The function computes correlations between latent variables from fitted CFA
@@ -52,7 +56,7 @@
 #' Correlations between the `fit_y` latent variables and single items can also
 #' be optionally included by setting `items` as a vector of item names.
 #' In this case, items will be treated as single item latent variables with
-#' reliability = `item_loadings`.
+#' loadings of `item_loadings` (equal to reliability if standardised).
 #'
 #' Each correlation is calculated in a separate model.
 #' This approach saves time for longer lists of variables compared to including
@@ -235,18 +239,16 @@ sem.cor <- function(
       )
     }
   }
-  if (length(fit_y) <= 1) {
-    if (is.null(items) & is.null(fit_x)) {
-      stop(
-        paste(
-          "'fit_y' is not at least length 2, and 'fit_x' and items are not",
-          "specified.",
-          "At least one measurement model and one item or two measurement",
-          "models must be specified to calculate correlations with or between",
-          "latent variables."
-        )
+  if (length(fit_y) <= 1 & is.null(items) & is.null(fit_x)) {
+    stop(
+      paste(
+        "'fit_y' is not at least length 2, and 'fit_x' and items are not",
+        "specified.",
+        "At least one measurement model and one item or two measurement",
+        "models must be specified to calculate correlations with or between",
+        "latent variables."
       )
-    }
+    )
   }
   par1 <- lapply(fit_y, parameterEstimates)
   if (!nagy) {
@@ -290,7 +292,7 @@ sem.cor <- function(
           paste0(
             "The 'fit_y' model including '", paste(yn, collapse = "' and '"),
             "' includes more than one latent variable. ",
-            "These models are not currently supported by 'sem.cor()'."
+            "These models are not currently supported by 'sem.cor'."
           )
         )
       } else {
@@ -298,7 +300,7 @@ sem.cor <- function(
       }
     }
   )
-  if (is.null(fit_x) & length(fit_y) >= 2) {
+  if (is.null(fit_x) & is.null(items) & length(fit_y) >= 2) {
     pars <- lapply(
       stats::setNames(
         seq_along(par1[-length(par1)]),
@@ -377,7 +379,7 @@ sem.cor <- function(
       simplify = FALSE
     )
   }
-  if ((is.null(fit_x) & length(fit_y) >= 2) | !is.null(fit_x)) {
+  if ((is.null(fit_x) & is.null(items)) | !is.null(fit_x)) {
     mod_key <- lapply(
       pars,
       function(k) {
@@ -681,7 +683,7 @@ sem.cor <- function(
     std.lv = TRUE,
     ordered = NULL
   )
-  if (!is.null(fit_x) | length(fit_y) > 1) {
+  if (!is.null(fit_x) | (length(fit_y) > 1 & is.null(items))) {
     cors_y <- mapply(
       x = fit$par_std[
         !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
@@ -870,7 +872,7 @@ sem.cor <- function(
     rownames(ci_lower_yi) <- items
     rownames(ci_upper_yi) <- items
   }
-  if (is.null(fit_x) & length(fit_y) > 1) {
+  if (is.null(fit_x) & is.null(items)) {
     if (!is.positive.definite(cor_mat_y)) {
       cor_mat_y0 <- as.matrix(nearPD(cor_mat_y, corr = TRUE)$mat)
       dif_mat <- cor_mat_y - cor_mat_y0
@@ -884,7 +886,7 @@ sem.cor <- function(
       warning(
         paste0(
           "The correlation matrix between 'fit_y' constructs has been adjusted",
-          " from initial estimates with the 'Matrix::nearPD()' function ",
+          " from initial estimates with the 'Matrix::nearPD' function ",
           "to ensure it is positive definite.\n  ",
           "The maximum adjustment to any cell was ", max_adj, ".\n  ",
           "'ci_lower' and 'ci_upper' were adjusted by the same absolute amount",
@@ -897,7 +899,7 @@ sem.cor <- function(
     cor_mat <- cor_mat_y
     ci_lower <- ci_lower_y
     ci_upper <- ci_upper_y
-  } else if (is.null(fit_x) & length(fit_y) == 1) {
+  } else if (is.null(fit_x)) {
     cor_mat <- cor_mat_yi
     ci_lower <- ci_lower_yi
     ci_upper <- ci_upper_yi
@@ -906,18 +908,196 @@ sem.cor <- function(
     ci_lower <- rbind(ci_lower_y, ci_lower_yi)
     ci_upper <- rbind(ci_upper_y, ci_upper_yi)
   }
+  if (nagy) {
+    rcy <- do.call(
+      rbind,
+      lapply(
+        names(fit_y),
+        function(yn) {
+          y <- fit$par_std[grep(yn, names(fit$par_std))]
+          do.call(
+            cbind,
+            lapply(
+              y,
+              function(y1) {
+                y2 <- y1[grep("p((x|i)y)", y1$label), ]
+                y3 <- data.frame(y2$est.std, row.names = y2$rhs)
+                names(y3) <- y2$lhs[[1]]
+                y3
+              }
+            )
+          )
+        }
+      )
+    )
+    rcylow <- do.call(
+      rbind,
+      lapply(
+        names(fit_y),
+        function(yn) {
+          y <- fit$par_std[grep(yn, names(fit$par_std))]
+          do.call(
+            cbind,
+            lapply(
+              y,
+              function(y1) {
+                y2 <- y1[grep("p((x|i)y)", y1$label), ]
+                y3 <- data.frame(y2$ci.lower, row.names = y2$rhs)
+                names(y3) <- y2$lhs[[1]]
+                y3
+              }
+            )
+          )
+        }
+      )
+    )
+    rcyup <- do.call(
+      rbind,
+      lapply(
+        names(fit_y),
+        function(yn) {
+          y <- fit$par_std[grep(yn, names(fit$par_std))]
+          do.call(
+            cbind,
+            lapply(
+              y,
+              function(y1) {
+                y2 <- y1[grep("p((x|i)y)", y1$label), ]
+                y3 <- data.frame(y2$ci.upper, row.names = y2$rhs)
+                names(y3) <- y2$lhs[[1]]
+                y3
+              }
+            )
+          )
+        }
+      )
+    )
+    if (!is.null(fit_x)) {
+      rcx <- do.call(
+        rbind,
+        lapply(
+          names(fit_x),
+          function(xn) {
+            x <- fit$par_std[grep(xn, names(fit$par_std))]
+            do.call(
+              cbind,
+              lapply(
+                x,
+                function(x1) {
+                  x2 <- x1[grep("pyx", x1$label), ]
+                  x3 <- data.frame(x2$est.std, row.names = x2$rhs)
+                  names(x3) <- x2$lhs[[1]]
+                  x3
+                }
+              )
+            )
+          }
+        )
+      )
+      rcxlow <- do.call(
+        rbind,
+        lapply(
+          names(fit_x),
+          function(xn) {
+            x <- fit$par_std[grep(xn, names(fit$par_std))]
+            do.call(
+              cbind,
+              lapply(
+                x,
+                function(x1) {
+                  x2 <- x1[grep("pyx", x1$label), ]
+                  x3 <- data.frame(x2$ci.lower, row.names = x2$rhs)
+                  names(x3) <- x2$lhs[[1]]
+                  x3
+                }
+              )
+            )
+          }
+        )
+      )
+      rcxup <- do.call(
+        rbind,
+        lapply(
+          names(fit_x),
+          function(xn) {
+            x <- fit$par_std[grep(xn, names(fit$par_std))]
+            do.call(
+              cbind,
+              lapply(
+                x,
+                function(x1) {
+                  x2 <- x1[grep("pyx", x1$label), ]
+                  x3 <- data.frame(x2$ci.upper, row.names = x2$rhs)
+                  names(x3) <- x2$lhs[[1]]
+                  x3
+                }
+              )
+            )
+          }
+        )
+      )
+      if (fit_save) {
+        return(
+          list(
+            fit = fit$fit, fit_measures = fit$fit_measures,
+            cor_mat = cor_mat,
+            ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
+            residual_cors_y = rcy,
+            residual_cors_y_ci = list(ci_lower = rcylow, ci_upper = rcyup),
+            residual_cors_x = rcx,
+            residual_cors_x_ci = list(ci_lower_x = rcxlow, ci_upper_x = rcxup)
+          )
+        )
+      } else {
+        return(
+          list(
+            fit = fit$fit,
+            cor_mat = cor_mat,
+            ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
+            residual_cors_y = rcy,
+            residual_cors_y_ci = list(ci_lower = rcylow, ci_upper = rcyup),
+            residual_cors_x = rcx,
+            residual_cors_x_ci = list(ci_lower_x = rcxlow, ci_upper_x = rcxup)
+          )
+        )
+      }
+    }
+    if (fit_save) {
+      return(
+        list(
+          fit = fit$fit, fit_measures = fit$fit_measures,
+          cor_mat = cor_mat,
+          ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
+          residual_cors = rcy,
+          residual_cors_ci = list(ci_lower = rcylow, ci_upper_y = rcyup)
+        )
+      )
+    } else {
+      return(
+        list(
+          fit = fit$fit,
+          cor_mat = cor_mat,
+          ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
+          residual_cors = rcy,
+          residual_cors_ci = list(ci_lower = rcylow, ci_upper_y = rcyup)
+        )
+      )
+    }
+  }
   if (fit_save) {
     return(
       list(
         fit = fit$fit, fit_measures = fit$fit_measures,
-        cor_mat = cor_mat, ci_lower = ci_lower, ci_upper = ci_upper
+        cor_mat = cor_mat,
+        ci = list(ci_lower = ci_lower, ci_upper = ci_upper)
       )
     )
   } else {
     return(
       list(
         fit = fit$fit,
-        cor_mat = cor_mat, ci_lower = ci_lower, ci_upper = ci_upper
+        cor_mat = cor_mat,
+        ci = list(ci_lower = ci_lower, ci_upper = ci_upper)
       )
     )
   }
