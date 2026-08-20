@@ -1,10 +1,13 @@
 test_that(
-  "Works with just 'fit_y', 'nagy = TRUE'",
+  "Works with just 'fit_y', 'nagy = TRUE', and 'fit_save = TRUE'",
   {
     fit_y <- cfa_fit[1:3]
-    cors <- sem.cor(BFIGritHope, fit_y)
-    expect_equal(length(cors), 5)
+    cors <- sem.cor(
+      BFIGritHope, fit_y, fit_save = TRUE, fit_measures = c("cfi", "rmsea")
+    )
+    expect_equal(length(cors), 6)
     expect_equal(length(cors$fit), ncol(combn(names(fit_y), 2)))
+    expect_equal(nrow(cors$fit_measures), length(cors$fit))
     expect_all_equal(
       c(
         ncol(cors$cor_mat), nrow(cors$cor_mat),
@@ -20,9 +23,13 @@ test_that(
 test_that(
   "Works with just 'fit_y', 'nagy = FALSE', 'fit_save = TRUE'",
   {
-    cors <- sem.cor(BFIGritHope, cfa_fit, nagy = FALSE, fit_save = TRUE)
+    cors <- sem.cor(
+      BFIGritHope, cfa_fit, nagy = FALSE,
+      fit_save = TRUE, fit_measures = c("cfi", "rmsea")
+    )
     expect_equal(length(cors), 4)
     expect_equal(length(cors$fit), ncol(combn(names(cfa_fit), 2)))
+    expect_equal(nrow(cors$fit_measures), length(cors$fit))
     expect_all_equal(
       c(
         ncol(cors$cor_mat), nrow(cors$cor_mat),
@@ -76,12 +83,15 @@ test_that(
   }
 )
 test_that(
-  "Works with 'fit_y' and 'fit_x', 'nagy = TRUE'",
+  "Works with 'fit_y' and 'fit_x', 'nagy = TRUE', and 'fit_save = TRUE'",
   {
     fit_y <- cfa_fit[1:2]
     fit_x <- cfa_fit[3:4]
-    cors <- sem.cor(BFIGritHope, fit_y, fit_x)
-    expect_equal(length(cors), 7)
+    cors <- sem.cor(
+      BFIGritHope, fit_y, fit_x,
+      fit_save = TRUE, fit_measures = c("cfi", "rmsea")
+    )
+    expect_equal(length(cors), 8)
     expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
     expect_all_equal(
       c(
