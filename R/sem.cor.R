@@ -397,7 +397,7 @@ sem.cor <- function(
             y1 <- y[y$op == "~~" | y$op == "=~", ]
             key_x <- unique(x1$rhs[x1$op == "=~"])
             key_y <- unique(y1$rhs[y1$op == "=~"])
-            key0 <- unique(c(key_x, key_y))
+            key0 <- unique(c(key_y, key_x))
             xn <- unique(x1$lhs[x1$op == "=~"])
             yn <- unique(y1$lhs[y1$op == "=~"])
             # Any shared items. Need to unfix residual variance for these.
@@ -939,11 +939,14 @@ sem.cor <- function(
       rcy <- do.call(
         cbind,
         lapply(
-          rcy0,
+          names(rcy0),
           function(x) {
-            x1 <- x[unlist(key), , drop = FALSE]
-            rownames(x1) <- unlist(key)
-            x1
+            x1 <- rcy0[names(rcy0) != x]
+            names(x1) <- rep("", length(x1))
+            x2 <- do.call(rbind, lapply(x1, function(y) y[names(y) == x]))
+            x3 <- x2[unique(unlist(key)), , drop = FALSE]
+            rownames(x3) <- unique(unlist(key))
+            x3
           }
         )
       )
