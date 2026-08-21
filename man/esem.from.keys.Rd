@@ -210,7 +210,7 @@ keys_e0 <- paste0("bfi_", c("e", "a", "c"))
 keys_e <- sapply(
   keys_e0,
   function(x) {
-    names(BFIGritHope)[grep(paste0(x, "\\\\d_[1-2]"), names(BFIGritHope))]
+    names(BFIGritHope)[grep(paste0(x, "[1-2]_[1-2]"), names(BFIGritHope))]
   },
   simplify = FALSE
 )
@@ -219,7 +219,7 @@ esem_fit <- esem.from.keys(
   BFIGritHope, keys_e, keys, fit_save = FALSE
 )
 # Examine results
-summary(esem_fit$fit$grit_c)  # Standard lavaan summary
+summary(esem_fit$fit$hope_a)  # Standard lavaan summary
 esem_fit$r2                   # R-squareds
 esem_fit$b                    # Betas
 }
