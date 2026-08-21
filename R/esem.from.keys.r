@@ -213,7 +213,7 @@
 #'   BFIGritHope, keys_e, keys, fit_save = FALSE
 #' )
 #' # Examine results
-#' summary(esem_fit$fit$grit_c)  # Standard lavaan summary
+#' summary(esem_fit$fit$hope_a)  # Standard lavaan summary
 #' esem_fit$r2                   # R-squareds
 #' esem_fit$b                    # Betas
 
