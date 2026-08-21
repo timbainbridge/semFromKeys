@@ -126,7 +126,7 @@ keys_e0 <- paste0("bfi_", c("e", "a", "c"))
 keys_e <- sapply(
   keys_e0,
   function(x) {
-    names(BFIGritHope)[grep(paste0(x, "\\\\d_[1-2]"), names(BFIGritHope))]
+    names(BFIGritHope)[grep(paste0(x, "[1-2]_[1-2]"), names(BFIGritHope))]
   },
   simplify = FALSE
 )
