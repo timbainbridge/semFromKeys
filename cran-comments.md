@@ -1,13 +1,8 @@
-## Latest submission (20-8-2026)
+## Latest submission (21-8-2026)
 
 ### R CMD check results
 
-0 errors | 0 warnings | 1 notes
-
-* Examples with CPU (user + system) or elapsed time > 10s
-
-                      user system elapsed
-      esem.from.keys 12.16   0.33   12.49
+0 errors | 0 warnings | 0 notes
 
 ### Notes
 
