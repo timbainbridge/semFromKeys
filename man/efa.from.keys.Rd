@@ -136,8 +136,8 @@ efa_fit <- efa.from.keys(
   fit_save = TRUE, fit_measures = c("chisq", "df", "pvalue")
 )
 # Examine results
-summary(efa_fit$fit$efa)  # Standard lavaan summary
-efa_fit$fit_measures      # Selected fit measures
+summary(efa_fit$fit)    # Standard lavaan summary
+efa_fit$fit_measures    # Selected fit measures
 }
 \references{
 Burt, R. S. (1976).

@@ -4,9 +4,8 @@ test_that(
     efa_fit <-
       efa.from.keys(keys_e, BFIGritHope, check = FALSE, fit_save = FALSE)
     expect_equal(length(efa_fit), 2)
-    expect_equal(length(efa_fit$fit), 1)
-    expect_equal(length(efa_fit$par), 1)
-    expect_equal(sum(sapply(efa_fit$fit, function(x) class(x) != "lavaan")), 0)
+    expect_true(inherits(efa_fit$par, "lavaan.data.frame"))
+    expect_true(inherits(efa_fit$fit, "lavaan"))
   }
 )
 test_that(
@@ -16,9 +15,8 @@ test_that(
       keys_e, BFIGritHope, check = FALSE, fit_save = FALSE, orthogonal = TRUE
     )
     expect_equal(length(efa_fit), 2)
-    expect_equal(length(efa_fit$fit), 1)
-    expect_equal(length(efa_fit$par), 1)
-    expect_equal(sum(sapply(efa_fit$fit, function(x) class(x) != "lavaan")), 0)
+    expect_true(inherits(efa_fit$par, "lavaan.data.frame"))
+    expect_true(inherits(efa_fit$fit, "lavaan"))
     # Check orthogonal
     expect_equal(
       sum(
@@ -44,9 +42,8 @@ test_that(
       keys_e, BFIGritHope, check = FALSE, fit_save = TRUE
     )
     expect_equal(length(efa_fit), 3)
-    expect_equal(length(efa_fit$fit), 1)
-    expect_equal(length(efa_fit$par), 1)
-    expect_equal(sum(sapply(efa_fit$fit, function(x) class(x) != "lavaan")), 0)
+    expect_true(inherits(efa_fit$par, "lavaan.data.frame"))
+    expect_true(inherits(efa_fit$fit, "lavaan"))
   }
 )
 
@@ -137,8 +134,7 @@ test_that(
       keys_e, BFIGritHope, fit_save = FALSE, ordered = names(BFIGritHope)
     )
     expect_equal(length(efa_fit), 2)
-    expect_equal(length(efa_fit$fit), 1)
-    expect_equal(length(efa_fit$par), 1)
-    expect_equal(sum(sapply(efa_fit$fit, function(x) class(x) != "lavaan")), 0)
+    expect_true(inherits(efa_fit$par, "lavaan.data.frame"))
+    expect_true(inherits(efa_fit$fit, "lavaan"))
   }
 )

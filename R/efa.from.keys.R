@@ -79,8 +79,8 @@
 #'   fit_save = TRUE, fit_measures = c("chisq", "df", "pvalue")
 #' )
 #' # Examine results
-#' summary(efa_fit$fit$efa)  # Standard lavaan summary
-#' efa_fit$fit_measures      # Selected fit measures
+#' summary(efa_fit$fit)    # Standard lavaan summary
+#' efa_fit$fit_measures    # Selected fit measures
 
 efa.from.keys <- function(
     keys, data, orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
