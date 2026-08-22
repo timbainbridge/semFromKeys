@@ -2,6 +2,7 @@
 
 * Added item residual correlations to `sem.cor` output.
 * Simplified how `items` works in `sem.cor`.
+* Changed `efa.from.keys` output to not have the unnecessary third layer (e.g., `fit$fit$efa` became `fit$fit`).
 
 # semFromKeys 0.5.1
 
