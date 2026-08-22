@@ -177,7 +177,7 @@ test_that(
 #       cfa.from.keys(keys, BFIGritHope, FALSE, ordered = names(BFIGritHope))$fit
 #     efa_fit <- efa.from.keys(
 #       keys_e, BFIGritHope, fit_save = FALSE, ordered = names(BFIGritHope)
-#     )$fit$efa
+#     )$fit
 #     esem_fit <- esem.from.mods(
 #       efa_fit, cfa_fit, data = BFIGritHope, fit_save = FALSE,
 #       ordered = names(BFIGritHope)
@@ -204,7 +204,7 @@ test_that(
     )$fit
     efa_fit_ord <- efa.from.keys(
       keys_e, BFIGritHope, fit_save = FALSE, ordered = names(BFIGritHope)
-    )$fit$efa
+    )$fit
     expect_error(
       esem.from.mods(BFIGritHope, efa_fit, cfa_fit_ord),
       "one element of 'cfa_fit' is a model with ordinal variables"

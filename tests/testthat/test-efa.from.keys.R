@@ -23,13 +23,13 @@ test_that(
     expect_equal(
       sum(
         abs(
-          efa_fit$par$efa$est[
+          efa_fit$par$est[
             grepl(
               paste0("^", names(keys_e), "$", collapse = "|"),
-              efa_fit$par$efa$lhs
+              efa_fit$par$lhs
             ) &
-              efa_fit$par$efa$op == "~~" &
-              efa_fit$par$efa$lhs != efa_fit$par$efa$rhs
+              efa_fit$par$op == "~~" &
+              efa_fit$par$lhs != efa_fit$par$rhs
           ] > 10e-10
         )
       ),

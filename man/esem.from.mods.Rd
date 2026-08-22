@@ -243,7 +243,7 @@ cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)
 efa_fit <- efa.from.keys(keys_e, BFIGritHope, fit_save = FALSE)
 # Run models
 esem_fit <- esem.from.mods(
-  efa_fit$fit$efa, cfa_fit$fit, data = BFIGritHope,
+  efa_fit$fit, cfa_fit$fit, data = BFIGritHope,
   fit_save = FALSE, check = FALSE
 )
 # Examine results

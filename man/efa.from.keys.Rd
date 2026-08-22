@@ -126,18 +126,18 @@ keys_e0 <- paste0("bfi_", c("e", "a", "c"))
 keys_e <- sapply(
   keys_e0,
   function(x) {
-    names(BFIGritHope)[grep(paste0(x, "[1-2]_[1-2]"), names(BFIGritHope))]
+    names(BFIGritHope)[grep(paste0(x, "\\\\d_[1-2]"), names(BFIGritHope))]
   },
   simplify = FALSE
 )
 # Run model with selected fit measures.
 efa_fit <- efa.from.keys(
   keys_e, BFIGritHope, check = FALSE,
-  fit_save = TRUE, fit_measures = c("cfi", "rmsea")
+  fit_save = TRUE, fit_measures = c("chisq", "df", "pvalue")
 )
 # Examine results
 summary(efa_fit$fit$efa)  # Standard lavaan summary
-efa_fit$fit_measures      # Fit measures
+efa_fit$fit_measures      # Selected fit measures
 }
 \references{
 Burt, R. S. (1976).

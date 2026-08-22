@@ -69,18 +69,18 @@
 #' keys_e <- sapply(
 #'   keys_e0,
 #'   function(x) {
-#'     names(BFIGritHope)[grep(paste0(x, "[1-2]_[1-2]"), names(BFIGritHope))]
+#'     names(BFIGritHope)[grep(paste0(x, "\\d_[1-2]"), names(BFIGritHope))]
 #'   },
 #'   simplify = FALSE
 #' )
 #' # Run model with selected fit measures.
 #' efa_fit <- efa.from.keys(
 #'   keys_e, BFIGritHope, check = FALSE,
-#'   fit_save = TRUE, fit_measures = c("cfi", "rmsea")
+#'   fit_save = TRUE, fit_measures = c("chisq", "df", "pvalue")
 #' )
 #' # Examine results
 #' summary(efa_fit$fit$efa)  # Standard lavaan summary
-#' efa_fit$fit_measures      # Fit measures
+#' efa_fit$fit_measures      # Selected fit measures
 
 efa.from.keys <- function(
     keys, data, orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
@@ -98,7 +98,7 @@ efa.from.keys <- function(
     )
   )
   names(mod) <- name
-  sem.check(
+  fit <- sem.check(
     mod,
     data,
     name = name,
@@ -116,4 +116,7 @@ efa.from.keys <- function(
     check = check,
     save_out = save_out
   )
+  fit$fit <- fit$fit$efa
+  fit$par <- fit$par$efa
+  return(fit)
 }
