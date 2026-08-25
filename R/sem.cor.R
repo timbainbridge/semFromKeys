@@ -259,38 +259,25 @@ sem.cor <- function(
   if (!nagy) {
     lapply(
       par1,
-      function(x) {
-        if (sum(x$op == "|") > 0) {
+      function(y) {
+        yn <- unique(y$lhs[y$op == "=~"])
+        if (sum(y$op == "|") > 0) {
           stop(
-            paste(
-              "At least one element of 'fit_y' is a model with ordinal",
-              "variables, which are not currently supported in 'sem.cor'.",
+            paste0(
+              "The 'fit_y' model including '", paste(yn, collapse = "' and '"),
+              " is a model with ordinal variables, which are not currently ",
+              "supported in 'sem.cor'.",
               "Using 'sem.cor' with 'nagy = TRUE' can run the models with the",
-              "current inputs, but variables will not be treated as ordinal.",
-              "Alternatively, re-run the input models with all variables",
-              "treated as continuous."
+              "current inputs, but variables will not be treated as ordinal."
             )
           )
         }
       }
     )
   } else {
-    if (sum(sapply(par1, function(x) sum(x$op == "|") > 0)) > 0) {
-      warning(
-        paste(
-          "At least one element of 'fit_y' is a model with ordinal",
-          "variables, which are not currently supported in 'sem.cor'.",
-          "Given 'nagy = TRUE', the models can run with the",
-          "current inputs, but variables have not be treated as ordinal."
-        )
-      )
-    }
-  }
-  # Rename y objects to match factors
-  names(fit_y) <- names(par1) <- sapply(
-    par1,
-    function(y) {
-      y1 <- y[y$op %in% c("~~", "=~"), ]
+    ord_yn <- c()
+    cor_yn <- c()
+    for (y in par1) {
       yn <- unique(y$lhs[y$op == "=~"])
       if (length(yn) > 1) {
         stop(
@@ -300,10 +287,49 @@ sem.cor <- function(
             "These models are not currently supported by 'sem.cor'."
           )
         )
+      }
+      if (sum(y$op == "|") > 0) {
+        warn_ord <- TRUE
+        ord_yn <- c(ord_yn, yn)
       } else {
-        yn
+        warn_ord <- FALSE
+      }
+      if (sum(y$op == "~~" & y$lhs != y$rhs) > 0) {
+        warn_cor <- TRUE
+        cor_yn <- c(cor_yn, yn)
+      } else {
+        warn_cor <- FALSE
       }
     }
+    if (warn_ord) {
+      warning(
+        paste0(
+          "The model(s) including latent variable(s) below include(s) ",
+          "ordinal variables, which are not currently supported in ",
+          "'sem.cor'. Given 'nagy = TRUE', the models will run with the",
+          "current inputs, but variables have not be treated as ordinal.",
+          "\n\n    ",
+          paste0(ord_yn, collapse = "\n    ")
+        )
+      )
+    }
+    if (warn_cor) {
+      warning(
+        paste0(
+          "The model(s) including the latent variable(s) listed below include ",
+          "at least one correlation between two different variables (such as ",
+          "correlated residuals). This is not currently supported in ",
+          "'sem.cor' when 'nagy = TRUE', so it has been ignored. ",
+          "If your model must include the correlation, try setting ",
+          "'nagy = FALSE'.\n\n    ",
+          paste0(cor_yn, collapse = "\n    ")
+        )
+      )
+    }
+  }
+  # Rename y objects to match factors
+  names(fit_y) <- names(par1) <- sapply(
+    par1, function(y) unique(y$lhs[y$op == "=~"])
   )
   if (is.null(fit_x) & is.null(items) & length(fit_y) >= 2) {
     pars <- lapply(
@@ -327,55 +353,82 @@ sem.cor <- function(
   } else if (!is.null(fit_x)) {
     # Correlations between constructs in fit_y and constructs in fit_x
     par2 <- lapply(fit_x, parameterEstimates)
-    names(fit_x) <- names(par2) <- sapply(
-      par2,
-      function(x) {
-        x1 <- x[x$op %in% c("~~", "=~"), ]
-        xn <- unique(x$lhs[x$op == "=~"])
-        if (length(xn) > 1) {
-          stop(
-            paste0(
-              "The 'fit_x' model including '", paste(xn, collapse = "' and '"),
-              "' includes more than one latent variable. ",
-              "These models are not currently supported by 'sem.cor()'. ",
-              "Please include them separately."
-            )
-          )
-        } else {
-          xn
-        }
-      }
-    )
     if (!nagy) {
       lapply(
         par2,
         function(x) {
+          xn <- unique(x$lhs[x$op == "=~"])
           if (sum(x$op == "|") > 0) {
             stop(
-              paste(
-                "At least one element of 'fit_x' is a model with ordinal",
-                "variables, which are not currently supported in 'sem.cor'.",
-                "Using 'sem.cor' with 'nagy = TRUE' can run the models with",
-                "the current inputs, but variables will not be treated as",
-                "ordinal. Alternatively, re-run the input models with all",
-                "variables treated as continuous."
+              paste0(
+                "The 'fit_y' model including '",
+                paste(xn, collapse = "' and '"),
+                " is a model with ordinal variables, which are not currently ",
+                "supported in 'sem.cor'.",
+                "Using 'sem.cor' with 'nagy = TRUE' can run the models with ",
+                "the current inputs, but variables will not be treated as ",
+                "ordinal."
               )
             )
           }
         }
       )
     } else {
-      if (sum(sapply(par2, function(x) sum(x$op == "|") > 0)) > 0) {
+      ord_xn <- c()
+      cor_xn <- c()
+      for (x in par2) {
+        xn <- unique(x$lhs[x$op == "=~"])
+        if (length(xn) > 1) {
+          stop(
+            paste0(
+              "The 'fit_x' model including '", paste(xn, collapse = "' and '"),
+              "' includes more than one latent variable. ",
+              "These models are not currently supported by 'sem.cor'."
+            )
+          )
+        }
+        if (sum(x$op == "|") > 0) {
+          warn_ord <- TRUE
+          ord_xn <- c(ord_xn, xn)
+        } else {
+          warn_ord <- FALSE
+        }
+        if (sum(x$op == "~~" & x$lhs != x$rhs) > 0) {
+          warn_cor <- TRUE
+          cor_xn <- c(cor_xn, xn)
+        } else {
+          warn_cor <- FALSE
+        }
+      }
+      if (warn_ord) {
         warning(
-          paste(
-            "At least one element of 'fit_x' is a model with ordinal",
-            "variables, which are not currently supported in 'sem.cor'.",
-            "Given 'nagy = TRUE', the models can run with the",
-            "current inputs, but variables have not be treated as ordinal."
+          paste0(
+            "The model(s) including latent variable(s) below include(s) ",
+            "ordinal variables, which are not currently supported in ",
+            "'sem.cor'. Given 'nagy = TRUE', the models will run with the",
+            "current inputs, but variables have not be treated as ordinal.",
+            "\n\n    ",
+            paste0(ord_xn, collapse = "\n    ")
+          )
+        )
+      }
+      if (warn_cor) {
+        warning(
+          paste0(
+            "The model(s) including the latent variable(s) listed below ",
+            "include at least one correlation between two different variables ",
+            "(such as correlated residuals). This is not currently supported ",
+            "in 'sem.cor' when 'nagy = TRUE', so it has been ignored. ",
+            "If your model must include the correlation, try setting ",
+            "'nagy = FALSE'.\n\n    ",
+            paste0(cor_xn, collapse = "\n    ")
           )
         )
       }
     }
+    names(fit_x) <- names(par2) <- sapply(
+      par2, function(x) unique(x$lhs[x$op == "=~"])
+    )
     pars <- sapply(
       par1,
       function(y) {
@@ -565,7 +618,7 @@ sem.cor <- function(
     mod_key_i <- lapply(
       par1,
       function(y) {
-        y1 <- y[y$op %in% c("~~", "=~"), ]
+        y1 <- y[y$op == "=~" | (y$op == "~~" & y$lhs != y$rhs), ]
         yn <- unique(y$lhs[y$op == "=~"])
         if (nagy) {
           y1l <- y1[y1$op == "=~", ]
