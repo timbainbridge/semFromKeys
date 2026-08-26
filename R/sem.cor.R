@@ -33,13 +33,21 @@
 #' procedure instead of Burt's (1976) 2-stage procedure.
 #'
 #' @return
-#' Returns a list of length 3-8 depending on option selections.
-#' All versions include fitted lavaan models ('fit');
-#' a correlation matrix ('cor_mat'); and
-#' a list of upper and lower 95% confidence intervals of the correlations.
-#' If `fit_save = TRUE`, a list of fit measures is also returned, and,
-#' if `nagy = TRUE`, matrices of residual correlations and lists of their 95%
-#' confidence intervals are also returned.
+#' Returns a list of length 4-11 depending on option selections.
+#' All versions include fitted lavaan models (`fit`);
+#' a correlation matrix (`cor_mat`);
+#' p-values of the correlations (`pvalues`); and
+#' a list of upper and lower 95% confidence intervals of the correlations
+#' (`ci`).
+#' If `fit_save = TRUE`, a list of fit measures is also returned
+#' (`fit_measures`), and,
+#' if `nagy = TRUE`, matrices of residual correlations (`residual_cors`), their
+#' p-values (`residual_cors_pvalues`), and lists of their 95% confidence
+#' intervals (`residual_cors_ci`) are also returned.
+#' If both `fit_y` and `fit_x` are specified, then there one set of residual
+#' correlation results for the items from each set of factors
+#' (i.e., `residual_cors_x` and `residual_cors_y` for the items of 'x' and 'y'
+#' factors, respectively).
 #'
 #' @details
 #' The function computes correlations between latent variables from fitted CFA
@@ -98,7 +106,7 @@
 #' thereby biasing standard errors and model fit indices.
 #' They should, however, give very similar point estimates for correlations.
 #' Therefore, Nagy's method should be preferred whenever confidence intervals
-#' or model fit matter, except for extremely large sets of variables.
+#' or model fit matter, except for large sets of variables.
 #'
 #' It is possible for latent variable correlations to produce a non-positive
 #' definite correlation matrix between variables included in `fit_y`,
@@ -108,7 +116,14 @@
 #' [Matrix::nearPD] function, which employs the method developed by Higham
 #' (2002), and a message will state that the matrix was adjusted and the maximum
 #' adjustment to any cell.
-#' Confidence intervals will be adjusted by the same amount.
+#' Confidence intervals will be adjusted by the same amount, but p-values will
+#' not be adjusted, so will be very slightly incorrect.
+#' In general, inaccuracies in p-values will be most likely for larger
+#' correlations (i.e., ones more likely to be highly significant) but if the
+#' maximum adjustment, printed in the warning, is large, then use p-values with
+#' care. Unadjusted correlations can be returned by running `sem.cor` with a
+#' smaller set of variables such that non-positive definiteness is not an
+#' issue (except when `lavaan` returns a measured correlation greater than 1).
 #'
 #' The model relies on [sem.check] for the back-end of running the models,
 #' which enables saving inputs and outputs from model runs
@@ -764,6 +779,14 @@ sem.cor <- function(
       yn0 = yn,
       FUN = function(x, xn0, yn0) x$ci.upper[x$lhs == xn0 & x$rhs == yn0]
     )
+    pvalue_y <- mapply(
+      x = fit$par_std[
+        !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
+      ],
+      xn0 = xn,
+      yn0 = yn,
+      FUN = function(x, xn0, yn0) x$pvalue[x$lhs == xn0 & x$rhs == yn0]
+    )
     if (is.null(fit_x)) {
       cor_mat_y <- sapply(
         names(fit_y),
@@ -819,6 +842,23 @@ sem.cor <- function(
         }
       )
       rownames(ci_upper_y) <- names(fit_y)
+      pvalue_mat_y <- sapply(
+        names(fit_y),
+        function(x) {
+          sapply(
+            names(fit_y), function(y) {
+              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              tmp <- pvalue_y[grep(ptn, names(pvalue_y))]
+              if (length(tmp) == 0) {
+                tmp <- 1
+              }
+              tmp
+            },
+            USE.NAMES = FALSE
+          )
+        }
+      )
+      rownames(pvalue_mat_y) <- names(fit_y)
     } else {
       cor_mat_y <- sapply(
         names(fit_y),
@@ -859,6 +899,19 @@ sem.cor <- function(
           )
         }
       )
+      pvalue_mat_y <- sapply(
+        names(fit_y),
+        function(y) {
+          sapply(
+            names(fit_x),
+            function(x) {
+              ptn <- c(paste0(x, ".", y), paste0(y, ".", x))
+              pvalue_y[names(pvalue_y) %in% ptn]
+            },
+            USE.NAMES = FALSE
+          )
+        }
+      )
       if (is.vector(cor_mat_y) & length(fit_x) == 1) {
         cor_mat_y <- matrix(cor_mat_y, nrow = 1)
         colnames(cor_mat_y) <- names(fit_y)
@@ -866,10 +919,13 @@ sem.cor <- function(
         colnames(ci_lower_y) <- names(fit_y)
         ci_upper_y <- matrix(ci_upper_y, nrow = 1)
         colnames(ci_upper_y) <- names(fit_y)
+        pvalue_mat_y <- matrix(pvalue_mat_y, nrow = 1)
+        colnames(pvalue_mat_y) <- names(fit_y)
       }
       rownames(cor_mat_y) <- names(fit_x)
       rownames(ci_lower_y) <- names(fit_x)
       rownames(ci_upper_y) <- names(fit_x)
+      rownames(pvalue_mat_y) <- names(fit_x)
     }
   }
   if (!is.null(items)) {
@@ -916,6 +972,15 @@ sem.cor <- function(
         )
       }
     )
+    pvalue_mat_yi <- sapply(
+      names(fit_y),
+      function(x) {
+        sapply(
+          items_l,
+          function(y) cors_yi$pvalue[cors_yi$lhs == x & cors_yi$rhs == y]
+        )
+      }
+    )
     if (is.vector(cor_mat_yi) & length(items) == 1) {
       cor_mat_yi <- matrix(cor_mat_yi, nrow = 1)
       colnames(cor_mat_yi) <- names(fit_y)
@@ -923,10 +988,13 @@ sem.cor <- function(
       colnames(ci_lower_yi) <- names(fit_y)
       ci_upper_yi <- matrix(ci_upper_yi, nrow = 1)
       colnames(ci_upper_yi) <- names(fit_y)
+      pvalue_mat_yi <- matrix(pvalue_mat_yi, nrow = 1)
+      colnames(pvalue_mat_yi) <- names(fit_y)
     }
     rownames(cor_mat_yi) <- items
     rownames(ci_lower_yi) <- items
     rownames(ci_upper_yi) <- items
+    rownames(pvalue_mat_yi) <- items
   }
   if (is.null(fit_x) & is.null(items)) {
     if (!is.positive.definite(cor_mat_y)) {
@@ -946,7 +1014,10 @@ sem.cor <- function(
           "to ensure it is positive definite.\n  ",
           "The maximum adjustment to any cell was ", max_adj, ".\n  ",
           "'ci_lower' and 'ci_upper' were adjusted by the same absolute amount",
-          " as the primary correlation matrix."
+          " as the primary correlation matrix.\n  ",
+          "p-values were not adjusted. In most cases, they would be extremely ",
+          "similar, but if the maximum adjustment noted above is large, use ",
+          "with caution."
         )
       )
     }
@@ -955,14 +1026,17 @@ sem.cor <- function(
     cor_mat <- cor_mat_y
     ci_lower <- ci_lower_y
     ci_upper <- ci_upper_y
+    pvalue_mat <- pvalue_mat_y
   } else if (is.null(fit_x)) {
     cor_mat <- cor_mat_yi
     ci_lower <- ci_lower_yi
     ci_upper <- ci_upper_yi
+    pvalue_mat <- pvalue_mat_yi
   } else {
     cor_mat <- rbind(cor_mat_y, cor_mat_yi)
     ci_lower <- rbind(ci_lower_y, ci_lower_yi)
     ci_upper <- rbind(ci_upper_y, ci_upper_yi)
+    pvalue_mat <- rbind(pvalue_mat_y, pvalue_mat_yi)
   }
   if (nagy) {
     rcy0 <- sapply(
@@ -1079,6 +1153,44 @@ sem.cor <- function(
         )
       )
     }
+    rcy_p0 <- sapply(
+      names(fit_y),
+      function(yn) {
+        y <- fit$par_std[grep(yn, names(fit$par_std))]
+        do.call(
+          cbind,
+          lapply(
+            y,
+            function(y1) {
+              y2 <- y1[grepl("p((x|i)y|yx)", y1$label) & y1$lhs != yn, ]
+              y3 <- data.frame(y2$pvalue, row.names = y2$rhs)
+              names(y3) <- y2$lhs[[1]]
+              y3
+            }
+          )
+        )
+      },
+      simplify = FALSE
+    )
+    if (!is.null(fit_x) | !is.null(items)) {
+      names(rcy_p0) <- NULL
+      rcy_p <- do.call(rbind, rcy_p0)
+    } else {
+      rcy_p <- do.call(
+        cbind,
+        lapply(
+          names(rcy_p0),
+          function(x) {
+            x1 <- rcy_p0[names(rcy_p0) != x]
+            names(x1) <- rep("", length(x1))
+            x2 <- do.call(rbind, lapply(x1, function(y) y[names(y) == x]))
+            x3 <- x2[unique(unlist(key)), , drop = FALSE]
+            rownames(x3) <- unique(unlist(key))
+            x3
+          }
+        )
+      )
+    }
     if (!is.null(fit_x)) {
       rcx <- do.call(
         rbind,
@@ -1143,16 +1255,37 @@ sem.cor <- function(
           }
         )
       )
+      rcx_p <- do.call(
+        rbind,
+        lapply(
+          names(fit_x),
+          function(xn) {
+            x <- fit$par_std[grep(xn, names(fit$par_std))]
+            do.call(
+              cbind,
+              lapply(
+                x,
+                function(x1) {
+                  x2 <- x1[grep("pyx", x1$label), ]
+                  x3 <- data.frame(x2$pvalue, row.names = x2$rhs)
+                  names(x3) <- x2$lhs[[1]]
+                  x3
+                }
+              )
+            )
+          }
+        )
+      )
       if (fit_save) {
         return(
           list(
             fit = fit$fit,
-            cor_mat = cor_mat,
+            cor_mat = cor_mat, pvalues = pvalue_mat,
             ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
             fit_measures = fit$fit_measures,
-            residual_cors_y = rcy,
+            residual_cors_y = rcy, residual_cors_y_pvalues = rcy_p,
             residual_cors_y_ci = list(ci_lower = rcy_l, ci_upper = rcy_u),
-            residual_cors_x = rcx,
+            residual_cors_x = rcx, residual_cors_x_pvalues = rcx_p,
             residual_cors_x_ci = list(ci_lower = rcx_l, ci_upper = rcx_u)
           )
         )
@@ -1160,11 +1293,11 @@ sem.cor <- function(
         return(
           list(
             fit = fit$fit,
-            cor_mat = cor_mat,
+            cor_mat = cor_mat, pvalues = pvalue_mat,
             ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
-            residual_cors_y = rcy,
+            residual_cors_y = rcy, residual_cors_y_pvalues = rcy_p,
             residual_cors_y_ci = list(ci_lower = rcy_l, ci_upper = rcy_u),
-            residual_cors_x = rcx,
+            residual_cors_x = rcx, residual_cors_x_pvalues = rcx_p,
             residual_cors_x_ci = list(ci_lower = rcx_l, ci_upper = rcx_u)
           )
         )
@@ -1174,10 +1307,10 @@ sem.cor <- function(
       return(
         list(
           fit = fit$fit,
-          cor_mat = cor_mat,
+          cor_mat = cor_mat, pvalues = pvalue_mat,
           ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
           fit_measures = fit$fit_measures,
-          residual_cors = rcy,
+          residual_cors = rcy, residual_cors_pvalues = rcy_p,
           residual_cors_ci = list(ci_lower = rcy_l, ci_upper = rcy_u)
         )
       )
@@ -1185,9 +1318,9 @@ sem.cor <- function(
       return(
         list(
           fit = fit$fit,
-          cor_mat = cor_mat,
+          cor_mat = cor_mat, pvalues = pvalue_mat,
           ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
-          residual_cors = rcy,
+          residual_cors = rcy, residual_cors_pvalues = rcy_p,
           residual_cors_ci = list(ci_lower = rcy_l, ci_upper = rcy_u)
         )
       )
@@ -1197,7 +1330,7 @@ sem.cor <- function(
     return(
       list(
         fit = fit$fit,
-        cor_mat = cor_mat,
+        cor_mat = cor_mat, pvalues = pvalue_mat,
         ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
         fit_measures = fit$fit_measures
       )
@@ -1206,7 +1339,7 @@ sem.cor <- function(
     return(
       list(
         fit = fit$fit,
-        cor_mat = cor_mat,
+        cor_mat = cor_mat, pvalues = pvalue_mat,
         ci = list(ci_lower = ci_lower, ci_upper = ci_upper)
       )
     )
