@@ -265,7 +265,7 @@ sem.cor <- function(
           stop(
             paste0(
               "The 'fit_y' model including '", paste(yn, collapse = "' and '"),
-              " is a model with ordinal variables, which are not currently ",
+              "' is a model with ordinal variables, which are not currently ",
               "supported in 'sem.cor'.",
               "Using 'sem.cor' with 'nagy = TRUE' can run the models with the",
               "current inputs, but variables will not be treated as ordinal."
@@ -304,11 +304,10 @@ sem.cor <- function(
     if (warn_ord) {
       warning(
         paste0(
-          "The models including latent variables listed below include ",
-          "ordinal variables, which are not currently supported in ",
-          "'sem.cor'. Given 'nagy = TRUE', the models will run with the",
-          "current inputs, but variables have not be treated as ordinal.",
-          "\n\n    ",
+          "The 'fit_y' models listed below include ordinal variables, ",
+          "which are not currently supported in 'sem.cor'. ",
+          "Given 'nagy = TRUE', the models will run with the current inputs, ",
+          "but variables have not be treated as ordinal.\n\n    ",
           paste0(ord_yn, collapse = "\n    ")
         )
       )
@@ -316,9 +315,9 @@ sem.cor <- function(
     if (warn_cor) {
       warning(
         paste0(
-          "The models including the latent variables listed below include ",
-          "at least one correlation between two different variables (such as ",
-          "correlated residuals). This is not currently supported in ",
+          "The 'fit_y' models including the latent variables listed below ",
+          "include at least one correlation between two different variables ",
+          "(such as correlated residuals). This is not currently supported in ",
           "'sem.cor' when 'nagy = TRUE', so it has been ignored. ",
           "If your model must include the correlation, try setting ",
           "'nagy = FALSE'.\n\n    ",
@@ -361,9 +360,9 @@ sem.cor <- function(
           if (sum(x$op == "|") > 0) {
             stop(
               paste0(
-                "The 'fit_y' model including '",
+                "The 'fit_x' model including '",
                 paste(xn, collapse = "' and '"),
-                " is a model with ordinal variables, which are not currently ",
+                "' is a model with ordinal variables, which are not currently ",
                 "supported in 'sem.cor'.",
                 "Using 'sem.cor' with 'nagy = TRUE' can run the models with ",
                 "the current inputs, but variables will not be treated as ",
@@ -403,11 +402,10 @@ sem.cor <- function(
       if (warn_ord) {
         warning(
           paste0(
-            "The model(s) including latent variable(s) below include(s) ",
-            "ordinal variables, which are not currently supported in ",
-            "'sem.cor'. Given 'nagy = TRUE', the models will run with the",
-            "current inputs, but variables have not be treated as ordinal.",
-            "\n\n    ",
+            "The 'fit_x' models listed below include ordinal variables, ",
+            "which are not currently supported in 'sem.cor'. ",
+            "Given 'nagy = TRUE', the models will run with the current inputs,",
+            " but variables have not be treated as ordinal.\n\n    ",
             paste0(ord_xn, collapse = "\n    ")
           )
         )
@@ -415,7 +413,7 @@ sem.cor <- function(
       if (warn_cor) {
         warning(
           paste0(
-            "The model(s) including the latent variable(s) listed below ",
+            "The 'fit_x' models including the latent variables listed below ",
             "include at least one correlation between two different variables ",
             "(such as correlated residuals). This is not currently supported ",
             "in 'sem.cor' when 'nagy = TRUE', so it has been ignored. ",

@@ -531,19 +531,19 @@ test_that(
     )$fit
     expect_error(
       sem.cor(BFIGritHope, cfa_fit_ord, nagy = FALSE),
-      "one element of 'fit_y' is a model with ordinal variables"
+      "The 'fit_y' model including '.*' is a model with ordinal variables"
     )
     expect_error(
       sem.cor(BFIGritHope, cfa_fit[3:4], cfa_fit_ord, nagy = FALSE),
-      "one element of 'fit_x' is a model with ordinal variables"
+      "The 'fit_x' model including '.*' is a model with ordinal variables"
     )
     expect_warning(
       sem.cor(BFIGritHope, cfa_fit_ord),
-      "one element of 'fit_y' is a model with ordinal variables"
+      "The 'fit_y' models listed below include ordinal variables"
     )
     expect_warning(
       sem.cor(BFIGritHope, cfa_fit[3:4], cfa_fit_ord),
-      "one element of 'fit_x' is a model with ordinal variables"
+      "The 'fit_x' models listed below include ordinal variables"
     )
   }
 )
