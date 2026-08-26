@@ -618,7 +618,7 @@ sem.cor <- function(
     mod_key_i <- lapply(
       par1,
       function(y) {
-        y1 <- y[y$op == "=~" | (y$op == "~~" & y$lhs != y$rhs), ]
+        y1 <- y[y$op == "=~" | (y$op == "~~" & y$lhs == y$rhs), ]
         yn <- unique(y$lhs[y$op == "=~"])
         if (nagy) {
           y1l <- y1[y1$op == "=~", ]
