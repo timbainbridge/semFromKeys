@@ -312,7 +312,7 @@ test_that(
         nrow(cors$cor_mat), nrow(cors$pvalues),
         nrow(cors$ci_lower), nrow(cors$ci_upper)
       ),
-      length(items)
+      length(fit_x)
     )
   }
 )
@@ -433,7 +433,7 @@ test_that(
           nagy = FALSE
         )
       ),
-      3
+      4
     )
   }
 )
