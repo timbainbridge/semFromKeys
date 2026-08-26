@@ -5,15 +5,17 @@ test_that(
     cors <- sem.cor(
       BFIGritHope, fit_y, fit_save = TRUE, fit_measures = c("cfi", "rmsea")
     )
-    expect_equal(length(cors), 6)
+    expect_equal(length(cors), 8)
     expect_equal(length(cors$fit), ncol(combn(names(fit_y), 2)))
     expect_equal(nrow(cors$fit_measures), length(cors$fit))
     expect_all_equal(
       c(
         ncol(cors$cor_mat), nrow(cors$cor_mat),
+        ncol(cors$pvalues), nrow(cors$pvalues),
         ncol(cors$ci$ci_lower), nrow(cors$ci$ci_lower),
         ncol(cors$ci$ci_upper), nrow(cors$ci$ci_upper),
-        ncol(cors$residual_cors), ncol(cors$residual_cors_ci$ci_lower),
+        ncol(cors$residual_cors), ncol(cors$residual_cors),
+        ncol(cors$residual_cors_ci$ci_lower),
         ncol(cors$residual_cors_ci$ci_upper)
       ),
       length(fit_y)
@@ -27,12 +29,13 @@ test_that(
       BFIGritHope, cfa_fit, nagy = FALSE,
       fit_save = TRUE, fit_measures = c("cfi", "rmsea")
     )
-    expect_equal(length(cors), 4)
+    expect_equal(length(cors), 5)
     expect_equal(length(cors$fit), ncol(combn(names(cfa_fit), 2)))
     expect_equal(nrow(cors$fit_measures), length(cors$fit))
     expect_all_equal(
       c(
         ncol(cors$cor_mat), nrow(cors$cor_mat),
+        ncol(cors$pvalues), nrow(cors$pvalues),
         ncol(cors$ci$ci_lower), nrow(cors$ci$ci_lower),
         ncol(cors$ci$ci_upper), nrow(cors$ci$ci_upper),
         ncol(cors$residual_cors), ncol(cors$ci$ci_lower),
@@ -48,15 +51,19 @@ test_that(
     fit_y <- cfa_fit[1:2]
     items <- names(BFIGritHope)[grep("bfi.c\\d_1", names(BFIGritHope))]
     cors <- sem.cor(BFIGritHope, fit_y, items = items)
-    expect_equal(length(cors), 5)
+    expect_equal(length(cors), 7)
     expect_equal(length(cors$fit), length(fit_y) * length(items))
     expect_all_equal(
-      c(ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)),
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
       length(fit_y)
     )
     expect_all_equal(
       c(
-        nrow(cors$cor_mat), nrow(cors$ci_lower), nrow(cors$ci_upper),
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci_lower), nrow(cors$ci_upper),
         ncol(cors$residual_cors), ncol(cors$residual_cors_ci$ci_lower),
         ncol(cors$residual_cors_ci$ci_upper)
       ),
@@ -70,14 +77,20 @@ test_that(
     fit_y <- cfa_fit[1:2]
     items <- names(BFIGritHope)[grep("bfi.*1_1", names(BFIGritHope))]
     cors <- sem.cor(BFIGritHope, fit_y, items = items, nagy = FALSE)
-    expect_equal(length(cors), 3)
+    expect_equal(length(cors), 4)
     expect_equal(length(cors$fit), length(fit_y) * length(items))
     expect_all_equal(
-      c(ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)),
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
       length(fit_y)
     )
     expect_all_equal(
-      c(nrow(cors$cor_mat), nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper)),
+      c(
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper)
+      ),
       length(items)
     )
   }
@@ -91,20 +104,24 @@ test_that(
       BFIGritHope, fit_y, fit_x,
       fit_save = TRUE, fit_measures = c("cfi", "rmsea")
     )
-    expect_equal(length(cors), 8)
+    expect_equal(length(cors), 11)
     expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
     expect_all_equal(
       c(
-        ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper),
-        ncol(cors$residual_cors_x), ncol(cors$residual_cors_x_ci$ci_lower),
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper),
+        ncol(cors$residual_cors_x), ncol(cors$residual_cors_x_pvalues),
+        ncol(cors$residual_cors_x_ci$ci_lower),
         ncol(cors$residual_cors_x_ci$ci_upper)
       ),
       length(fit_y)
     )
     expect_all_equal(
       c(
-        nrow(cors$cor_mat), nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper),
-        ncol(cors$residual_cors_y), ncol(cors$residual_cors_y_ci$ci_lower),
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper),
+        ncol(cors$residual_cors_y), ncol(cors$residual_cors_y_pvalues),
+        ncol(cors$residual_cors_y_ci$ci_lower),
         ncol(cors$residual_cors_y_ci$ci_upper)
       ),
       length(fit_x)
@@ -117,14 +134,20 @@ test_that(
     fit_y <- cfa_fit[1:2]
     fit_x <- cfa_fit[3:4]
     cors <- sem.cor(BFIGritHope, fit_y, fit_x, nagy = FALSE)
-    expect_equal(length(cors), 3)
+    expect_equal(length(cors), 4)
     expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
     expect_all_equal(
-      c(ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)),
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
       length(fit_y)
     )
     expect_all_equal(
-      c(nrow(cors$cor_mat), nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper)),
+      c(
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper)
+      ),
       length(fit_x)
     )
   }
@@ -136,22 +159,26 @@ test_that(
     fit_x <- cfa_fit[3:4]
     items <- names(BFIGritHope)[grep("bfi.c\\d_1", names(BFIGritHope))]
     cors <- sem.cor(BFIGritHope, fit_y, fit_x, items = items)
-    expect_equal(length(cors), 7)
+    expect_equal(length(cors), 10)
     expect_equal(
       length(cors$fit), length(fit_y) * (length(fit_x) + length(items))
     )
     expect_all_equal(
       c(
-        ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper),
-        ncol(cors$residual_cors_x), ncol(cors$residual_cors_x_ci$ci_lower),
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper),
+        ncol(cors$residual_cors_x), ncol(cors$residual_cors_x_pvalues),
+        ncol(cors$residual_cors_x_ci$ci_lower),
         ncol(cors$residual_cors_x_ci$ci_upper)
       ),
       length(fit_y)
     )
     expect_all_equal(
       c(
-        nrow(cors$cor_mat), nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper),
-        ncol(cors$residual_cors_y), ncol(cors$residual_cors_y_ci$ci_lower),
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper),
+        ncol(cors$residual_cors_y), ncol(cors$residual_cors_y_pvalues),
+        ncol(cors$residual_cors_y_ci$ci_lower),
         ncol(cors$residual_cors_y_ci$ci_upper)
       ),
       length(fit_x) + length(items)
@@ -165,16 +192,21 @@ test_that(
     fit_x <- cfa_fit[3:4]
     items <- names(BFIGritHope)[grep("bfi.c\\d_1", names(BFIGritHope))]
     cors <- sem.cor(BFIGritHope, fit_y, fit_x, items = items, nagy = FALSE)
-    expect_equal(length(cors), 3)
+    expect_equal(length(cors), 4)
     expect_equal(
       length(cors$fit), length(fit_y) * (length(fit_x) + length(items))
     )
     expect_all_equal(
-      c(ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)),
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)),
       length(fit_y)
     )
     expect_all_equal(
-      c(nrow(cors$cor_mat), nrow(cors$ci_lower), nrow(cors$ci_upper)),
+      c(
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci_lower), nrow(cors$ci_upper)
+      ),
       length(fit_x) + length(items)
     )
   }
@@ -185,16 +217,21 @@ test_that(
     items <- "bfi_e1_1"
     fit_y <- cfa_fit[1]
     cors <- sem.cor(BFIGritHope, fit_y, items = items)
-    expect_equal(length(cors), 5)
+    expect_equal(length(cors), 7)
     expect_equal(length(cors$fit), length(fit_y) * length(items))
     expect_all_equal(
-      c(ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)),
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
       length(fit_y)
     )
     expect_all_equal(
       c(
-        nrow(cors$cor_mat), nrow(cors$ci_lower), nrow(cors$ci_upper),
-        ncol(cors$residual_cors), ncol(cors$residual_cors_ci$ci_lower),
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci_lower), nrow(cors$ci_upper),
+        ncol(cors$residual_cors),  ncol(cors$residual_cors_pvalues),
+        ncol(cors$residual_cors_ci$ci_lower),
         ncol(cors$residual_cors_ci$ci_upper)
       ),
       length(items)
@@ -207,14 +244,20 @@ test_that(
     items <- "bfi_e1_1"
     fit_y <- cfa_fit[1]
     cors <- sem.cor(BFIGritHope, fit_y, items = items, nagy = FALSE)
-    expect_equal(length(cors), 3)
+    expect_equal(length(cors), 4)
     expect_equal(length(cors$fit), length(fit_y) * length(items))
     expect_all_equal(
-      c(ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)),
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
       length(fit_y)
     )
     expect_all_equal(
-      c(nrow(cors$cor_mat), nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper)),
+      c(
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci_lower), nrow(cors$ci_upper)
+      ),
       length(items)
     )
   }
@@ -225,20 +268,24 @@ test_that(
     fit_y <- cfa_fit[1]
     fit_x <- cfa_fit[3]
     cors <- sem.cor(BFIGritHope, fit_y, fit_x)
-    expect_equal(length(cors), 7)
+    expect_equal(length(cors), 10)
     expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
     expect_all_equal(
       c(
-        ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper),
-        ncol(cors$residual_cors_x), ncol(cors$residual_cors_x_ci$ci$ci_lower),
-        ncol(cors$residual_cors_x_ci$ci$ci_upper)
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper),
+        ncol(cors$residual_cors_x), ncol(cors$residual_cors_x_pvalues),
+        ncol(cors$residual_cors_x_ci$ci_lower),
+        ncol(cors$residual_cors_x_ci$ci_upper)
       ),
       length(fit_y)
     )
     expect_all_equal(
       c(
-        nrow(cors$cor_mat), nrow(cors$ci_lower), nrow(cors$ci_upper),
-        ncol(cors$residual_cors_y), ncol(cors$residual_cors_y_ci$ci_lower),
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper),
+        ncol(cors$residual_cors_y), ncol(cors$residual_cors_y_pvalues),
+        ncol(cors$residual_cors_y_ci$ci_lower),
         ncol(cors$residual_cors_y_ci$ci_upper)
       ),
       length(fit_x)
@@ -251,15 +298,21 @@ test_that(
     fit_y <- cfa_fit[1]
     fit_x <- cfa_fit[3]
     cors <- sem.cor(BFIGritHope, fit_y, fit_x, nagy = FALSE)
-    expect_equal(length(cors), 3)
+    expect_equal(length(cors), 4)
     expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
     expect_all_equal(
-      c(ncol(cors$cor_mat), ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)),
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
       length(fit_y)
     )
     expect_all_equal(
-      c(nrow(cors$cor_mat), nrow(cors$ci_lower), nrow(cors$ci_upper)),
-      length(fit_x)
+      c(
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci_lower), nrow(cors$ci_upper)
+      ),
+      length(items)
     )
   }
 )
