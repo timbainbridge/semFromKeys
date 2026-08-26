@@ -1,3 +1,5 @@
+* Fixed a bug where correlated residuals in `sem.cor` input where causing an unexpected error.
+
 # semFromKeys 0.5.2
 
 * Added item residual correlations to `sem.cor` output.

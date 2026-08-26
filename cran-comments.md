@@ -1,4 +1,8 @@
-## Latest submission (21-8-2026)
+### Notes
+
+* Fixed a bug where correlated residuals in `sem.cor` input where causing an unexpected error.
+
+## 22-8-2026 submission
 
 ### R CMD check results
 
