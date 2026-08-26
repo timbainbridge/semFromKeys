@@ -304,7 +304,7 @@ sem.cor <- function(
     if (warn_ord) {
       warning(
         paste0(
-          "The model(s) including latent variable(s) below include(s) ",
+          "The models including latent variables listed below include ",
           "ordinal variables, which are not currently supported in ",
           "'sem.cor'. Given 'nagy = TRUE', the models will run with the",
           "current inputs, but variables have not be treated as ordinal.",
@@ -316,7 +316,7 @@ sem.cor <- function(
     if (warn_cor) {
       warning(
         paste0(
-          "The model(s) including the latent variable(s) listed below include ",
+          "The models including the latent variables listed below include ",
           "at least one correlation between two different variables (such as ",
           "correlated residuals). This is not currently supported in ",
           "'sem.cor' when 'nagy = TRUE', so it has been ignored. ",
@@ -490,7 +490,7 @@ sem.cor <- function(
                     longer_f, "'.\n  ",
                     "Such a relationship should be specified as a bifactor ",
                     "model with a correlation of 0 between the group and ",
-                    "general factors."
+                    "general factors and not used in 'sem.cor'."
                   )
                 )
               }
@@ -521,8 +521,8 @@ sem.cor <- function(
             } else {
               x1l <- x1[x1$op == "=~", ]
               y1l <- y1[y1$op == "=~", ]
-              x1u <- x1[x1$op == "~~" & x1$lhs != xn, ]
-              y1u <- y1[y1$op == "~~" & y1$lhs != yn, ]
+              x1u <- x1[x1$op == "~~" & x1$lhs != xn & x1$lhs == x1$rhs, ]
+              y1u <- y1[y1$op == "~~" & y1$lhs != yn & y1$lhs == y1$rhs, ]
               x1v <- x1[x1$lhs == x1$rhs & x1$lhs == xn, ]
               y1v <- y1[y1$lhs == y1$rhs & y1$lhs == yn, ]
               mod0 <- paste0(
