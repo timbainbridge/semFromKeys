@@ -89,13 +89,21 @@ time if \code{check = TRUE} the next time the code is run and nothing has change
 in the meantime.}
 }
 \value{
-Returns a list of length 3-8 depending on option selections.
-All versions include fitted lavaan models ('fit');
-a correlation matrix ('cor_mat'); and
-a list of upper and lower 95\% confidence intervals of the correlations.
-If \code{fit_save = TRUE}, a list of fit measures is also returned, and,
-if \code{nagy = TRUE}, matrices of residual correlations and lists of their 95\%
-confidence intervals are also returned.
+Returns a list of length 4-11 depending on option selections.
+All versions include fitted lavaan models (\code{fit});
+a correlation matrix (\code{cor_mat});
+p-values of the correlations (\code{pvalues}); and
+a list of upper and lower 95\% confidence intervals of the correlations
+(\code{ci}).
+If \code{fit_save = TRUE}, a list of fit measures is also returned
+(\code{fit_measures}), and,
+if \code{nagy = TRUE}, matrices of residual correlations (\code{residual_cors}), their
+p-values (\code{residual_cors_pvalues}), and lists of their 95\% confidence
+intervals (\code{residual_cors_ci}) are also returned.
+If both \code{fit_y} and \code{fit_x} are specified, then there one set of residual
+correlation results for the items from each set of factors
+(i.e., \code{residual_cors_x} and \code{residual_cors_y} for the items of 'x' and 'y'
+factors, respectively).
 }
 \description{
 \code{sem.cor} takes CFA outputs and produces a correlation matrix between latent
@@ -158,7 +166,7 @@ Burt's method is faster but artificially constrains parameters,
 thereby biasing standard errors and model fit indices.
 They should, however, give very similar point estimates for correlations.
 Therefore, Nagy's method should be preferred whenever confidence intervals
-or model fit matter, except for extremely large sets of variables.
+or model fit matter, except for large sets of variables.
 
 It is possible for latent variable correlations to produce a non-positive
 definite correlation matrix between variables included in \code{fit_y},
@@ -168,7 +176,14 @@ will be adjusted to the nearest positive definite matrix using the
 \link[Matrix:nearPD]{Matrix::nearPD} function, which employs the method developed by Higham
 (2002), and a message will state that the matrix was adjusted and the maximum
 adjustment to any cell.
-Confidence intervals will be adjusted by the same amount.
+Confidence intervals will be adjusted by the same amount, but p-values will
+not be adjusted, so will be very slightly incorrect.
+In general, inaccuracies in p-values will be most likely for larger
+correlations (i.e., ones more likely to be highly significant) but if the
+maximum adjustment, printed in the warning, is large, then use p-values with
+care. Unadjusted correlations can be returned by running \code{sem.cor} with a
+smaller set of variables such that non-positive definiteness is not an
+issue (except when \code{lavaan} returns a measured correlation greater than 1).
 
 The model relies on \link{sem.check} for the back-end of running the models,
 which enables saving inputs and outputs from model runs
