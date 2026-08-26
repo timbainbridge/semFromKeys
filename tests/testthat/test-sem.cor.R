@@ -547,3 +547,40 @@ test_that(
     )
   }
 )
+test_that(
+  "Correlated residuals in input",
+  {
+    mods <- mapply(
+      x = keys[3:4], xn = names(keys[3:4]),
+      FUN = function(x, xn) {
+        paste0(
+          paste(xn, "=~", paste0(x, collapse = " + ")),
+          "\n",
+          paste(x[1], "~~", x[2])
+        )
+      }
+    )
+    fit_y <-
+      lapply(mods, function(x) lavaan::cfa(x, BFIGritHope, std.lv = TRUE))
+    # nagy = TRUE
+    expect_warning(
+      sem.cor(BFIGritHope, fit_y),
+      "at least one correlation between two different variables"
+    )
+    # nagy = FALSE
+    cors <- sem.cor(BFIGritHope, fit_y, nagy = FALSE)
+    pars <- parameterEstimates(cors$fit[[1]])
+    expect_equal(
+      sum(
+        pars$lhs == keys[[3]][1] & pars$op == "~~" & pars$rhs == keys[[3]][2]
+      ),
+      1
+    )
+    expect_equal(
+      sum(
+        pars$lhs == keys[[4]][1] & pars$op == "~~" & pars$rhs == keys[[4]][2]
+      ),
+      1
+    )
+  }
+)
