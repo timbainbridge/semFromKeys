@@ -637,3 +637,12 @@ test_that(
     )
   }
 )
+test_that(
+  "Overlapping names",
+  {
+    keys <- keys
+    names(keys) <- c("B", "C", "AB", "CD")
+    cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)$fit
+    expect_no_error(sem.cor(BFIGritHope, cfa_fit, nagy = FALSE))
+  }
+)
