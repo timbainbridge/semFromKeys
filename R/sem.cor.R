@@ -850,7 +850,7 @@ sem.cor <- function(
               ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
               tmp <- pvalue_y[grep(ptn, names(pvalue_y))]
               if (length(tmp) == 0) {
-                tmp <- 1
+                tmp <- 0
               }
               tmp
             },
