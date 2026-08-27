@@ -1,6 +1,7 @@
 # semFromKeys 0.5.3
 
 * Fixed a bug where correlated residuals in `sem.cor` input where causing an unexpected error.
+* Fixed a bug whereby pattern matching to select correlations for cells in `sem.cor` could match more than one correlation, resulting in an error.
 * Added p-values to `sem.cor` output.
 
 # semFromKeys 0.5.2

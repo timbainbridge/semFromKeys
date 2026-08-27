@@ -2,7 +2,8 @@
 
 ### Notes
 
-* Fixed a bug where correlated residuals in `sem.cor` input where causing an unexpected error.
+* Fixed a bug where correlated residuals in `sem.cor` input were causing an unexpected error.
+* Fixed a bug where combinations of factor name selections in `sem.cor` could result in an unexpected error (due to over-inclusive pattern matching).
 
 ## 22-8-2026 submission
 
