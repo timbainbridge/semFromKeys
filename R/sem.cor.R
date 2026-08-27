@@ -794,7 +794,7 @@ sem.cor <- function(
           sapply(
             names(fit_y),
             function(y) {
-              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
               tmp <- cors_y[grep(ptn, names(cors_y))]
               if (length(tmp) == 0) {
                 tmp <- 1
@@ -812,7 +812,7 @@ sem.cor <- function(
           sapply(
             names(fit_y),
             function(y) {
-              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
               tmp <- ci_lower_y0[grep(ptn, names(ci_lower_y0))]
               if (length(tmp) == 0) {
                 tmp <- 1
@@ -830,7 +830,7 @@ sem.cor <- function(
           sapply(
             names(fit_y),
             function(y) {
-              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
               tmp <- ci_upper_y0[grep(ptn, names(ci_upper_y0))]
               if (length(tmp) == 0) {
                 tmp <- 1
@@ -847,7 +847,7 @@ sem.cor <- function(
         function(x) {
           sapply(
             names(fit_y), function(y) {
-              ptn <- paste0(x, "\\.", y, "|", y, "\\.", x)
+              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
               tmp <- pvalue_y[grep(ptn, names(pvalue_y))]
               if (length(tmp) == 0) {
                 tmp <- 1
@@ -866,7 +866,7 @@ sem.cor <- function(
           sapply(
             names(fit_x),
             function(x) {
-              ptn <- c(paste0(x, ".", y), paste0(y, ".", x))
+              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
               cors_y[names(cors_y) %in% ptn]
             },
             USE.NAMES = FALSE
@@ -879,7 +879,7 @@ sem.cor <- function(
           sapply(
             names(fit_x),
             function(x) {
-              ptn <- c(paste0(x, ".", y), paste0(y, ".", x))
+              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
               ci_lower_y0[names(ci_lower_y0) %in% ptn]
             },
             USE.NAMES = FALSE
@@ -892,7 +892,7 @@ sem.cor <- function(
           sapply(
             names(fit_x),
             function(x) {
-              ptn <- c(paste0(x, ".", y), paste0(y, ".", x))
+              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
               ci_upper_y0[names(ci_upper_y0) %in% ptn]
             },
             USE.NAMES = FALSE
@@ -905,7 +905,7 @@ sem.cor <- function(
           sapply(
             names(fit_x),
             function(x) {
-              ptn <- c(paste0(x, ".", y), paste0(y, ".", x))
+              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
               pvalue_y[names(pvalue_y) %in% ptn]
             },
             USE.NAMES = FALSE
