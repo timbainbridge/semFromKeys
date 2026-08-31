@@ -7,7 +7,7 @@ test_that(
   }
 )
 test_that(
-  "Test 'older_than' not set with cache.setup",
+  "'older_than' and 'name' not set",
   {
     cache.setup("tests/testthat/cache", interactive = FALSE)
     expect_error(
@@ -20,5 +20,28 @@ test_that(
   {
     cache.setup("tests/testthat/cache", interactive = FALSE)
     expect_message(cache.clean(0, interactive = FALSE), "No files to delete")
+  }
+)
+if (!interactive()) {  # Does not do anything if run interactively
+  test_that(
+    "'Interactive = TRUE' in non-interactive session",
+    {
+      cache.setup("tests/testthat/cache", interactive = FALSE)
+      cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE)
+      expect_error(
+        cache.clean(0, interactive = TRUE),
+        "Running 'cache.clean' in a non-interactive session"
+      )
+      # Actually clean the cache
+      cache.clean(0, interactive = FALSE)
+    }
+  )
+}
+test_that(
+  "Test deletion messages",
+  {
+    cache.setup("tests/testthat/cache", interactive = FALSE)
+    cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE)
+    expect_message()
   }
 )
