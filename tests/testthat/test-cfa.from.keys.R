@@ -481,3 +481,19 @@ test_that(
     )
   }
 )
+test_that(
+  "'save_out = TRUE', 'check = FALSE'",
+  {
+    expect_no_error(
+      cfa.from.keys(keys[1:2], BFIGritHope, save_out = TRUE)
+    )
+  }
+)
+test_that(
+  "'save_out = FALSE', 'check = TRUE'",
+  {
+    expect_no_error(
+      cfa.from.keys(keys[1:2], BFIGritHope, check = TRUE)
+    )
+  }
+)

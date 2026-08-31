@@ -488,6 +488,19 @@ sem.check <- function(
     par_type <- FALSE
     fit_m0 <- FALSE
   }
+  if (save_out) {
+    # Create objects for saving
+    hash_d <- sapply(
+      names(mods),
+      function(x) {
+        md5(paste(data[c(keys_s[[x]], unlist(keys_e))], collapse = ""))
+      }
+    )
+    params <- c(
+      miss = miss, est = est, std = std, std.lv = std.lv,
+      orthogonal = orthogonal
+    )
+  }
   # Run
   # Warnings required to be printed immediately so people know which model
   # caused the issue -> use with_options.
