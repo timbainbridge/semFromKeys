@@ -31,12 +31,12 @@
 #'
 #' @details
 #' The function is interactive if run in an interactive session with
-#' `interctive = TRUE`.
+#' `interactive = TRUE`, so it will ask for confirmation before deleting
+#' anything. An error will occur if attempting to run in a non-interactive
+#' session without setting `interactive = FALSE`.
 #' In addition to deleting obsolete files, the function will also optionally
 #' delete empty directories and, if the top level cache directory is also empty,
 #' then it will also optionally delete the cache directory and unset it.
-#' The latter will only be done in interactive sessions with
-#' `interactive = TRUE` to avoid breaking non-interactive code.
 #'
 #' If both `older_than` and `name` are specified then both have to be matched
 #' for files to be selected for deletion.
@@ -130,23 +130,25 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
     )
   }
   cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
-  files <- file.info(
+  files0 <- file.info(
     list.files(cache_dir, full.names = TRUE, recursive = TRUE)
   )
+  files <- rownames(files0)
   if (!is.null(older_than)) {
     cutoff <- Sys.time() - (older_than * 86400)  # convert days to seconds
-    files_time <- rownames(files)[
-      files$mtime < cutoff &
+    files_time <- files[
+      files0$mtime < cutoff &
         # Don't delete files that the package doesn't save.
-        grepl("_(fit(|_m)|par(|_std|ams)|mod|hash).rds$", rownames(files))
+        grepl("_(fit(|_m)|par(|_std|ams)|mod|hash).rds$", files)
     ]
   }
   if (!is.null(name)) {
-    files_name0 <- rownames(files)
-    files_name <- files_name0[
+    files_name <- files[
       grep(
-        paste0("^", name, "_(fit(|_m)|par(|_std|ams)|mod|hash).rds$"),
-        files_name0
+        paste0(
+          "/", name, "/", name, "_(fit(|_m)|par(|_std|ams)|mod|hash).rds$"
+        ),
+        files
       )
     ]
   }
@@ -155,9 +157,7 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
   } else if (is.null(name)) {
     files_del <- files_time
   } else {
-    files_del <- rownames(files)[
-      rownames(files) %in% files_name & rownames(files) %in% files_time
-    ]
+    files_del <- files[files %in% files_name & files %in% files_time]
   }
   if (length(files_del) == 0) {
     message("No files to delete.")
@@ -166,7 +166,7 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
       message(
         paste0(
           "About to delete the following ", length(files_del),
-          " file(s), older than ", older_than, " from\n '",
+          " file(s), older than ", older_than, " days from\n '",
           cache_dir, "':\n\n  ",
           paste0(
             sub(paste0(cache_dir, ".*/"), "", files_del), collapse = "\n  "
@@ -180,7 +180,7 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
       }
     }
     # Delete files
-    unlink(files_del)
+    file.remove(files_del)
     message(paste("Deleted", length(files_del), "file(s)."))
   }
   dirs <- list.dirs(cache_dir, full.names = TRUE, recursive = TRUE)
@@ -212,7 +212,8 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
       }
     }
     # Delete empty directories
-    unlink(dirs_del)
+    file.remove(dirs_del)
+    message(paste("Deleted", length(dirs_del), "empty directories."))
   }
   if (length(list.files(cache_dir, full.names = TRUE, recursive = TRUE)) > 0) {
     return(invisible(NULL))
@@ -230,11 +231,11 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
       return(invisible(NULL))
     }
   }
-  unlink(cache_dir)
+  file.remove(cache_dir)
   rm(.cache_env, envir = env)
   message(
     paste0(
-      "'", cache_dir, "' has been deleted.\n",
+      "The cache directory ('", cache_dir, "') has been deleted.\n",
       "To use 'check = TRUE' or 'save_out = TRUE',",
       "'cache.setup()' will have to be reinitiated."
     )
