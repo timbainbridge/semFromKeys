@@ -93,6 +93,18 @@
 #' }
 
 cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
+  # Check interactive == F if not interactive
+  if (!interactive() & interactive) {
+    stop(
+      paste(
+        "Running 'cache.clean' in a non-interactive session with",
+        "'interactive = TRUE' does not delete anything to prevent unexpected",
+        "data loss.",
+        "If you want to clean the cache in a non non-interactive session,",
+        "please set 'interactive = FALSE'."
+      )
+    )
+  }
   if (is.null(older_than) & is.null(name)) {
     stop(
       paste(
@@ -146,18 +158,6 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
   if (length(files_del) == 0) {
     message("No files to delete.")
   } else {
-    # Prompt user if interactive
-    if (!interactive() & interactive) {
-      stop(
-        paste(
-          "Running 'cache.clean' in a non-interactive session with",
-          "'interactive = TRUE' does not delete anything to prevent unexpected",
-          "data loss.",
-          "If you want to clean the cache in a non non-interactive session,",
-          "please set 'interactive = FALSE'."
-        )
-      )
-    }
     if (interactive) {
       message(
         paste0(
@@ -190,17 +190,6 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
   dirs_del <- dirs[dirs_empty]
   dirs_del <- dirs_del[-1]  # Don't delete parent (i.e., cache_dir)
   if (length(dirs_del) > 0) {
-    if (!interactive() & interactive) {
-      stop(
-        paste(
-          "Running 'cache.clean' in a non-interactive session with",
-          "'interactive = TRUE' does not delete anything to prevent unexpected",
-          "data loss.",
-          "If you want to clean the cache in a non non-interactive session,",
-          "please set 'interactive = TRUE'."
-        )
-      )
-    }
     if (interactive) {
       message(
         paste0(
@@ -223,17 +212,6 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
   }
   if (length(list.files(cache_dir, full.names = TRUE, recursive = TRUE)) > 0) {
     return(invisible(NULL))
-  }
-  if (!interactive() & interactive) {
-    stop(
-      paste(
-        "Running 'cache.clean' in a non-interactive session with",
-        "'interactive = TRUE' does not delete anything to prevent unexpected",
-        "data loss.",
-        "If you want to clean the cache in a non non-interactive session,",
-        "please set 'interactive = TRUE'."
-      )
-    )
   }
   if (interactive) {
     message(paste0("The top cache directory, '", cache_dir, "', is empty."))
