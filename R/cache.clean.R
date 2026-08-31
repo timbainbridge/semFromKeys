@@ -11,7 +11,14 @@
 #' @param older_than
 #' A positive number indicating number of days (fractions allowed).
 #' Files with older modification times than this will be deleted
-#' after confirmation if `interactive = TRUE`.
+#' after confirmation if `interactive = TRUE` or
+#' without confirmation if `interactive = FALSE`.
+#' At least one of `older_than` and `name` must be set.
+#' @param name
+#' A character indicating a model name.
+#' Files associated with a model of that name will be deleted after confirmation
+#' if `interactive = TRUE` or without confirmation if `interactive = FALSE`.
+#' At least one of `older_than` and `name` must be set.
 #' @param interactive
 #' Logical.
 #' `TRUE` indicates that confirmation will be required before files are deleted.
@@ -25,18 +32,25 @@
 #' @details
 #' The function is interactive if run in an interactive session with
 #' `interctive = TRUE`.
-#' In addition to deleting old files, the function will also optionally delete
-#' empty directories and, if the top level cache directory is also empty,
+#' In addition to deleting obsolete files, the function will also optionally
+#' delete empty directories and, if the top level cache directory is also empty,
 #' then it will also optionally delete the cache directory and unset it.
 #' The latter will only be done in interactive sessions with
 #' `interactive = TRUE` to avoid breaking non-interactive code.
 #'
-#' One way to clean only unused files is to run all current code and then
-#' run `cache.clean()` with `older_than` set to something greater than the
-#' number of days it takes for the code to run and less than when the code was
-#' previously run. For example, if your code takes 5 minutes to run and you
-#' previously ran it 2 days ago, you could run all your code and, when it has
-#' finished, use `cache.clean(older_than = 1)`.
+#' If both `older_than` and `name` are specified then both have to be matched
+#' for files to be selected for deletion.
+#'
+#' `name` finds files using [grep]. This means that model names with '.' will
+#' match anything where the '.' is in the string. Thus, `a.1` will match `a_1`,
+#' `a11`, `ab1`, etc. This can also be used to easily match all files in the
+#' cache directory (with creation dates older than `older_than` if specified) by
+#' specifying `name = '.*'`, which indicates anything ('.') matched any number
+#' of times ('*').
+#' However, the function also includes code to only match outputs created by
+#' `semFromKeys`, so if files have been added to the cache directory that do not
+#' match `semFromKeys` outputs, these will not be selected for deletion,
+#' even if `name = '.*'`.
 #'
 #' `semFromKeys` has no way to know what directories you have specified as the
 #' cache in the past and cannot clean up unknown former cache directories.
@@ -78,10 +92,13 @@
 #'   # cache.clean(0, interactive = FALSE)
 #' }
 
-cache.clean <- function(older_than = NULL, interactive = TRUE) {
-  if (is.null(older_than)) {
+cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
+  if (is.null(older_than) & is.null(name)) {
     stop(
-      "Please specify a value for 'older_than'. To delete all files, set to 0."
+      paste(
+        "Please specify a value for 'older_than' or 'name'.",
+        "To delete all files, set 'older_than = 0'."
+      )
     )
   }
   found <- FALSE
@@ -104,12 +121,28 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
   files <- file.info(
     list.files(cache_dir, full.names = TRUE, recursive = TRUE)
   )
-  cutoff <- Sys.time() - (older_than * 86400)  # convert days to seconds
-  files_del <- rownames(files)[
-    files$mtime < cutoff &
-      # Don't delete files that the package doesn't save.
-      grepl("_(fit(|_m)|par(|_std|ams)|mod|hash).rds$", rownames(files))
-  ]
+  if (!is.null(older_than)) {
+    cutoff <- Sys.time() - (older_than * 86400)  # convert days to seconds
+    files_time <- rownames(files)[
+      files$mtime < cutoff &
+        # Don't delete files that the package doesn't save.
+        grepl("_(fit(|_m)|par(|_std|ams)|mod|hash).rds$", rownames(files))
+    ]
+  }
+  if (!is.null(name)) {
+    files_name <- rownames(files)[
+      grep(paste0("^", name, "_(fit(|_m)|par(|_std|ams)|mod|hash).rds$"), )
+    ]
+  }
+  if (is.null(older_than)) {
+    files_del <- files_name
+  } else if (is.null(name)) {
+    files_del <- files_time
+  } else {
+    files_del <- rownames(files)[
+      rownames(files) %in% files_name & rownames(files) %in% files_time
+    ]
+  }
   if (length(files_del) == 0) {
     message("No files to delete.")
   } else {
@@ -121,7 +154,7 @@ cache.clean <- function(older_than = NULL, interactive = TRUE) {
           "'interactive = TRUE' does not delete anything to prevent unexpected",
           "data loss.",
           "If you want to clean the cache in a non non-interactive session,",
-          "please set 'interactive = TRUE'."
+          "please set 'interactive = FALSE'."
         )
       )
     }

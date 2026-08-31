@@ -4,12 +4,19 @@
 \alias{cache.clean}
 \title{Cleans selected files from the current cache directory}
 \usage{
-cache.clean(older_than = NULL, interactive = TRUE)
+cache.clean(older_than = NULL, name = NULL, interactive = TRUE)
 }
 \arguments{
 \item{older_than}{A positive number indicating number of days (fractions allowed).
 Files with older modification times than this will be deleted
-after confirmation if \code{interactive = TRUE}.}
+after confirmation if \code{interactive = TRUE} or
+without confirmation if \code{interactive = FALSE}.
+At least one of \code{older_than} and \code{name} must be set.}
+
+\item{name}{A character indicating a model name.
+Files associated with a model of that name will be deleted after confirmation
+if \code{interactive = TRUE} or without confirmation if \code{interactive = FALSE}.
+At least one of \code{older_than} and \code{name} must be set.}
 
 \item{interactive}{Logical.
 \code{TRUE} indicates that confirmation will be required before files are deleted.
@@ -33,18 +40,25 @@ agree to delete or not.
 \details{
 The function is interactive if run in an interactive session with
 \code{interctive = TRUE}.
-In addition to deleting old files, the function will also optionally delete
-empty directories and, if the top level cache directory is also empty,
+In addition to deleting obsolete files, the function will also optionally
+delete empty directories and, if the top level cache directory is also empty,
 then it will also optionally delete the cache directory and unset it.
 The latter will only be done in interactive sessions with
 \code{interactive = TRUE} to avoid breaking non-interactive code.
 
-One way to clean only unused files is to run all current code and then
-run \code{cache.clean()} with \code{older_than} set to something greater than the
-number of days it takes for the code to run and less than when the code was
-previously run. For example, if your code takes 5 minutes to run and you
-previously ran it 2 days ago, you could run all your code and, when it has
-finished, use \code{cache.clean(older_than = 1)}.
+If both \code{older_than} and \code{name} are specified then both have to be matched
+for files to be selected for deletion.
+
+\code{name} finds files using \link{grep}. This means that model names with '.' will
+match anything where the '.' is in the string. Thus, \code{a.1} will match \code{a_1},
+\code{a11}, \code{ab1}, etc. This can also be used to easily match all files in the
+cache directory (with creation dates older than \code{older_than} if specified) by
+specifying \code{name = '.*'}, which indicates anything ('.') matched any number
+of times ('*').
+However, the function also includes code to only match outputs created by
+\code{semFromKeys}, so if files have been added to the cache directory that do not
+match \code{semFromKeys} outputs, these will not be selected for deletion,
+even if \code{name = '.*'}.
 
 \code{semFromKeys} has no way to know what directories you have specified as the
 cache in the past and cannot clean up unknown former cache directories.
