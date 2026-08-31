@@ -204,11 +204,11 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
     if (interactive) {
       message(
         paste0(
-          "\nAbout to delete the following ", length(dirs_del) - 1,
+          "\nAbout to delete the following ", length(dirs_del),
           " empty directories from\n '",
           cache_dir, "':\n\n  ",
           paste0(
-            sub(paste0(cache_dir, ".*/"), "", dirs_del[-1]), collapse = "\n  "
+            sub(paste0(cache_dir, ".*/"), "", dirs_del), collapse = "\n  "
           )
         )
       )

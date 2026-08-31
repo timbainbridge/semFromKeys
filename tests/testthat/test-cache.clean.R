@@ -41,7 +41,9 @@ test_that(
   "Test deletion messages",
   {
     cache.setup("tests/testthat/cache", interactive = FALSE)
-    cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE)
-    expect_message()
+    invisible(cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE))
+    expect_message(
+      cache.clean(0, interactive = FALSE), "delete the following 6 file(s)"
+    )
   }
 )
