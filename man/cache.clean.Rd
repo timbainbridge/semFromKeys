@@ -39,12 +39,12 @@ agree to delete or not.
 }
 \details{
 The function is interactive if run in an interactive session with
-\code{interctive = TRUE}.
+\code{interactive = TRUE}, so it will ask for confirmation before deleting
+anything. An error will occur if attempting to run in a non-interactive
+session without setting \code{interactive = FALSE}.
 In addition to deleting obsolete files, the function will also optionally
 delete empty directories and, if the top level cache directory is also empty,
 then it will also optionally delete the cache directory and unset it.
-The latter will only be done in interactive sessions with
-\code{interactive = TRUE} to avoid breaking non-interactive code.
 
 If both \code{older_than} and \code{name} are specified then both have to be matched
 for files to be selected for deletion.
