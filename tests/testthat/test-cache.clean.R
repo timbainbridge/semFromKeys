@@ -80,7 +80,16 @@ test_that(
     expect_message(
       cache.clean(0, name = "hello", interactive = FALSE), "No files to delete"
     )
-    # Actually detele the cache
+    # Actually delete the cache
     cache.clean(0, interactive = FALSE)
+  }
+)
+test_that(
+  "Tests cache directory actually deleted",
+  {
+    cache.setup("tests/testthat/cache", interactive = FALSE)
+    invisible(cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE))
+    cache.clean(0, interactive = FALSE)
+    expect_false(dir.exists("tests/testthat/cache"))
   }
 )
