@@ -55,5 +55,32 @@ test_that(
     expect_message(
       cache.clean(name = "cfa", interactive = FALSE), "Deleted 6 file"
     )
+    cache.setup("tests/testthat/cache", interactive = FALSE)
+    invisible(cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE))
+    expect_message(
+      cache.clean(name = "cfa", interactive = FALSE),
+      "Deleted 1 empty directories"
+    )
+    cache.setup("tests/testthat/cache", interactive = FALSE)
+    invisible(cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE))
+    expect_message(
+      cache.clean(name = "cfa", interactive = FALSE),
+      "The cache directory.*has been deleted.\nTo use"
+    )
+  }
+)
+test_that(
+  "Tests of non-overlapping name and older_than",
+  {
+    cache.setup("tests/testthat/cache", interactive = FALSE)
+    invisible(cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE))
+    expect_message(
+      cache.clean(1, name = "cfa", interactive = FALSE), "No files to delete"
+    )
+    expect_message(
+      cache.clean(0, name = "hello", interactive = FALSE), "No files to delete"
+    )
+    # Actually detele the cache
+    cache.clean(0, interactive = FALSE)
   }
 )
