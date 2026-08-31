@@ -142,8 +142,12 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
     ]
   }
   if (!is.null(name)) {
-    files_name <- rownames(files)[
-      grep(paste0("^", name, "_(fit(|_m)|par(|_std|ams)|mod|hash).rds$"), )
+    files_name0 <- rownames(files)
+    files_name <- files_name0[
+      grep(
+        paste0("^", name, "_(fit(|_m)|par(|_std|ams)|mod|hash).rds$"),
+        files_name0
+      )
     ]
   }
   if (is.null(older_than)) {

@@ -43,7 +43,17 @@ test_that(
     cache.setup("tests/testthat/cache", interactive = FALSE)
     invisible(cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE))
     expect_message(
-      cache.clean(0, interactive = FALSE), "delete the following 6 file(s)"
+      cache.clean(0, interactive = FALSE), "Deleted 6 file"
+    )
+  }
+)
+test_that(
+  "Test file matching by name",
+  {
+    cache.setup("tests/testthat/cache", interactive = FALSE)
+    invisible(cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE))
+    expect_message(
+      cache.clean(name = "cfa", interactive = FALSE), "Deleted 6 file"
     )
   }
 )
