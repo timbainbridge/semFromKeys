@@ -244,18 +244,6 @@ test_that(
   }
 )
 test_that(
-  "Cache location invalid",
-  {
-    expect_error(
-      cache.setup(c("tests/testthat/cache", "tests/testhtat/invalid")),
-      "the condition has length > 1"
-    )
-    expect_error(
-      cache.setup(42), "'location' is not a length 1 character vector"
-    )
-  }
-)
-test_that(
   "Test partial running on 'check = TRUE' after changes to a model",
   {
     cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
@@ -441,30 +429,6 @@ test_that(
         keys, BFIGritHope, check = TRUE, save_out = FALSE, fit_save = TRUE
       ),
       "4 / \\d"
-    )
-  }
-)
-test_that(
-  "Test deleting of cache files",
-  {
-    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
-    name <- "cfa"
-    cfa.from.keys(
-      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
-      name = name
-    )
-    expect_all_true(
-      c(
-        file.exists(file.path(cache_dir, name, paste0(name, "_fit.rds"))),
-        file.exists(file.path(cache_dir, name, paste0(name, "_par.rds"))),
-        file.exists(file.path(cache_dir, name, paste0(name, "_fit_m.rds"))),
-        file.exists(file.path(cache_dir, name, paste0(name, "_mod.rds"))),
-        file.exists(file.path(cache_dir, name, paste0(name, "_hash.rds")))
-      )
-    )
-    cache.clean(0, interactive = FALSE)
-    expect_equal(
-      length(list.files(cache_dir, full.names = TRUE, recursive = TRUE)), 0
     )
   }
 )

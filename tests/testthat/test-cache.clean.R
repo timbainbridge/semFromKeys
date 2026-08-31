@@ -85,10 +85,23 @@ test_that(
   }
 )
 test_that(
-  "Tests cache directory actually deleted",
+  "Test deleting of cache files",
   {
-    cache.setup("tests/testthat/cache", interactive = FALSE)
-    invisible(cfa.from.keys(keys[1], BFIGritHope, save_out = TRUE))
+    cache_dir <- cache.setup("tests/testthat/cache", interactive = FALSE)
+    name <- "cfa"
+    invisible(cfa.from.keys(
+      keys, BFIGritHope, check = TRUE, save_out = TRUE, fit_save = TRUE,
+      name = name
+    ))
+    expect_all_true(
+      c(
+        file.exists(file.path(cache_dir, name, paste0(name, "_fit.rds"))),
+        file.exists(file.path(cache_dir, name, paste0(name, "_par.rds"))),
+        file.exists(file.path(cache_dir, name, paste0(name, "_fit_m.rds"))),
+        file.exists(file.path(cache_dir, name, paste0(name, "_mod.rds"))),
+        file.exists(file.path(cache_dir, name, paste0(name, "_hash.rds")))
+      )
+    )
     cache.clean(0, interactive = FALSE)
     expect_false(dir.exists("tests/testthat/cache"))
   }
