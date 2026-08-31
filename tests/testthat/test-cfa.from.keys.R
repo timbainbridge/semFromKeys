@@ -241,6 +241,7 @@ test_that(
       message = "\\d / \\d"
     )
     expect_identical(check_fit, check_fit2)
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
@@ -271,6 +272,7 @@ test_that(
       ),
       message = "([1-2]|4) / \\d"
     )
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
@@ -290,6 +292,7 @@ test_that(
     expect_all_true(
       c(ncol(check_fit$fit_measures) == 3, ncol(check_fit2$fit_measures) >= 55)
     )
+    cache.clean(0, interactive = FALSE)
   }
 )
 # This is treated slightly differently to the above in sem.check
@@ -309,6 +312,7 @@ test_that(
       ),
       "1 / \\d"
     )
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
@@ -339,6 +343,7 @@ test_that(
       ),
       message = "([1-2]|4) / \\d"
     )
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
@@ -355,6 +360,7 @@ test_that(
       ),
       "1 / \\d"
     )
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
@@ -371,6 +377,7 @@ test_that(
       ),
       "1 / \\d"
     )
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
@@ -387,6 +394,7 @@ test_that(
       ),
       "1 / \\d"
     )
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
@@ -406,6 +414,7 @@ test_that(
     expect_all_true(
       c(ncol(check_fit$fit_measures) >= 55, ncol(check_fit2$fit_measures) == 3)
     )
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
@@ -430,6 +439,7 @@ test_that(
       ),
       "4 / \\d"
     )
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
@@ -448,16 +458,16 @@ test_that(
 test_that(
   "'save_out = TRUE', 'check = FALSE'",
   {
-    expect_no_error(
-      cfa.from.keys(keys[1:2], BFIGritHope, save_out = TRUE)
-    )
+    cache.setup("tests/testthat/cache", interactive = FALSE)
+    expect_no_error(cfa.from.keys(keys[1:2], BFIGritHope, save_out = TRUE))
+    cache.clean(0, interactive = FALSE)
   }
 )
 test_that(
   "'save_out = FALSE', 'check = TRUE'",
   {
-    expect_no_error(
-      cfa.from.keys(keys[1:2], BFIGritHope, check = TRUE)
-    )
+    cache.setup("tests/testthat/cache", interactive = FALSE)
+    expect_no_error(cfa.from.keys(keys[1:2], BFIGritHope, check = TRUE))
+    cache.clean(0, interactive = FALSE)
   }
 )
