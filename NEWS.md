@@ -1,8 +1,10 @@
 # semFromKeys 0.5.3
 
+* Added p-values to `sem.cor` output.
+* Added `name` as an option for finding files to clean from the cache in `cache.clean`.
 * Fixed a bug where correlated residuals in `sem.cor` input where causing an unexpected error.
 * Fixed a bug whereby pattern matching to select correlations for cells in `sem.cor` could match more than one correlation, resulting in an error.
-* Added p-values to `sem.cor` output.
+* Switched `cache.clean` from using `unlink` to using `remove.files` to negate a bug in `cache.clean` whereby directories were sometimes not removed.
 
 # semFromKeys 0.5.2
 

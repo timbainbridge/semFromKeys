@@ -2,8 +2,12 @@
 
 ### Notes
 
-* Fixed a bug where correlated residuals in `sem.cor` input were causing an unexpected error.
-* Fixed a bug where combinations of factor name selections in `sem.cor` could result in an unexpected error (due to over-inclusive pattern matching).
+* Various mostly minor bug fixes prompted a relatively quick update. Bugs included:
+    * Correlated residuals in model inputs in `sem.cor` input were causing an unexpected error;
+    * Certain combinations of factor name selections in `sem.cor` could result in an unexpected error due to over-inclusive pattern matching.
+    * `cache.clean` would sometimes fail to correctly remove empty folders.
+* A user request for p-values in `sem.cor` output was also added.
+* `cache.clean` was hard to use with `older_than` as the only option for selecting files, so `name` was added to enable pattern matching.
 
 ## 22-8-2026 submission
 
