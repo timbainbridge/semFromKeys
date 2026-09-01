@@ -4,7 +4,7 @@
 \alias{cache.setup}
 \title{Sets up a cache directory for storing model inputs and outputs}
 \usage{
-cache.setup(location = "user", interactive = TRUE)
+cache.setup(location = "user", projectname = NULL, interactive = TRUE)
 }
 \arguments{
 \item{location}{The cache location to save model objects to to enable checking.
@@ -12,16 +12,16 @@ If \code{location = "user"} (default, recommended if unsure),
 then the system's default cache location is used.
 If any other string is used a folder will be created within either the
 \link{getwd} directory or,
-if available, within the directory identified by \link[here:here]{here::here}.
-If using an RStudio project, these will create the directory in the
-project directory.}
+if available, within the directory identified by \link[here:here]{here::here}.}
+
+\item{projectname}{The project name to use or \code{NULL} for auto-detection.
+Only relevant if \code{location = "user"}.}
 
 \item{interactive}{Logical.
 \code{TRUE} indicates that confirmation will be required before a cache directory
 is set \emph{if} the default location is not used.
 \code{FALSE} indicates that a cache directory will be set without confirmation.
 Irrelevant if \code{location = "user"}.
-It is recommended to use \code{TRUE}.
 Defaults to \code{TRUE}.}
 }
 \value{
@@ -42,42 +42,34 @@ files to be saved on your computer.
 To avoid writing to your computer without your permission,
 you are required to run this function first to ensure that you know \emph{that}
 files are being saved and \emph{where} files are being saved.
-The function temporarily sets a hidden environment variable '.cache_env'
-(with, if empty,
-\code{assign(".cache_env", new.env(parent = emptyenv()), envir = parent.frame(1))}
-and with
-\code{assign("cache_dir", cache_dir, envir = get(".cache_env", envir = parent.frame(1)))},
-if not), which will be removed whenever the environment is cleared.
+The function temporarily sets a hidden environment variable '.cache_env',
+which will be removed whenever the environment is cleared.
 
 By default, the function creates the cache directory in the standard place
-for the operating system being used, appended by \verb{semFromKeys/[projectname]},
-if a project is being used and the \code{rstudioapi} is available.
-If a project is not being used or the \code{rstudioapi} package is not available,
-then the relative path with be \code{semFromKeys}.
+for the operating system being used, appended by \verb{semFromKeys/[projectname]}.
+By default, \code{projectname} will be auto-detected using the last directory from
+\link[here:here]{here::here}, if available, or \link{getwd}, if not. Alternatively, \code{projectname}
+can be set manually by specifying with the \code{projectname} argument.
 
-In the later case, if two function calls include the same \code{name} assignment,
-then outputs from one will overwrite the other. Therefore, it is recommended
-to either set the cache directory to something other than the default or use
-the default within a project with the \code{rstudioapi} package installed.
-Obviously this latter option will likely not work outside of RStudio,
-so, in that case, it is recommended to use a custom location.
+To use a location within the current working directory structure, the
+desired location should be specified with the \code{location} argument.
+This will create a directory matching \code{location} within the current directory
+structure with \link[here:here]{here::here}, if available, or \link{getwd}, if not.
+It is a relative path, so should not include directories above the current
+working directory.
 
-To ensure that R knows what the cache directory is,
-a hidden environment variable containing the information---\code{.cache_env}---is
-saved within the working environment.
-Other functions from the package will look for and use \code{.cache_env} to
-identify the cache directory.
-As a result, whenever the working environment is cleared
-(e.g., upon closing RStudio) or whenever the \code{.cache_env} is otherwise
-removed,
-the \code{cache.setup} function will need to be re-run before the cache
-functionality will work,
-regardless of the status of the any recently used cache directories.
+To ensure that R knows what the cache directory is, a hidden environment
+variable containing the information---\code{.cache_env}---is saved within the
+working environment. Other functions from the package will look for and use
+\code{.cache_env} to identify the cache directory.
+As a result, whenever the working environment is cleared (e.g., upon closing
+RStudio) or whenever the \code{.cache_env} is otherwise removed, the \code{cache.setup}
+function will need to be re-run before the cache functionality will work,
+regardless of the status of any recently used cache directories.
 
 The function relies on code that was unavailable in versions of R prior to
-version 4.0,
-so anyone using an earlier version of R will either have to update R or forgo
-the caching functionality.
+version 4.0, so anyone using an earlier version of R will either have to
+update R or forgo the caching functionality.
 
 \code{semFromKeys} has no way to know what directories you have specified as the
 cache in the past and cannot clean up unknown former cache directories.
@@ -111,6 +103,6 @@ Functions that directly or indirectly might require a cache directory are:
 }
 }
 \seealso{
-\link{cfa.from.keys}, \link{bifactor.from.keys}, \link{efa.from.keys}, \link{esem.from.mods},
-\link{sem.check}, \link[tools:R_user_dir]{tools::R_user_dir}, \link[here:here]{here::here}, \link{cache.clean}
+\link{cache.clean}, \link{cfa.from.keys}, \link{bifactor.from.keys}, \link{efa.from.keys},
+\link{esem.from.mods}, \link{sem.check}, \link[tools:R_user_dir]{tools::R_user_dir}, \link[here:here]{here::here}, \link{getwd}
 }
