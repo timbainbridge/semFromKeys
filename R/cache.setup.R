@@ -109,7 +109,7 @@
 #'   )
 #' }
 
-cache.setup <- function(location = "user", interactive = TRUE) {
+cache.setup <- function(location = "user", project = NULL, interactive = TRUE) {
   if (getRversion() < "4.0") {
     stop(
       paste0(
@@ -120,34 +120,34 @@ cache.setup <- function(location = "user", interactive = TRUE) {
       )
     )
   }
+  if (!is.character(location)) {
+    stop("'location' is not a length 1 character vector")
+  }
   if (location == "user") {
-    if (!requireNamespace("rstudioapi")) {
-      cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
-    } else {
-      if (rstudioapi::isAvailable()) {
-        project <- rstudioapi::getActiveProject()
-        if (is.null(project)) {
-          cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
-        } else {
-          project <- sub(".*/", "", project)
-          cache_dir <- tools::R_user_dir(
-            paste0("semFromKeys/", project), which = "cache"
-          )
-        }
-      } else {
-        cache_dir <- tools::R_user_dir("semFromKeys", which = "cache")
+    if (!is.null(project)) {
+      if (!is.character(project)) {
+        stop("'project' is not a length 1 character vector")
       }
+      cache_dir <- tools::R_user_dir(
+        paste0("semFromKeys/", project), which = "cache"
+      )
+    } else {
+      if (!requireNamespace(here)) {
+        project <- basename(here::here())
+      } else {
+        project <- basename(getwd())
+      }
+      cache_dir <- tools::R_user_dir(
+        paste0("semFromKeys/", project), which = "cache"
+      )
     }
   } else {
-    if (!is.character(location)) {
-      stop("'location' is not a length 1 character vector")
-    }
     if (interactive & interactive()) {
       if (requireNamespace("here")) {
         message(
           paste0(
             "The cache director will be set as: '",
-            paste0(here::here(), "/", location), "'."
+            here::here(location), "'."
           )
         )
         response <- readline("Continue? (y/n): ")
@@ -155,7 +155,7 @@ cache.setup <- function(location = "user", interactive = TRUE) {
         message(
           paste0(
             "The cache director will be set as: ",
-            paste0(getwd(), "/", location), "."
+            file.path(getwd(), location), "."
           )
         )
         response <- readline("Continue? (y/n): ")
