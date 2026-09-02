@@ -49,7 +49,8 @@
 #' This will create a directory matching `location` within the current directory
 #' structure with [here::here], if available, or [getwd], if not.
 #' It is a relative path, so should not include directories above the current
-#' working directory.
+#' working directory. If `interactive = TRUE` in an interactive session, you
+#' will be asked to confirm the cache location in this case.
 #'
 #' To ensure that R knows what the cache directory is, a hidden environment
 #' variable containing the information---`.cache_env`---is saved within the
@@ -119,14 +120,14 @@ cache.setup <- function(
   }
   if (location == "user") {
     if (!is.null(projectname)) {
-      if (!is.character(projectname)) {
+      if (!is.character(projectname) | length(projectname) != 1) {
         stop("'projectname' is not a length 1 character vector")
       }
       cache_dir <- tools::R_user_dir(
         paste0("semFromKeys/", projectname), which = "cache"
       )
     } else {
-      if (!requireNamespace(here)) {
+      if (!requireNamespace("here")) {
         projectname <- basename(here::here())
       } else {
         projectname <- basename(getwd())

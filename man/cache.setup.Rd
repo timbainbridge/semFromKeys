@@ -56,7 +56,8 @@ desired location should be specified with the \code{location} argument.
 This will create a directory matching \code{location} within the current directory
 structure with \link[here:here]{here::here}, if available, or \link{getwd}, if not.
 It is a relative path, so should not include directories above the current
-working directory.
+working directory. If \code{interactive = TRUE} in an interactive session, you
+will be asked to confirm the cache location in this case.
 
 To ensure that R knows what the cache directory is, a hidden environment
 variable containing the information---\code{.cache_env}---is saved within the
