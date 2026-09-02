@@ -4,6 +4,7 @@
 
 * `rstudioapi` was inadvertently left in suggests for the last update despite no longer being used.
 * A few small issues in the README were fixed.
+* Correlations could occasionally be inverted in `sem.cor` when `nagy = TRUE`.
 
 ## 02-9-2026 submission
 
