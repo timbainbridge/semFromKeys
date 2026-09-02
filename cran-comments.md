@@ -1,3 +1,9 @@
+## Next submission
+
+### Notes
+
+* `rstudioapi` was inadvertently left suggests for the last update despite no longer being used.
+
 ## 02-9-2026 submission
 
 ### R CMD check results
