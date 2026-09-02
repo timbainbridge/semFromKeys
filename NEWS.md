@@ -1,3 +1,7 @@
+# semFromKeys 0.5.4
+
+* Removed the rstudioapi suggestion as it is no longer used.
+
 # semFromKeys 0.5.3
 
 * Added p-values to `sem.cor` output.

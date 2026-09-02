@@ -1,7 +1,7 @@
 Package: semFromKeys
 Type: Package
 Title: Run 'lavaan' Models from Keys Lists
-Version: 0.5.3
+Version: 0.5.4
 Authors@R: c(
     person(
       "Timothy F.", "Bainbridge",
@@ -36,8 +36,7 @@ Imports:
     stringr
 Suggests: 
     testthat (>= 3.0.0),
-    here,
-    rstudioapi
+    here
 Config/testthat/edition: 3
 URL: https://github.com/timbainbridge/semFromKeys
 BugReports: https://github.com/timbainbridge/semFromKeys/issues
