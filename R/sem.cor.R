@@ -541,14 +541,14 @@ sem.cor <- function(
               mod0 <- paste0(
                 # CFA1
                 paste0(
-                  x1l$lhs, x1l$op, "lx", seq_along(key_x), "*", x1l$rhs,
+                  x1l$lhs, x1l$op, "lx", seq_along(key_x), "*start(", x1l$est,
+                  ")*", x1l$rhs,
                   collapse = "\n"
                 ),
                 "\n",
-                ifelse(x1l$est[[1]] >= 0, "lx1 > 0", "lx1 < 0"),
-                "\n",
                 paste0(
-                  x1u$lhs, x1u$op, "dx", seq_along(key_x), "*", x1u$rhs,
+                  x1u$lhs, x1u$op, "dx", seq_along(key_x), "*start(", x1u$est,
+                  ")*", x1u$rhs,
                   collapse = "\n"
                 ),
                 "\n",
@@ -556,14 +556,14 @@ sem.cor <- function(
                 "\n",
                 # CFA2
                 paste0(
-                  y1l$lhs, y1l$op, "ly", seq_along(key_y), "*", y1l$rhs,
+                  y1l$lhs, y1l$op, "ly", seq_along(key_y), "*start(", y1l$est,
+                  ")*", y1l$rhs,
                   collapse = "\n"
                 ),
                 "\n",
-                ifelse(y1l$est[[1]] >= 0, "lx1 > 0", "lx1 < 0"),
-                "\n",
                 paste0(
-                  y1u$lhs, y1u$op, "dy", seq_along(key_y), "*", y1u$rhs,
+                  y1u$lhs, y1u$op, "dy", seq_along(key_y), "*start(", y1u$est,
+                  ")*", y1u$rhs,
                   collapse = "\n"
                 ),
                 "\n",
