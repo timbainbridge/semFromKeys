@@ -655,3 +655,20 @@ test_that(
     )
   }
 )
+test_that(
+  "Reversed items in scale",
+  {
+    data <- BFIGritHope
+    data[grep(paste0("grit_c_[1-3]"), names(data))] <-
+      6 - data[grep(paste0("grit_c_[1-3]"), names(data))]
+    cfa_fit <- cfa_fit
+    mod <- paste(
+      "grit_c =~ start(-.5) * grit_c_1 + start(-.5) * grit_c_2 +",
+      "start(- .5) * grit_c_3 + start(.5) * grit_c_4 + start(.5) * grit_c_5 +",
+      "start(.5) * grit_c_6"
+    )
+    cfa_fit$grit_c <- cfa(mod, data, std.lv = TRUE)
+    cors <- sem.cor(data, cfa_fit[1:2])
+    expect_true(cors$cor_mat["grit_c", "grit_p"] > 0)
+  }
+)
