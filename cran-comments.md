@@ -2,6 +2,7 @@
 
 ### Notes
 
+* The main correlation matrix output of `sem.cor` was not correctly selecting correlations when `fit_x` was specified.
 * `rstudioapi` was inadvertently left in suggests for the last update despite no longer being used.
 * A few small issues in the README were fixed.
 * Correlations could occasionally be inverted in `sem.cor` when `nagy = TRUE`.
