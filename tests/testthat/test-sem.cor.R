@@ -667,7 +667,7 @@ test_that(
       "start(- .5) * grit_c_3 + start(.5) * grit_c_4 + start(.5) * grit_c_5 +",
       "start(.5) * grit_c_6"
     )
-    cfa_fit$grit_c <- cfa(mod, data, std.lv = TRUE)
+    cfa_fit$grit_c <- lavaan::cfa(mod, data, std.lv = TRUE)
     cors <- sem.cor(data, cfa_fit[1:2])
     expect_true(cors$cor_mat["grit_c", "grit_p"] > 0)
   }
