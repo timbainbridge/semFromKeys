@@ -18,4 +18,17 @@
 #' A length 1 character vector of the name of the the variable being tested.
 #' @param Y A length 1 character vector of the name of the outcome variable.
 #' @param Z
-#' A character vector of the set of variables that X is being pitted against.
+#' A character vector of the set of variables that X is being pitted against or
+#' `NULL` to use all variables in `cfa_fit` and `bif_fit`. Defaults to `NULL`.
+#'
+#' @return
+#' A list of length X.
+#' Elements include the fitted lavaan objects for the full and reduced models;
+#' estimates of R-squared and R-squared change; and data frames of covariate
+#' effect sizes from both the full and reduced models.
+
+r2.change <- function(data, X, Y, Z, cfa_fit = NULL, bif_fit = NULL) {
+  if (!X %in% names(cfa_fit)) {
+    stop("'X' is not an element of 'cfa_fit'.")
+  }
+}
