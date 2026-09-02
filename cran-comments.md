@@ -2,7 +2,8 @@
 
 ### Notes
 
-* `rstudioapi` was inadvertently left suggests for the last update despite no longer being used.
+* `rstudioapi` was inadvertently left in suggests for the last update despite no longer being used.
+* A few small issues in the README were fixed.
 
 ## 02-9-2026 submission
 

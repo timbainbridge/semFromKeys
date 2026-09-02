@@ -112,7 +112,7 @@ EFA results can be examined in a similar way to the CFAs.
 
 ```{r example-efa2}
 # Not run due to length
-# lavaan::summary(efa_fit$fit$efa)  # Standard lavaan summary
+# lavaan::summary(efa_fit$fit)  # Standard lavaan summary
 efa_fit$fit_measures                # Fit measures
 ```
 
@@ -154,7 +154,7 @@ The `esem.from.mods` function provides the same outputs as `esem.from.keys`, onl
 
 ```{r example-esem}
 esem_fit <- esem.from.mods(
-  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
+  BFIGritHope, efa_fit$fit, cfa_fit$fit, fit_save = FALSE
 )
 ```
 
@@ -180,7 +180,7 @@ sem_fit <- sem.path(path, BFIGritHope, cfa_fit$fit, fit_save = TRUE)
 The function outputs include a standard lavaan summary, r-squared values, regression path coefficients and correlations, and fit measures.
 
 ```{r example-sem2}
-print(summary(sem_fit$fit))      # Standard lavaan summary
+print(lavaan::summary(sem_fit$fit))      # Standard lavaan summary
 ```
 
 ```{r example-sem3}

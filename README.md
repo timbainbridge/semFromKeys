@@ -251,7 +251,7 @@ EFA results can be examined in a similar way to the CFAs.
 
 ``` r
 # Not run due to length
-# lavaan::summary(efa_fit$fit$efa)  # Standard lavaan summary
+# lavaan::summary(efa_fit$fit)  # Standard lavaan summary
 efa_fit$fit_measures                # Fit measures
 #>        chisq   df pvalue      bic
 #> efa 4808.621 1480      0 62887.71
@@ -409,7 +409,7 @@ The `esem.from.mods` function provides the same outputs as
 
 ``` r
 esem_fit <- esem.from.mods(
-  BFIGritHope, efa_fit$fit$efa, cfa_fit$fit, fit_save = FALSE
+  BFIGritHope, efa_fit$fit, cfa_fit$fit, fit_save = FALSE
 )
 #> Fitting models
 #> 1 / 4   grit_c
@@ -469,9 +469,61 @@ The function outputs include a standard lavaan summary, r-squared
 values, regression path coefficients and correlations, and fit measures.
 
 ``` r
-print(summary(sem_fit$fit))      # Standard lavaan summary
-#> Length  Class   Mode 
-#>      1 lavaan     S4
+print(lavaan::summary(sem_fit$fit))      # Standard lavaan summary
+#> This is lavaan 0.7-2 -- using the SAM approach to SEM
+#> 
+#>   SAM method                                     LOCAL
+#>   Mapping matrix M method                           ML
+#>   Number of measurement blocks                       4
+#>   Estimator measurement part                        ML
+#>   Estimator  structural part                        ML
+#> 
+#>   Number of observations                           388
+#>   Number of missing patterns                         1
+#> 
+#> Summary Information Measurement + Structural:
+#> 
+#>   Block Latent Nind  Chisq Df
+#>       1 grit_c    6 64.001  9
+#>       2 grit_p    6 61.092  9
+#>       3 hope_a    4 13.453  2
+#>       4 hope_p    4  2.933  2
+#> 
+#>   Model-based reliability latent variables:
+#> 
+#>   grit_c grit_p hope_a hope_p
+#>     0.85  0.809  0.832  0.794
+#> 
+#>   Summary Information Structural part:
+#> 
+#>   chisq.scaled df pvalue.scaled cfi.robust rmsea.robust  srmr
+#>             NA  2            NA         NA           NA 0.032
+#> 
+#> Parameter Estimates:
+#> 
+#>   Standard errors                              Twostep
+#>   Information                                 Observed
+#>   Observed information based on                Hessian
+#> 
+#> Regressions:
+#>                    Estimate  Std.Err  z-value  P(>|z|)
+#>   grit_p ~                                            
+#>     grit_c            0.205    0.039    5.237    0.000
+#>     hope_p            0.655    0.075    8.771    0.000
+#>   hope_p ~                                            
+#>     hope_a            0.886    0.070   12.700    0.000
+#> 
+#> Covariances:
+#>                    Estimate  Std.Err  z-value  P(>|z|)
+#>   grit_c ~~                                           
+#>     hope_a            0.277    0.050    5.531    0.000
+#> 
+#> Variances:
+#>                    Estimate  Std.Err  z-value  P(>|z|)
+#>     grit_c            0.818    0.095    8.582    0.000
+#>    .grit_p            0.112    0.032    3.509    0.000
+#>     hope_a            0.676    0.084    8.078    0.000
+#>    .hope_p            0.086    0.034    2.562    0.010
 ```
 
 ``` r

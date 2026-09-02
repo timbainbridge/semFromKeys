@@ -1,6 +1,7 @@
 # semFromKeys 0.5.4
 
 * Removed the rstudioapi suggestion as it is no longer used.
+* Fixed a couple of small issues in the README file.
 
 # semFromKeys 0.5.3
 
