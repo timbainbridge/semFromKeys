@@ -1,5 +1,9 @@
 ## 02-9-2026 submission
 
+### R CMD check results
+
+0 errors | 0 warnings | 0 notes
+
 ### Notes
 
 * Various mostly minor bug fixes prompted a relatively quick update. Bugs included:
@@ -8,7 +12,7 @@
     * `cache.clean` would sometimes fail to correctly remove empty folders;
     * `cache.setup` would create different cache directories in interactive and non-interactive sessions.
 * A user request for p-values in `sem.cor` output was also added.
-* The `name` argument was added to `cache.clean` to make it possible to remove particular sets of files.
+* The `name` argument was added to `cache.clean` to make it possible to remove particular sets of files much more easily.
 
 ## 22-8-2026 submission
 
