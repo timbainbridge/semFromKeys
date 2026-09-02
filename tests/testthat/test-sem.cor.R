@@ -643,6 +643,15 @@ test_that(
     keys <- keys
     names(keys) <- c("B", "C", "AB", "CD")
     cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)$fit
-    expect_no_error(sem.cor(BFIGritHope, cfa_fit, nagy = FALSE))
+    cors <- expect_no_error(sem.cor(BFIGritHope, cfa_fit, nagy = FALSE))
+    expect_true(
+      length(cors$cor_mat[1, 2]) == 1 & is.numeric(cors$cor_mat[1, 2])
+    )
+    cors <- expect_no_error(
+      sem.cor(BFIGritHope, cfa_fit[1:2], cfa_fit[3:4], nagy = FALSE)
+    )
+    expect_true(
+      length(cors$cor_mat[1, 2]) == 1 & is.numeric(cors$cor_mat[1, 2])
+    )
   }
 )
