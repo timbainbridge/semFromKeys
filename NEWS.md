@@ -1,6 +1,8 @@
 # semFromKeys 0.5.4
 
 * Removed the rstudioapi suggestion as it is no longer used.
+* Fixed a couple of small issues in the README file.
+* Fixed an issue whereby correlations could be inverted in `sem.cor` when `nagy = TRUE`.
 
 # semFromKeys 0.5.3
 
