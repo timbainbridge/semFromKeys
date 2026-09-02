@@ -686,12 +686,14 @@ sem.cor <- function(
               mod0 <- paste0(
                 # CFA
                 paste0(
-                  y1l$lhs, y1l$op, "ly", seq_along(key_y), "*", y1l$rhs,
+                  y1l$lhs, y1l$op, "ly", seq_along(key_y), "*start(", y1l$est,
+                  ")*", y1l$rhs,
                   collapse = "\n"
                 ),
                 "\n",
                 paste0(
-                  y1u$lhs, y1u$op, "dy", seq_along(key_y), "*", y1u$rhs,
+                  y1u$lhs, y1u$op, "dy", seq_along(key_y), "*start(", y1u$est,
+                  ")*", y1u$rhs,
                   collapse = "\n"
                 ),
                 "\n",
