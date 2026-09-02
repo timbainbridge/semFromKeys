@@ -10,3 +10,18 @@ test_that(
     )
   }
 )
+test_that(
+  "Cache projectname invalid",
+  {
+    expect_error(
+      cache.setup(
+        projectname = c("tests/testthat/cache", "tests/testhtat/invalid")
+      ),
+      "'projectname' is not a length 1 character vector"
+    )
+    expect_error(
+      cache.setup(projectname = 42),
+      "'projectname' is not a length 1 character vector"
+    )
+  }
+)
