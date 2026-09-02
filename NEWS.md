@@ -5,6 +5,7 @@
 * Fixed a bug where correlated residuals in `sem.cor` input where causing an unexpected error.
 * Fixed a bug whereby pattern matching to select correlations for cells in `sem.cor` could match more than one correlation, resulting in an error.
 * Switched `cache.clean` from using `unlink` to using `remove.files` to negate a bug in `cache.clean` whereby directories were sometimes not removed.
+* Cache directories should now match when running `cache.setup()` in interactive and non-interactive sessions.
 
 # semFromKeys 0.5.2
 
