@@ -545,7 +545,7 @@ sem.cor <- function(
                   ")*", x1l$rhs,
                   collapse = "\n"
                 ),
-                "\n",
+                ifelse(x1l$est[1] >= 0, "\nlx1>0\n", "\nlx1<0\n"),
                 paste0(
                   x1u$lhs, x1u$op, "dx", seq_along(key_x), "*start(", x1u$est,
                   ")*", x1u$rhs,
@@ -560,7 +560,7 @@ sem.cor <- function(
                   ")*", y1l$rhs,
                   collapse = "\n"
                 ),
-                "\n",
+                ifelse(y1l$est[1] >= 0, "\nly1>0\n", "\nly1<0\n"),
                 paste0(
                   y1u$lhs, y1u$op, "dy", seq_along(key_y), "*start(", y1u$est,
                   ")*", y1u$rhs,
@@ -690,7 +690,7 @@ sem.cor <- function(
                   ")*", y1l$rhs,
                   collapse = "\n"
                 ),
-                "\n",
+                ifelse(y1l$est[1] >= 0, "\nly1>0\n", "\nly1<0\n"),
                 paste0(
                   y1u$lhs, y1u$op, "dy", seq_along(key_y), "*start(", y1u$est,
                   ")*", y1u$rhs,
