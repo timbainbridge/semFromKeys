@@ -294,22 +294,13 @@ sem.cor <- function(
     cor_yn <- c()
     for (y in par1) {
       yn <- unique(y$lhs[y$op == "=~"])
-      if (length(yn) > 1) {
-        stop(
-          paste0(
-            "The 'fit_y' model including '", paste(yn, collapse = "' and '"),
-            "' includes more than one latent variable. ",
-            "These models are not currently supported by 'sem.cor'."
-          )
-        )
-      }
       if (sum(y$op == "|") > 0) {
         warn_ord <- TRUE
         ord_yn <- c(ord_yn, yn)
       } else {
         warn_ord <- FALSE
       }
-      if (sum(y$op == "~~" & y$lhs != y$rhs) > 0) {
+      if (sum(y$op == "~~" & y$lhs != y$rhs & y$est != 0) > 0) {
         warn_cor <- TRUE
         cor_yn <- c(cor_yn, yn)
       } else {
@@ -331,9 +322,10 @@ sem.cor <- function(
       warning(
         paste0(
           "The 'fit_y' models including the latent variables listed below ",
-          "include at least one correlation between two different variables ",
-          "(such as correlated residuals). This is not currently supported in ",
-          "'sem.cor' when 'nagy = TRUE', so it has been ignored. ",
+          "include at least one non-zero correlation between two different ",
+          "variables (such as correlated residuals). ",
+          "This is not currently supported in 'sem.cor' when 'nagy = TRUE', ",
+          "so it has been ignored. ",
           "If your model must include the correlation, try setting ",
           "'nagy = FALSE'.\n\n    ",
           paste0(cor_yn, collapse = "\n    ")
@@ -342,9 +334,10 @@ sem.cor <- function(
     }
   }
   # Rename y objects to match factors
-  names(fit_y) <- names(par1) <- sapply(
-    par1, function(y) unique(y$lhs[y$op == "=~"])
-  )
+  facs_y <- sapply(par1, function(y) unique(y$lhs[y$op == "=~"]))
+  # names(fit_y) <- names(par1) <- sapply(
+  #   par1, function(y) unique(y$lhs[y$op == "=~"])
+  # )
   if (is.null(fit_x) & is.null(items) & length(fit_y) >= 2) {
     pars <- lapply(
       stats::setNames(
@@ -461,11 +454,11 @@ sem.cor <- function(
             y <- j[["y0"]]
             x1 <- x[x$op == "~~" | x$op == "=~", ]
             y1 <- y[y$op == "~~" | y$op == "=~", ]
+            xn <- unique(x1$lhs[x1$op == "=~"])
+            yn <- unique(y1$lhs[y1$op == "=~"])
             key_x <- unique(x1$rhs[x1$op == "=~"])
             key_y <- unique(y1$rhs[y1$op == "=~"])
             key0 <- unique(c(key_y, key_x))
-            xn <- unique(x1$lhs[x1$op == "=~"])
-            yn <- unique(y1$lhs[y1$op == "=~"])
             # Any shared items. Need to unfix residual variance for these.
             i <- x1$lhs[x1$lhs %in% y1$lhs]
             if (length(i) != 0) {
@@ -532,83 +525,153 @@ sem.cor <- function(
               )
               return(list(mod = mod0, key = key0, xn = xn, yn = yn))
             } else {
-              x1l <- x1[x1$op == "=~", ]
-              y1l <- y1[y1$op == "=~", ]
-              x1u <- x1[x1$op == "~~" & x1$lhs != xn & x1$lhs == x1$rhs, ]
-              y1u <- y1[y1$op == "~~" & y1$lhs != yn & y1$lhs == y1$rhs, ]
-              x1v <- x1[x1$lhs == x1$rhs & x1$lhs == xn, ]
-              y1v <- y1[y1$lhs == y1$rhs & y1$lhs == yn, ]
+              x1l <- sapply(
+                xn,
+                function(z) x1[x1$op == "=~" & x1$lhs == z, ],
+                simplify = FALSE
+              )
+              y1l <- sapply(
+                yn,
+                function(z) y1[y1$op == "=~" & y1$lhs == z, ],
+                simplify = FALSE
+              )
+              x1u <- x1[x1$op == "~~" & (!x1$lhs %in% xn) & x1$lhs == x1$rhs, ]
+              y1u <- y1[y1$op == "~~" & (!y1$lhs %in% yn) & y1$lhs == y1$rhs, ]
+              x1v <- x1[x1$lhs == x1$rhs & x1$lhs %in% xn, ]
+              y1v <- y1[y1$lhs == y1$rhs & y1$lhs %in% yn, ]
               mod0 <- paste0(
                 # CFA1
                 paste0(
-                  x1l$lhs, x1l$op, "lx", seq_along(key_x), "*start(", x1l$est,
-                  ")*", x1l$rhs,
+                  mapply(
+                    z = x1l, n = seq_along(x1l), SIMPLIFY = FALSE,
+                    FUN = function(z, n) {
+                      paste0(
+                        paste0(
+                          z$lhs, z$op, "lx", n, seq_along(z$lhs), "*start(",
+                          z$est, ")*", z$rhs,
+                          collapse = "\n"
+                        ),
+                        ifelse(
+                          z$est[1] >= 0,
+                          paste0("\nlx", n, "1>0"),
+                          paste0("\nlx", n, "1<0")
+                        )
+                      )
+                    }
+                  ),
                   collapse = "\n"
                 ),
-                ifelse(x1l$est[1] >= 0, "\nlx1>0\n", "\nlx1<0\n"),
+                "\n",
                 paste0(
                   x1u$lhs, x1u$op, "dx", seq_along(key_x), "*start(", x1u$est,
                   ")*", x1u$rhs,
                   collapse = "\n"
                 ),
                 "\n",
-                paste0(x1v$lhs, x1v$op, x1v$est, "*", x1v$rhs),
+                paste0(x1v$lhs, x1v$op, x1v$est, "*", x1v$rhs, collapse = "\n"),
                 "\n",
                 # CFA2
                 paste0(
-                  y1l$lhs, y1l$op, "ly", seq_along(key_y), "*start(", y1l$est,
-                  ")*", y1l$rhs,
+                  mapply(
+                    z = y1l, n = seq_along(y1l), SIMPLIFY = FALSE,
+                    FUN = function(z, n) {
+                      paste0(
+                        paste0(
+                          z$lhs, z$op, "ly", n, seq_along(z$lhs), "*start(",
+                          z$est, ")*", z$rhs,
+                          collapse = "\n"
+                        ),
+                        ifelse(
+                          z$est[1] >= 0,
+                          paste0("\nly", n, "1>0"),
+                          paste0("\nly", n, "1<0")
+                        )
+                      )
+                    }
+                  ),
                   collapse = "\n"
                 ),
-                ifelse(y1l$est[1] >= 0, "\nly1>0\n", "\nly1<0\n"),
+                "\n",
                 paste0(
                   y1u$lhs, y1u$op, "dy", seq_along(key_y), "*start(", y1u$est,
                   ")*", y1u$rhs,
                   collapse = "\n"
                 ),
                 "\n",
-                paste0(y1v$lhs, y1v$op, y1v$est, "*", y1v$rhs),
+                paste0(y1v$lhs, y1v$op, y1v$est, "*", y1v$rhs, collapse = "\n"),
                 "\n",
                 # Extension parameters
                 paste0(
                   mapply(
-                    ye = key_y, yes = seq_along(key_y),
-                    FUN = function(ye, yes) paste0(ye, "~~pxy", yes, "*", xn)
+                    xn, seq_along(xn),
+                    FUN = function(z, n) {
+                      mapply(
+                        ye = key_y, yes = seq_along(key_y),
+                        FUN = function(ye, yes) {
+                          paste0(ye, "~~pxy", n, yes, "*", z)
+                        }
+                      )
+                    }
                   ),
                   collapse = "\n"
                 ),
                 "\n",
                 paste0(
                   mapply(
-                    xe = key_x, xes = seq_along(key_x),
-                    FUN = function(xe, xes) paste0(xe, "~~pyx", xes, "*", yn)
+                    yn, seq_along(yn),
+                    FUN = function(z, n) {
+                      mapply(
+                        xe = key_x, xes = seq_along(key_x),
+                        FUN = function(xe, xes) {
+                          paste0(xe, "~~pyx", n, xes, "*", z)
+                        }
+                      )
+                    }
                   ),
                   collapse = "\n"
                 ),
                 "\n",
                 # Model constraints
                 paste0(
-                  "0==",
-                  paste0(
-                    sapply(
-                      seq_along(key_y),
-                      function(ys) {
-                        paste0("ly", ys, "*pxy", ys, "/dy", ys)
-                      }
-                    ),
-                    collapse = "+"
-                  )
+                  sapply(
+                    seq_along(xn),
+                    function(z) {
+                      paste(
+                        "0==\n",
+                        paste(
+                          sapply(
+                            seq_along(key_y),
+                            function(ys) {
+                              paste0("ly", z, ys, "*pxy", z, ys, "/dy", ys)
+                            }
+                          ),
+                          collapse = "+\n "
+                        )
+                      )
+                    }
+                  ),
+                  collapse = "\n"
                 ),
                 "\n",
                 paste0(
-                  "0==",
-                  paste0(
-                    sapply(
-                      seq_along(key_x),
-                      function(xs) paste0("lx", xs, "*pyx", xs, "/dx", xs)
-                    ),
-                    collapse = "+"
-                  )
+                  sapply(
+                    seq_along(yn),
+                    function(z) {
+                      paste(
+                        "0==\n",
+                        paste(
+                          sapply(
+                            seq_along(key_x),
+                            function(xs) {
+                              paste0("lx", z, xs, "*pyx", z, xs, "/dx", xs)
+                            }
+                          ),
+                          collapse = "+\n "
+                        )
+                      )
+                    }
+                  ),
+                  collapse = "\n"
                 )
               )
               return(list(mod = mod0, key = key0, xn = xn, yn = yn))
