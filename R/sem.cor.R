@@ -270,180 +270,116 @@ sem.cor <- function(
       )
     )
   }
-  par1 <- lapply(fit_y, parameterEstimates)
-  if (!nagy) {
-    lapply(
-      par1,
-      function(y) {
-        yn <- unique(y$lhs[y$op == "=~"])
-        if (sum(y$op == "|") > 0) {
-          stop(
-            paste0(
-              "The 'fit_y' model including '", paste(yn, collapse = "' and '"),
-              "' is a model with ordinal variables, which are not currently ",
-              "supported in 'sem.cor'.",
-              "Using 'sem.cor' with 'nagy = TRUE' can run the models with the",
-              "current inputs, but variables will not be treated as ordinal."
-            )
-          )
-        }
-      }
-    )
+  par_y <- lapply(fit_y, parameterEstimates)
+  if (!is.null(fit_x)) {
+    par_x <- lapply(fit_x, parameterEstimates)
+    par_yx <- c(par_y, par_x)
+    sel_yx <- c(rep("fit_y", length(par_y), rep("fit_x", length(par_x))))
+    names(sel_yx) <- c(names(par_y), names(par_x))
   } else {
-    ord_yn <- c()
-    cor_yn <- c()
-    for (y in par1) {
-      yn <- unique(y$lhs[y$op == "=~"])
-      if (sum(y$op == "|") > 0) {
-        warn_ord <- TRUE
-        ord_yn <- c(ord_yn, yn)
-      } else {
-        warn_ord <- FALSE
+    par_yx <- par_y
+    sel_yx <- rep("fit_y", length(par_y))
+    names(sel_yx) <- names(par_y)
+  }
+  mapply(
+    par = par_yx, sel = sel_yx,
+    function(par, sel) {
+      nm <- unique(par$lhs[par$op == "=~"])
+      if (sum(par$op == "|") > 0) {
+        stop(
+          paste0(
+            "The '", sel, "' model including '",
+            paste(nm, collapse = "' and '"),
+            "' is a model with ordinal variables, which are not currently ",
+            "supported in 'sem.cor'."
+          )
+        )
       }
-      if (sum(y$op == "~~" & y$lhs != y$rhs & y$est != 0) > 0) {
-        warn_cor <- TRUE
-        cor_yn <- c(cor_yn, yn)
+    }
+  )
+  if (nagy) {
+    ord_n <- c()
+    cor_n <- c()
+    cor_sel <- c()
+    for (par_nm in names(par_yx)) {
+      par <- par_yx[par_nm]
+      sel <- sel_yx[par_nm]
+      nm <- unique(par$lhs[par$op == "=~"])
+      if (length(nm) > 1) {
+        warning(
+          paste0(
+            "The '", sel, "' model including '",
+            paste(nm, collapse = "' and '"),
+            "' includes more than one latent variable.\n   ",
+            "Measurement models with more than one factor are not currently ",
+            "supported in 'sem.cor' with 'nagy = TRUE'.\n   ",
+            "Models including these variables will be switched to Burt's ",
+            "method (i.e., 'nagy = FALSE')."
+          )
+        )
+        if (sum(par$op == "~~" & par$lhs != par$rhs & par$est != 0) > 0) {
+          warn_cor <- TRUE
+          cor_n <- c(cor_n, nm)
+          cor_sel <- unique(c(cor_sel, sel))
+        } else {
+          warn_cor <- FALSE
+        }
       } else {
         warn_cor <- FALSE
       }
     }
-    if (warn_ord) {
-      warning(
-        paste0(
-          "The 'fit_y' models listed below include ordinal variables, ",
-          "which are not currently supported in 'sem.cor'. ",
-          "Given 'nagy = TRUE', the models will run with the current inputs, ",
-          "but variables have not be treated as ordinal.\n\n    ",
-          paste0(ord_yn, collapse = "\n    ")
-        )
-      )
-    }
     if (warn_cor) {
       warning(
         paste0(
-          "The 'fit_y' models including the latent variables listed below ",
-          "include at least one non-zero correlation between two different ",
-          "variables (such as correlated residuals). ",
-          "This is not currently supported in 'sem.cor' when 'nagy = TRUE', ",
-          "so it has been ignored. ",
-          "If your model must include the correlation, try setting ",
-          "'nagy = FALSE'.\n\n    ",
-          paste0(cor_yn, collapse = "\n    ")
+          "The '", paste(cor_sel, collapse = " and "),
+          "' models including the latent variables listed below include ",
+          "at least one correlation between two different variables ",
+          "(such as correlated residuals).\n   ",
+          "This will only work sometimes in 'sem.cor' when ",
+          "'nagy = TRUE'.\n",
+          "If lavaan has produced errors or warnings, these correlations may ",
+          "be to blame.\n\n      ",
+          paste0(cor_n, collapse = "; ")
         )
       )
     }
   }
   # Rename y objects to match factors
-  facs_y <- sapply(par1, function(y) unique(y$lhs[y$op == "=~"]))
-  # names(fit_y) <- names(par1) <- sapply(
-  #   par1, function(y) unique(y$lhs[y$op == "=~"])
+  # names(fit_y) <- names(par_y) <- sapply(
+  #   par_y, function(y) unique(y$lhs[y$op == "=~"])
   # )
   if (is.null(fit_x) & is.null(items) & length(fit_y) >= 2) {
     pars <- lapply(
       stats::setNames(
-        seq_along(par1[-length(par1)]),
-        names(par1)[seq_along(par1[-length(par1)])]
+        seq_along(par_y[-length(par_y)]),
+        names(par_y)[seq_along(par_y[-length(par_y)])]
       ),
       function(y) {
         lapply(
           stats::setNames(
-            (y + 1):length(par1), names(par1)[(y + 1):length(par1)]
+            (y + 1):length(par_y), names(par_y)[(y + 1):length(par_y)]
           ),
           function(x) {
-            x0 <- par1[[x]]
-            y0 <- par1[[y]]
+            x0 <- par_y[[x]]
+            y0 <- par_y[[y]]
             list(x0 = x0, y0 = y0)
           }
         )
       }
     )
-  } else if (!is.null(fit_x)) {
-    # Correlations between constructs in fit_y and constructs in fit_x
-    par2 <- lapply(fit_x, parameterEstimates)
-    if (!nagy) {
-      lapply(
-        par2,
-        function(x) {
-          xn <- unique(x$lhs[x$op == "=~"])
-          if (sum(x$op == "|") > 0) {
-            stop(
-              paste0(
-                "The 'fit_x' model including '",
-                paste(xn, collapse = "' and '"),
-                "' is a model with ordinal variables, which are not currently ",
-                "supported in 'sem.cor'.",
-                "Using 'sem.cor' with 'nagy = TRUE' can run the models with ",
-                "the current inputs, but variables will not be treated as ",
-                "ordinal."
-              )
-            )
-          }
-        }
-      )
-    } else {
-      ord_xn <- c()
-      cor_xn <- c()
-      for (x in par2) {
-        xn <- unique(x$lhs[x$op == "=~"])
-        if (length(xn) > 1) {
-          stop(
-            paste0(
-              "The 'fit_x' model including '", paste(xn, collapse = "' and '"),
-              "' includes more than one latent variable. ",
-              "These models are not currently supported by 'sem.cor'."
-            )
-          )
-        }
-        if (sum(x$op == "|") > 0) {
-          warn_ord <- TRUE
-          ord_xn <- c(ord_xn, xn)
-        } else {
-          warn_ord <- FALSE
-        }
-        if (sum(x$op == "~~" & x$lhs != x$rhs) > 0) {
-          warn_cor <- TRUE
-          cor_xn <- c(cor_xn, xn)
-        } else {
-          warn_cor <- FALSE
-        }
-      }
-      if (warn_ord) {
-        warning(
-          paste0(
-            "The 'fit_x' models listed below include ordinal variables, ",
-            "which are not currently supported in 'sem.cor'. ",
-            "Given 'nagy = TRUE', the models will run with the current inputs,",
-            " but variables have not be treated as ordinal.\n\n    ",
-            paste0(ord_xn, collapse = "\n    ")
-          )
-        )
-      }
-      if (warn_cor) {
-        warning(
-          paste0(
-            "The 'fit_x' models including the latent variables listed below ",
-            "include at least one correlation between two different variables ",
-            "(such as correlated residuals). This is not currently supported ",
-            "in 'sem.cor' when 'nagy = TRUE', so it has been ignored. ",
-            "If your model must include the correlation, try setting ",
-            "'nagy = FALSE'.\n\n    ",
-            paste0(cor_xn, collapse = "\n    ")
-          )
-        )
-      }
-    }
-    names(fit_x) <- names(par2) <- sapply(
-      par2, function(x) unique(x$lhs[x$op == "=~"])
-    )
+  if (!is.null(fit_x)) {
+    # names(fit_x) <- names(par_x) <- sapply(
+    #   par_x, function(x) unique(x$lhs[x$op == "=~"])
+    # )
     pars <- sapply(
-      par1,
+      par_y,
       function(y) {
-        sapply(par2, function(x) list(x0 = x, y0 = y), simplify = FALSE)
+        sapply(par_x, function(x) list(x0 = x, y0 = y), simplify = FALSE)
       },
       simplify = FALSE
     )
   }
-  if ((is.null(fit_x) & is.null(items)) | !is.null(fit_x)) {
+  if ((is.null(fit_x) & length(fit_y) >= 2) | !is.null(fit_x)) {
     mod_key <- lapply(
       pars,
       function(k) {
@@ -454,11 +390,11 @@ sem.cor <- function(
             y <- j[["y0"]]
             x1 <- x[x$op == "~~" | x$op == "=~", ]
             y1 <- y[y$op == "~~" | y$op == "=~", ]
-            xn <- unique(x1$lhs[x1$op == "=~"])
-            yn <- unique(y1$lhs[y1$op == "=~"])
             key_x <- unique(x1$rhs[x1$op == "=~"])
             key_y <- unique(y1$rhs[y1$op == "=~"])
             key0 <- unique(c(key_y, key_x))
+            xn <- unique(x1$lhs[x1$op == "=~"])
+            yn <- unique(y1$lhs[y1$op == "=~"])
             # Any shared items. Need to unfix residual variance for these.
             i <- x1$lhs[x1$lhs %in% y1$lhs]
             if (length(i) != 0) {
@@ -525,153 +461,83 @@ sem.cor <- function(
               )
               return(list(mod = mod0, key = key0, xn = xn, yn = yn))
             } else {
-              x1l <- sapply(
-                xn,
-                function(z) x1[x1$op == "=~" & x1$lhs == z, ],
-                simplify = FALSE
-              )
-              y1l <- sapply(
-                yn,
-                function(z) y1[y1$op == "=~" & y1$lhs == z, ],
-                simplify = FALSE
-              )
-              x1u <- x1[x1$op == "~~" & (!x1$lhs %in% xn) & x1$lhs == x1$rhs, ]
-              y1u <- y1[y1$op == "~~" & (!y1$lhs %in% yn) & y1$lhs == y1$rhs, ]
-              x1v <- x1[x1$lhs == x1$rhs & x1$lhs %in% xn, ]
-              y1v <- y1[y1$lhs == y1$rhs & y1$lhs %in% yn, ]
+              x1l <- x1[x1$op == "=~", ]
+              y1l <- y1[y1$op == "=~", ]
+              x1u <- x1[x1$op == "~~" & x1$lhs != xn & x1$lhs == x1$rhs, ]
+              y1u <- y1[y1$op == "~~" & y1$lhs != yn & y1$lhs == y1$rhs, ]
+              x1v <- x1[x1$lhs == x1$rhs & x1$lhs == xn, ]
+              y1v <- y1[y1$lhs == y1$rhs & y1$lhs == yn, ]
               mod0 <- paste0(
                 # CFA1
                 paste0(
-                  mapply(
-                    z = x1l, n = seq_along(x1l), SIMPLIFY = FALSE,
-                    FUN = function(z, n) {
-                      paste0(
-                        paste0(
-                          z$lhs, z$op, "lx", n, seq_along(z$lhs), "*start(",
-                          z$est, ")*", z$rhs,
-                          collapse = "\n"
-                        ),
-                        ifelse(
-                          z$est[1] >= 0,
-                          paste0("\nlx", n, "1>0"),
-                          paste0("\nlx", n, "1<0")
-                        )
-                      )
-                    }
-                  ),
+                  x1l$lhs, x1l$op, "lx", seq_along(key_x), "*start(", x1l$est,
+                  ")*", x1l$rhs,
                   collapse = "\n"
                 ),
-                "\n",
+                ifelse(x1l$est[1] >= 0, "\nlx1>0\n", "\nlx1<0\n"),
                 paste0(
                   x1u$lhs, x1u$op, "dx", seq_along(key_x), "*start(", x1u$est,
                   ")*", x1u$rhs,
                   collapse = "\n"
                 ),
                 "\n",
-                paste0(x1v$lhs, x1v$op, x1v$est, "*", x1v$rhs, collapse = "\n"),
+                paste0(x1v$lhs, x1v$op, x1v$est, "*", x1v$rhs),
                 "\n",
                 # CFA2
                 paste0(
-                  mapply(
-                    z = y1l, n = seq_along(y1l), SIMPLIFY = FALSE,
-                    FUN = function(z, n) {
-                      paste0(
-                        paste0(
-                          z$lhs, z$op, "ly", n, seq_along(z$lhs), "*start(",
-                          z$est, ")*", z$rhs,
-                          collapse = "\n"
-                        ),
-                        ifelse(
-                          z$est[1] >= 0,
-                          paste0("\nly", n, "1>0"),
-                          paste0("\nly", n, "1<0")
-                        )
-                      )
-                    }
-                  ),
+                  y1l$lhs, y1l$op, "ly", seq_along(key_y), "*start(", y1l$est,
+                  ")*", y1l$rhs,
                   collapse = "\n"
                 ),
-                "\n",
+                ifelse(y1l$est[1] >= 0, "\nly1>0\n", "\nly1<0\n"),
                 paste0(
                   y1u$lhs, y1u$op, "dy", seq_along(key_y), "*start(", y1u$est,
                   ")*", y1u$rhs,
                   collapse = "\n"
                 ),
                 "\n",
-                paste0(y1v$lhs, y1v$op, y1v$est, "*", y1v$rhs, collapse = "\n"),
+                paste0(y1v$lhs, y1v$op, y1v$est, "*", y1v$rhs),
                 "\n",
                 # Extension parameters
                 paste0(
                   mapply(
-                    xn, seq_along(xn),
-                    FUN = function(z, n) {
-                      mapply(
-                        ye = key_y, yes = seq_along(key_y),
-                        FUN = function(ye, yes) {
-                          paste0(ye, "~~pxy", n, yes, "*", z)
-                        }
-                      )
-                    }
+                    ye = key_y, yes = seq_along(key_y),
+                    FUN = function(ye, yes) paste0(ye, "~~pxy", yes, "*", xn)
                   ),
                   collapse = "\n"
                 ),
                 "\n",
                 paste0(
                   mapply(
-                    yn, seq_along(yn),
-                    FUN = function(z, n) {
-                      mapply(
-                        xe = key_x, xes = seq_along(key_x),
-                        FUN = function(xe, xes) {
-                          paste0(xe, "~~pyx", n, xes, "*", z)
-                        }
-                      )
-                    }
+                    xe = key_x, xes = seq_along(key_x),
+                    FUN = function(xe, xes) paste0(xe, "~~pyx", xes, "*", yn)
                   ),
                   collapse = "\n"
                 ),
                 "\n",
                 # Model constraints
                 paste0(
-                  sapply(
-                    seq_along(xn),
-                    function(z) {
-                      paste(
-                        "0==\n",
-                        paste(
-                          sapply(
-                            seq_along(key_y),
-                            function(ys) {
-                              paste0("ly", z, ys, "*pxy", z, ys, "/dy", ys)
-                            }
-                          ),
-                          collapse = "+\n "
-                        )
-                      )
-                    }
-                  ),
-                  collapse = "\n"
+                  "0==",
+                  paste0(
+                    sapply(
+                      seq_along(key_y),
+                      function(ys) {
+                        paste0("ly", ys, "*pxy", ys, "/dy", ys)
+                      }
+                    ),
+                    collapse = "+"
+                  )
                 ),
                 "\n",
                 paste0(
-                  sapply(
-                    seq_along(yn),
-                    function(z) {
-                      paste(
-                        "0==\n",
-                        paste(
-                          sapply(
-                            seq_along(key_x),
-                            function(xs) {
-                              paste0("lx", z, xs, "*pyx", z, xs, "/dx", xs)
-                            }
-                          ),
-                          collapse = "+\n "
-                        )
-                      )
-                    }
-                  ),
-                  collapse = "\n"
+                  "0==",
+                  paste0(
+                    sapply(
+                      seq_along(key_x),
+                      function(xs) paste0("lx", xs, "*pyx", xs, "/dx", xs)
+                    ),
+                    collapse = "+"
+                  )
                 )
               )
               return(list(mod = mod0, key = key0, xn = xn, yn = yn))
@@ -696,7 +562,7 @@ sem.cor <- function(
   if (!is.null(items)) {
     # Correlations with single items
     mod_key_i <- lapply(
-      par1,
+      par_y,
       function(y) {
         y1 <- y[y$op == "=~" | (y$op == "~~" & y$lhs == y$rhs), ]
         yn <- unique(y$lhs[y$op == "=~"])
