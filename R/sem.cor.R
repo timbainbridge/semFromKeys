@@ -347,7 +347,7 @@ sem.cor <- function(
       )
     }
   }
-  if (sum(nagy_sel) == 0) {
+  if (nagy & sum(nagy_sel) == 0) {
     nagy <- FALSE
     warning(
       paste(
@@ -387,7 +387,9 @@ sem.cor <- function(
       simplify = FALSE
     )
   }
-  if ((is.null(fit_x) & length(fit_y) >= 2) | !is.null(fit_x)) {
+  if (
+    (is.null(fit_x) & is.null(items) & length(fit_y) >= 2) | !is.null(fit_x)
+  ) {
     mod_key <- mapply(
       p0 = pars, yn = names(pars), SIMPLIFY = FALSE,
       FUN = function(p0, yn) {
@@ -853,15 +855,15 @@ sem.cor <- function(
     ci_upper <- cor_mat_y$ci.upper
     pvalue_mat <- cor_mat_y$pvalue
   } else if (is.null(fit_x)) {
-    cor_mat <- cor_mat_yi
-    ci_lower <- ci_lower_yi
-    ci_upper <- ci_upper_yi
-    pvalue_mat <- pvalue_mat_yi
+    cor_mat <- cor_mat_yi$est.std
+    ci_lower <- cor_mat_yi$ci.lower
+    ci_upper <- cor_mat_yi$ci.upper
+    pvalue_mat <- cor_mat_yi$pvalue
   } else {
-    cor_mat <- rbind(cor_mat_y, cor_mat_yi)
-    ci_lower <- rbind(ci_lower_y, ci_lower_yi)
-    ci_upper <- rbind(ci_upper_y, ci_upper_yi)
-    pvalue_mat <- rbind(pvalue_mat_y, pvalue_mat_yi)
+    cor_mat <- rbind(cor_mat_y$est.std, cor_mat_yi$est.std)
+    ci_lower <- rbind(cor_mat_y$ci.lower, cor_mat_yi$ci.lower)
+    ci_upper <- rbind(cor_mat_y$ci.upper, cor_mat_yi$ci.upper)
+    pvalue_mat <- rbind(cor_mat_y$pvalue, cor_mat_yi$pvalue)
   }
   if (nagy) {
     nagy_par <- fit$par_std[ns]
