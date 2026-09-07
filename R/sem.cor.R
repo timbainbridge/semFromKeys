@@ -274,7 +274,7 @@ sem.cor <- function(
   if (!is.null(fit_x)) {
     par_x <- lapply(fit_x, parameterEstimates)
     par_yx <- c(par_y, par_x)
-    sel_yx <- c(rep("fit_y", length(par_y), rep("fit_x", length(par_x))))
+    sel_yx <- c(rep("fit_y", length(par_y)), rep("fit_x", length(par_x)))
     names(sel_yx) <- c(names(par_y), names(par_x))
   } else {
     par_yx <- par_y
@@ -297,22 +297,25 @@ sem.cor <- function(
       }
     }
   )
+  nagy_sel <- rep(nagy, length(par_yx))
+  names(nagy_sel) <- names(par_yx)
   if (nagy) {
     ord_n <- c()
     cor_n <- c()
     cor_sel <- c()
-    for (par_nm in names(par_yx)) {
-      par <- par_yx[par_nm]
-      sel <- sel_yx[par_nm]
+    for (par_n in names(par_yx)) {
+      par <- par_yx[[par_n]]
+      sel <- sel_yx[[par_n]]
       nm <- unique(par$lhs[par$op == "=~"])
       if (length(nm) > 1) {
+        nagy_sel[par_n] <- FALSE
         warning(
           paste0(
             "The '", sel, "' model including '",
             paste(nm, collapse = "' and '"),
             "' includes more than one latent variable.\n   ",
-            "Measurement models with more than one factor are not currently ",
-            "supported in 'sem.cor' with 'nagy = TRUE'.\n   ",
+            "Measurement models with more than one latent variable are not ",
+            "currently supported in 'sem.cor' with 'nagy = TRUE'.\n   ",
             "Models including these variables will be switched to Burt's ",
             "method (i.e., 'nagy = FALSE')."
           )
@@ -344,11 +347,18 @@ sem.cor <- function(
       )
     }
   }
-  # Rename y objects to match factors
-  # names(fit_y) <- names(par_y) <- sapply(
-  #   par_y, function(y) unique(y$lhs[y$op == "=~"])
-  # )
-  if (is.null(fit_x) & is.null(items) & length(fit_y) >= 2) {
+  if (sum(nagy_sel) == 0) {
+    nagy <- FALSE
+    warning(
+      paste(
+        "All correlations include a measurement model with more than one",
+        "latent variable, which are not currently supported with ",
+        "'nagy = TRUE'.\n   ",
+        "Therefore, 'nagy' has been switch to 'FALSE'."
+      )
+    )
+  }
+  if (is.null(fit_x) & is.null(items)) {
     pars <- lapply(
       stats::setNames(
         seq_along(par_y[-length(par_y)]),
@@ -367,10 +377,8 @@ sem.cor <- function(
         )
       }
     )
+  }
   if (!is.null(fit_x)) {
-    # names(fit_x) <- names(par_x) <- sapply(
-    #   par_x, function(x) unique(x$lhs[x$op == "=~"])
-    # )
     pars <- sapply(
       par_y,
       function(y) {
@@ -380,31 +388,32 @@ sem.cor <- function(
     )
   }
   if ((is.null(fit_x) & length(fit_y) >= 2) | !is.null(fit_x)) {
-    mod_key <- lapply(
-      pars,
-      function(k) {
-        tmp <- lapply(
-          k,
-          function(j) {
-            x <- j[["x0"]]
-            y <- j[["y0"]]
+    mod_key <- mapply(
+      p0 = pars, yn = names(pars), SIMPLIFY = FALSE,
+      FUN = function(p0, yn) {
+        tmp <- mapply(
+          p = p0, xn = names(p0), SIMPLIFY = FALSE,
+          FUN = function(p, xn) {
+            x <- p[["x0"]]
+            y <- p[["y0"]]
             x1 <- x[x$op == "~~" | x$op == "=~", ]
             y1 <- y[y$op == "~~" | y$op == "=~", ]
             key_x <- unique(x1$rhs[x1$op == "=~"])
             key_y <- unique(y1$rhs[y1$op == "=~"])
             key0 <- unique(c(key_y, key_x))
-            xn <- unique(x1$lhs[x1$op == "=~"])
-            yn <- unique(y1$lhs[y1$op == "=~"])
-            # Any shared items. Need to unfix residual variance for these.
+            xfn <- unique(x1$lhs[x1$op == "=~"])
+            yfn <- unique(y1$lhs[y1$op == "=~"])
+            ns <- sum(nagy_sel[c(xn, yn)]) == 2
+            # Any shared items?
             i <- x1$lhs[x1$lhs %in% y1$lhs]
             if (length(i) != 0) {
-              if (nagy) {
+              if (ns) {
                 stop(
                   paste0(
-                    "The following item(s) are in both the '", yn, "' and '",
-                    xn, "' factors. ",
-                    "This is not supported when 'nagy = TRUE'.\n    ",
-                    paste(i, collapse = "\n    ")
+                    "The following item(s) are in both the '", yn,
+                    "' and '", xn, "' models.\n",
+                    "This is not supported when 'nagy = TRUE'.\n\n    ",
+                    paste(i, collapse = "; ")
                   )
                 )
               }
@@ -429,28 +438,26 @@ sem.cor <- function(
                 stop(
                   paste0(
                     "All the items in '", shorter_f, "' are included in '",
-                    longer_f, "'.\n  ",
-                    "Such a relationship should be specified as a bifactor ",
-                    "model with a correlation of 0 between the group and ",
-                    "general factors and not used in 'sem.cor'."
+                    longer_f, "'.\n",
+                    "Finding correlations between such latent variables does ",
+                    "not make sense."
                   )
                 )
               }
               warning(
                 paste0(
                   "The following item(s) are in both the '", yn, "' and '", xn,
-                  "' factors. ",
-                  "If this is not intended, please correct it and disregard ",
-                  "the correlation between these factors.\n    ",
-                  paste(i, collapse = "\n    ")
+                  "' models.\n   Is this intended?\n\n     ",
+                  paste(i, collapse = "; ")
                 )
               )
+              # Unfix residual variance for shared items
               for (j in i) {
                 x1 <- x1[!(x1$lhs == j & x1$op == "~~" & x1$rhs == j), ]
                 y1 <- y1[!(y1$lhs == j & y1$op == "~~" & y1$rhs == j), ]
               }
             }
-            if (!nagy) {
+            if (!ns) {
               mod0 <- paste0(
                 # CFA1
                 paste(x1$lhs, x1$op, x1$est, "*", x1$rhs, collapse = "\n"),
@@ -459,7 +466,12 @@ sem.cor <- function(
                 paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
                 collapse = "\n"
               )
-              return(list(mod = mod0, key = key0, xn = xn, yn = yn))
+              return(
+                list(
+                  mod = mod0, key = key0,
+                  xn = xn, yn = yn, xfn = xfn, yfn = yfn, ns = ns
+                )
+              )
             } else {
               x1l <- x1[x1$op == "=~", ]
               y1l <- y1[y1$op == "=~", ]
@@ -540,7 +552,12 @@ sem.cor <- function(
                   )
                 )
               )
-              return(list(mod = mod0, key = key0, xn = xn, yn = yn))
+              return(
+                list(
+                  mod = mod0, key = key0,
+                  xn = xn, yn = yn, xfn = xfn, yfn = yfn, ns = ns
+                )
+              )
             }
           }
         )
@@ -548,25 +565,36 @@ sem.cor <- function(
         key1 <- lapply(tmp, function(x) x$key)
         xn <- sapply(tmp, function(x) x$xn)
         yn <- sapply(tmp, function(x) x$yn)
-        return(list(mod = mod1, key = key1, xn = xn, yn = yn))
+        xfn <- lapply(tmp, function(x) x$xfn)
+        yfn <- lapply(tmp, function(x) x$yfn)
+        ns <- sapply(tmp, function(x) x$ns)
+        return(
+          list(
+            mod = mod1, key = key1,
+            xn = xn, yn = yn, xfn = xfn, yfn = yfn, ns = ns
+          )
+        )
       }
     )
     mods <- unlist(lapply(mod_key, function(x) x$mod), recursive = FALSE)
     key <- unlist(lapply(mod_key, function(x) x$key), recursive = FALSE)
     xn <- unlist(lapply(mod_key, function(x) x$xn), recursive = FALSE)
     yn <- unlist(lapply(mod_key, function(x) x$yn), recursive = FALSE)
+    xfn <- unlist(lapply(mod_key, function(x) x$xfn), recursive = FALSE)
+    yfn <- unlist(lapply(mod_key, function(x) x$yfn), recursive = FALSE)
+    ns <- unlist(lapply(mod_key, function(x) x$ns), recursive = FALSE)
   } else {
     mods <- NULL
     key <- NULL
   }
   if (!is.null(items)) {
     # Correlations with single items
-    mod_key_i <- lapply(
-      par_y,
-      function(y) {
+    mod_key_i <- mapply(
+      y = par_y, ns = nagy_sel[names(fit_y)], SIMPLIFY = FALSE,
+      FUN = function(y, ns) {
         y1 <- y[y$op == "=~" | (y$op == "~~" & y$lhs == y$rhs), ]
         yn <- unique(y$lhs[y$op == "=~"])
-        if (nagy) {
+        if (ns) {
           y1l <- y1[y1$op == "=~", ]
           y1u <- y1[y1$op == "~~" & y1$lhs != yn, ]
           y1v <- y1[y1$lhs == y1$rhs & y1$lhs == yn, ]
@@ -577,8 +605,8 @@ sem.cor <- function(
           stop(
             paste0(
               "The following item(s) are in both 'items' and contributes ",
-              "to the measurement of the '", yn, "' latent variable.",
-              "\n  This is not supported.\n  ",
+              "to the measurement of the '", yn, "' latent variable.\n  ",
+              "This is not supported.\n  ",
               "Either remove the item(s) from 'items' or ",
               "(if appropriate) remove the item(s) from the latent ",
               "measurement of '", yn, "'.\n    ",
@@ -603,7 +631,7 @@ sem.cor <- function(
             }
             i_l <- paste0(i, "_l")
             key0 <- c(y$rhs[y$op == "=~"], i)
-            if (!nagy) {
+            if (!ns) {
               mod0 <- paste0(
                 # CFA
                 paste(y1$lhs, y1$op, y1$est, "*", y1$rhs, collapse = "\n"),
@@ -689,255 +717,117 @@ sem.cor <- function(
     std.lv = TRUE,
     ordered = NULL
   )
+  extract <- c("est.std", "ci.lower", "ci.upper", "pvalue")
   if (!is.null(fit_x) | (length(fit_y) > 1 & is.null(items))) {
-    cors_y <- mapply(
-      x = fit$par_std[
-        !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
-      ],
-      xn0 = xn,
-      yn0 = yn,
-      FUN = function(x, xn0, yn0) x$est.std[x$lhs == xn0 & x$rhs == yn0]
-    )
-    ci_lower_y0 <- mapply(
-      x = fit$par_std[
-        !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
-      ],
-      xn0 = xn,
-      yn0 = yn,
-      FUN = function(x, xn0, yn0) x$ci.lower[x$lhs == xn0 & x$rhs == yn0]
-    )
-    ci_upper_y0 <- mapply(
-      x = fit$par_std[
-        !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
-      ],
-      xn0 = xn,
-      yn0 = yn,
-      FUN = function(x, xn0, yn0) x$ci.upper[x$lhs == xn0 & x$rhs == yn0]
-    )
-    pvalue_y <- mapply(
-      x = fit$par_std[
-        !grepl(paste0("\\.", items, "$", collapse = "|"), names(fit$par_std))
-      ],
-      xn0 = xn,
-      yn0 = yn,
-      FUN = function(x, xn0, yn0) x$pvalue[x$lhs == xn0 & x$rhs == yn0]
+    cors_y <- sapply(
+      extract,
+      function(ext) {
+        tmp <- do.call(
+          rbind,
+          mapply(
+            x = fit$par_std[
+              !grepl(
+                paste0("\\.", items, "$", collapse = "|"), names(fit$par_std)
+              )
+            ],
+            xn0 = xfn,
+            yn0 = yfn,
+            FUN = function(x, xn0, yn0) {
+              x[x$lhs %in% c(xn0, yn0) & x$rhs %in% c(xn0, yn0),
+                c("lhs", "rhs", ext)]
+            },
+            SIMPLIFY = FALSE
+          )
+        )
+        tmp[!duplicated(tmp), ]
+      },
+      simplify = FALSE
     )
     if (is.null(fit_x)) {
       cor_mat_y <- sapply(
-        names(fit_y),
-        function(x) {
+        extract,
+        function(ext_n) {
+          ext <- cors_y[[ext_n]]
           sapply(
-            names(fit_y),
-            function(y) {
-              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
-              tmp <- cors_y[grep(ptn, names(cors_y))]
-              if (length(tmp) == 0) {
-                tmp <- 1
-              }
-              tmp
-            },
-            USE.NAMES = FALSE
+            stats::setNames(nm = unique(unlist(c(yfn, xfn)))),
+            function(x) {
+              sapply(
+                stats::setNames(nm = unique(unlist(c(yfn, xfn)))),
+                function(y) {
+                  ext[[ext_n]][(ext$lhs == x & ext$rhs == y) |
+                                 (ext$lhs == y & ext$rhs == x)]
+                }
+              )
+            }
           )
-        }
+        },
+        simplify = FALSE
       )
-      rownames(cor_mat_y) <- names(fit_y)
-      ci_lower_y <- sapply(
-        names(fit_y),
-        function(x) {
-          sapply(
-            names(fit_y),
-            function(y) {
-              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
-              tmp <- ci_lower_y0[grep(ptn, names(ci_lower_y0))]
-              if (length(tmp) == 0) {
-                tmp <- 1
-              }
-              tmp
-            },
-            USE.NAMES = FALSE
-          )
-        }
-      )
-      rownames(ci_lower_y) <- names(fit_y)
-      ci_upper_y <- sapply(
-        names(fit_y),
-        function(x) {
-          sapply(
-            names(fit_y),
-            function(y) {
-              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
-              tmp <- ci_upper_y0[grep(ptn, names(ci_upper_y0))]
-              if (length(tmp) == 0) {
-                tmp <- 1
-              }
-              tmp
-            },
-            USE.NAMES = FALSE
-          )
-        }
-      )
-      rownames(ci_upper_y) <- names(fit_y)
-      pvalue_mat_y <- sapply(
-        names(fit_y),
-        function(x) {
-          sapply(
-            names(fit_y), function(y) {
-              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
-              tmp <- pvalue_y[grep(ptn, names(pvalue_y))]
-              if (length(tmp) == 0) {
-                tmp <- 0
-              }
-              tmp
-            },
-            USE.NAMES = FALSE
-          )
-        }
-      )
-      rownames(pvalue_mat_y) <- names(fit_y)
     } else {
       cor_mat_y <- sapply(
-        names(fit_y),
-        function(y) {
-          sapply(
-            names(fit_x),
+        extract,
+        function(ext_n) {
+          ext <- cors_y[[ext_n]]
+          tmp <- sapply(
+            stats::setNames(nm = unique(unlist(yfn))),
             function(x) {
-              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
-              cors_y[grep(ptn, names(cors_y))]
-            },
-            USE.NAMES = FALSE
+              sapply(
+                stats::setNames(nm = unique(unlist(xfn))),
+                function(y) {
+                  ext[[ext_n]][(ext$lhs == x & ext$rhs == y) |
+                                 (ext$lhs == y & ext$rhs == x)]
+                }
+              )
+            }
           )
-        }
+          if (is.vector(tmp) & length(unique(unlist(xfn))) == 1) {
+            tmp <- matrix(tmp, nrow = 1)
+          }
+          return(tmp)
+        },
+        simplify = FALSE
       )
-      ci_lower_y <- sapply(
-        names(fit_y),
-        function(y) {
-          sapply(
-            names(fit_x),
-            function(x) {
-              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
-              ci_lower_y0[grep(ptn, names(ci_lower_y0))]
-            },
-            USE.NAMES = FALSE
-          )
-        }
-      )
-      ci_upper_y <- sapply(
-        names(fit_y),
-        function(y) {
-          sapply(
-            names(fit_x),
-            function(x) {
-              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
-              ci_upper_y0[grep(ptn, names(ci_upper_y0))]
-            },
-            USE.NAMES = FALSE
-          )
-        }
-      )
-      pvalue_mat_y <- sapply(
-        names(fit_y),
-        function(y) {
-          sapply(
-            names(fit_x),
-            function(x) {
-              ptn <- paste0("^", x, "\\.", y, "$|^", y, "\\.", x, "$")
-              pvalue_y[grep(ptn, names(pvalue_y))]
-            },
-            USE.NAMES = FALSE
-          )
-        }
-      )
-      if (is.vector(cor_mat_y) & length(fit_x) == 1) {
-        cor_mat_y <- matrix(cor_mat_y, nrow = 1)
-        colnames(cor_mat_y) <- names(fit_y)
-        ci_lower_y <- matrix(ci_lower_y, nrow = 1)
-        colnames(ci_lower_y) <- names(fit_y)
-        ci_upper_y <- matrix(ci_upper_y, nrow = 1)
-        colnames(ci_upper_y) <- names(fit_y)
-        pvalue_mat_y <- matrix(pvalue_mat_y, nrow = 1)
-        colnames(pvalue_mat_y) <- names(fit_y)
-      }
-      rownames(cor_mat_y) <- names(fit_x)
-      rownames(ci_lower_y) <- names(fit_x)
-      rownames(ci_upper_y) <- names(fit_x)
-      rownames(pvalue_mat_y) <- names(fit_x)
     }
   }
   if (!is.null(items)) {
-    cors_yi <- do.call(
-      rbind,
-      mapply(
-        x =
-          fit$par_std[grepl(paste0(items, collapse = "|"), names(fit$par_std))],
-        y = rep(names(fit_y), each = length(items)),
-        SIMPLIFY = FALSE,
-        FUN = function(x, y) {
-          x[
-            x$lhs != x$rhs & x$op == "~~" & grepl(y, x$lhs),
-            c("lhs", "rhs", "est.std", "ci.lower", "ci.upper")
-          ]
-        }
-      )
-    )
-    items_l <- paste0(items, "_l")
     cor_mat_yi <- sapply(
-      names(fit_y),
-      function(x) {
-        sapply(
-          items_l,
-          function(y) cors_yi$est.std[cors_yi$lhs == x & cors_yi$rhs == y]
+      extract,
+      function(ext) {
+        tmp <- sapply(
+          stats::setNames(nm = unique(unlist(yfn))),
+          function(y) {
+            sapply(
+              items,
+              function(i) {
+                x <- fit$par_std[
+                  grepl(
+                    paste0("^", y, "\\.", i, "$", collapse = "|"),
+                    names(fit$par_std)
+                  )
+                ][[1]]
+                x[[ext]][
+                  x$lhs != x$rhs & x$op == "~~" &
+                    grepl(y, x$lhs) & grepl(paste0(i, "_l"), x$rhs)
+                ]
+              }
+            )
+          }
         )
-      }
+        if (is.vector(tmp) & length(items) == 1) {
+          tmp <- matrix(tmp, nrow = 1)
+        }
+        return(tmp)
+      },
+      simplify = FALSE
     )
-    ci_lower_yi <- sapply(
-      names(fit_y),
-      function(x) {
-        sapply(
-          items_l,
-          function(y) cors_yi$ci.lower[cors_yi$lhs == x & cors_yi$rhs == y]
-        )
-      }
-    )
-    ci_upper_yi <- sapply(
-      names(fit_y),
-      function(x) {
-        sapply(
-          items_l,
-          function(y) cors_yi$ci.upper[cors_yi$lhs == x & cors_yi$rhs == y]
-        )
-      }
-    )
-    pvalue_mat_yi <- sapply(
-      names(fit_y),
-      function(x) {
-        sapply(
-          items_l,
-          function(y) cors_yi$pvalue[cors_yi$lhs == x & cors_yi$rhs == y]
-        )
-      }
-    )
-    if (is.vector(cor_mat_yi) & length(items) == 1) {
-      cor_mat_yi <- matrix(cor_mat_yi, nrow = 1)
-      colnames(cor_mat_yi) <- names(fit_y)
-      ci_lower_yi <- matrix(ci_lower_yi, nrow = 1)
-      colnames(ci_lower_yi) <- names(fit_y)
-      ci_upper_yi <- matrix(ci_upper_yi, nrow = 1)
-      colnames(ci_upper_yi) <- names(fit_y)
-      pvalue_mat_yi <- matrix(pvalue_mat_yi, nrow = 1)
-      colnames(pvalue_mat_yi) <- names(fit_y)
-    }
-    rownames(cor_mat_yi) <- items
-    rownames(ci_lower_yi) <- items
-    rownames(ci_upper_yi) <- items
-    rownames(pvalue_mat_yi) <- items
   }
   if (is.null(fit_x) & is.null(items)) {
-    if (!is.positive.definite(cor_mat_y)) {
-      cor_mat_y0 <- as.matrix(nearPD(cor_mat_y, corr = TRUE)$mat)
-      dif_mat <- cor_mat_y - cor_mat_y0
-      cor_mat_y <- cor_mat_y0
-      ci_lower_y <- ci_lower_y - dif_mat
-      ci_upper_y <- ci_upper_y - dif_mat
+    if (!is.positive.definite(cor_mat_y$est.std)) {
+      cor_mat_y0 <- as.matrix(nearPD(cor_mat_y$est.std, corr = TRUE)$mat)
+      dif_mat <- cor_mat_y$est.std - cor_mat_y0
+      cor_mat_y$est.std <- cor_mat_y0
+      cor_mat_y$ci.lower <- cor_mat_y$ci.lower - dif_mat
+      cor_mat_y$ci.upper <- cor_mat_y$ci.upper - dif_mat
       max_adj <- round(max(abs(dif_mat)), 3)
       max_adj <- ifelse(
         max_adj == 0, "< .001", format(max_adj, scientific = FALSE)
@@ -958,10 +848,10 @@ sem.cor <- function(
     }
   }
   if (is.null(items)) {
-    cor_mat <- cor_mat_y
-    ci_lower <- ci_lower_y
-    ci_upper <- ci_upper_y
-    pvalue_mat <- pvalue_mat_y
+    cor_mat <- cor_mat_y$est.std
+    ci_lower <- cor_mat_y$ci.lower
+    ci_upper <- cor_mat_y$ci.upper
+    pvalue_mat <- cor_mat_y$pvalue
   } else if (is.null(fit_x)) {
     cor_mat <- cor_mat_yi
     ci_lower <- ci_lower_yi
@@ -974,242 +864,90 @@ sem.cor <- function(
     pvalue_mat <- rbind(pvalue_mat_y, pvalue_mat_yi)
   }
   if (nagy) {
+    nagy_par <- fit$par_std[ns]
     rcy0 <- sapply(
-      names(fit_y),
-      function(yn) {
-        y <- fit$par_std[grep(yn, names(fit$par_std))]
-        do.call(
-          cbind,
-          lapply(
-            y,
-            function(y1) {
-              y2 <- y1[grepl("p((x|i)y|yx)", y1$label) & y1$lhs != yn, ]
-              y3 <- data.frame(y2$est.std, row.names = y2$rhs)
-              names(y3) <- y2$lhs[[1]]
-              y3
-            }
-          )
+      extract,
+      function(ext) {
+        sapply(
+          names(fit_y)[nagy_sel[names(fit_y)]],
+          function(yn) {
+            y <- fit$par_std[grep(yn, names(fit$par_std))]
+            do.call(
+              cbind,
+              lapply(
+                y,
+                function(y1) {
+                  y2 <- y1[grepl("p((x|i)y|yx)", y1$label) & y1$lhs != yn, ]
+                  y3 <- data.frame(y2[[ext]], row.names = y2$rhs)
+                  names(y3) <- y2$lhs[[1]]
+                  y3
+                }
+              )
+            )
+          },
+          simplify = FALSE
         )
       },
       simplify = FALSE
     )
     if (!is.null(fit_x) | !is.null(items)) {
-      names(rcy0) <- NULL
-      rcy <- do.call(rbind, rcy0)
-    } else {
-      rcy <- do.call(
-        cbind,
-        lapply(
-          names(rcy0),
-          function(x) {
-            x1 <- rcy0[names(rcy0) != x]
-            names(x1) <- rep("", length(x1))
-            x2 <- do.call(rbind, lapply(x1, function(y) y[names(y) == x]))
-            x3 <- x2[unique(unlist(key)), , drop = FALSE]
-            rownames(x3) <- unique(unlist(key))
-            x3
-          }
-        )
+      rcy <- sapply(
+        rcy0,
+        function(rcy1) {
+          names(rcy1) <- NULL
+          do.call(rbind, rcy1)
+        },
+        simplify = FALSE
       )
-    }
-    rcy_l0 <- sapply(
-      names(fit_y),
-      function(yn) {
-        y <- fit$par_std[grep(yn, names(fit$par_std))]
-        do.call(
-          cbind,
-          lapply(
-            y,
-            function(y1) {
-              y2 <- y1[grepl("p((x|i)y|yx)", y1$label) & y1$lhs != yn, ]
-              y3 <- data.frame(y2$ci.lower, row.names = y2$rhs)
-              names(y3) <- y2$lhs[[1]]
-              y3
-            }
-          )
-        )
-      },
-      simplify = FALSE
-    )
-    if (!is.null(fit_x) | !is.null(items)) {
-      names(rcy_l0) <- NULL
-      rcy_l <- do.call(rbind, rcy_l0)
     } else {
-      rcy_l <- do.call(
-        cbind,
-        lapply(
-          names(rcy_l0),
-          function(x) {
-            x1 <- rcy_l0[names(rcy_l0) != x]
-            names(x1) <- rep("", length(x1))
-            x2 <- do.call(rbind, lapply(x1, function(y) y[names(y) == x]))
-            x3 <- x2[unique(unlist(key)), , drop = FALSE]
-            rownames(x3) <- unique(unlist(key))
-            x3
-          }
-        )
-      )
-    }
-    rcy_u0 <- sapply(
-      names(fit_y),
-      function(yn) {
-        y <- fit$par_std[grep(yn, names(fit$par_std))]
-        do.call(
-          cbind,
-          lapply(
-            y,
-            function(y1) {
-              y2 <- y1[grepl("p((x|i)y|yx)", y1$label) & y1$lhs != yn, ]
-              y3 <- data.frame(y2$ci.upper, row.names = y2$rhs)
-              names(y3) <- y2$lhs[[1]]
-              y3
-            }
+      rcy <- sapply(
+        rcy0,
+        function(rcy1) {
+          do.call(
+            cbind,
+            lapply(
+              names(rcy1),
+              function(y) {
+                y1 <- rcy1[names(rcy1) != y]
+                names(y1) <- rep("", length(y1))
+                y2 <- do.call(rbind, lapply(y1, function(x) x[names(x) == y]))
+                y3 <- y2[unique(unlist(key)), , drop = FALSE]
+                rownames(y3) <- unique(unlist(key))
+                y3
+              }
+            )
           )
-        )
-      },
-      simplify = FALSE
-    )
-    if (!is.null(fit_x) | !is.null(items)) {
-      names(rcy_u0) <- NULL
-      rcy_u <- do.call(rbind, rcy_u0)
-    } else {
-      rcy_u <- do.call(
-        cbind,
-        lapply(
-          names(rcy_u0),
-          function(x) {
-            x1 <- rcy_u0[names(rcy_u0) != x]
-            names(x1) <- rep("", length(x1))
-            x2 <- do.call(rbind, lapply(x1, function(y) y[names(y) == x]))
-            x3 <- x2[unique(unlist(key)), , drop = FALSE]
-            rownames(x3) <- unique(unlist(key))
-            x3
-          }
-        )
-      )
-    }
-    rcy_p0 <- sapply(
-      names(fit_y),
-      function(yn) {
-        y <- fit$par_std[grep(yn, names(fit$par_std))]
-        do.call(
-          cbind,
-          lapply(
-            y,
-            function(y1) {
-              y2 <- y1[grepl("p((x|i)y|yx)", y1$label) & y1$lhs != yn, ]
-              y3 <- data.frame(y2$pvalue, row.names = y2$rhs)
-              names(y3) <- y2$lhs[[1]]
-              y3
-            }
-          )
-        )
-      },
-      simplify = FALSE
-    )
-    if (!is.null(fit_x) | !is.null(items)) {
-      names(rcy_p0) <- NULL
-      rcy_p <- do.call(rbind, rcy_p0)
-    } else {
-      rcy_p <- do.call(
-        cbind,
-        lapply(
-          names(rcy_p0),
-          function(x) {
-            x1 <- rcy_p0[names(rcy_p0) != x]
-            names(x1) <- rep("", length(x1))
-            x2 <- do.call(rbind, lapply(x1, function(y) y[names(y) == x]))
-            x3 <- x2[unique(unlist(key)), , drop = FALSE]
-            rownames(x3) <- unique(unlist(key))
-            x3
-          }
-        )
+        },
+        simplify = FALSE
       )
     }
     if (!is.null(fit_x)) {
-      rcx <- do.call(
-        rbind,
-        lapply(
-          names(fit_x),
-          function(xn) {
-            x <- fit$par_std[grep(xn, names(fit$par_std))]
-            do.call(
-              cbind,
-              lapply(
-                x,
-                function(x1) {
-                  x2 <- x1[grep("pyx", x1$label), ]
-                  x3 <- data.frame(x2$est.std, row.names = x2$rhs)
-                  names(x3) <- x2$lhs[[1]]
-                  x3
-                }
+      rcx <- sapply(
+        extract,
+        function(ext) {
+          rcx1 <- sapply(
+            names(fit_x)[nagy_sel[names(fit_x)]],
+            function(xn) {
+              x <- fit$par_std[grep(xn, names(fit$par_std))]
+              do.call(
+                cbind,
+                lapply(
+                  x,
+                  function(x1) {
+                    x2 <- x1[grepl("pyx", x1$label), ]
+                    x3 <- data.frame(x2[[ext]], row.names = x2$rhs)
+                    names(x3) <- x2$lhs[[1]]
+                    x3
+                  }
+                )
               )
-            )
-          }
-        )
-      )
-      rcx_l <- do.call(
-        rbind,
-        lapply(
-          names(fit_x),
-          function(xn) {
-            x <- fit$par_std[grep(xn, names(fit$par_std))]
-            do.call(
-              cbind,
-              lapply(
-                x,
-                function(x1) {
-                  x2 <- x1[grep("pyx", x1$label), ]
-                  x3 <- data.frame(x2$ci.lower, row.names = x2$rhs)
-                  names(x3) <- x2$lhs[[1]]
-                  x3
-                }
-              )
-            )
-          }
-        )
-      )
-      rcx_u <- do.call(
-        rbind,
-        lapply(
-          names(fit_x),
-          function(xn) {
-            x <- fit$par_std[grep(xn, names(fit$par_std))]
-            do.call(
-              cbind,
-              lapply(
-                x,
-                function(x1) {
-                  x2 <- x1[grep("pyx", x1$label), ]
-                  x3 <- data.frame(x2$ci.upper, row.names = x2$rhs)
-                  names(x3) <- x2$lhs[[1]]
-                  x3
-                }
-              )
-            )
-          }
-        )
-      )
-      rcx_p <- do.call(
-        rbind,
-        lapply(
-          names(fit_x),
-          function(xn) {
-            x <- fit$par_std[grep(xn, names(fit$par_std))]
-            do.call(
-              cbind,
-              lapply(
-                x,
-                function(x1) {
-                  x2 <- x1[grep("pyx", x1$label), ]
-                  x3 <- data.frame(x2$pvalue, row.names = x2$rhs)
-                  names(x3) <- x2$lhs[[1]]
-                  x3
-                }
-              )
-            )
-          }
-        )
+            },
+            simplify = FALSE
+          )
+          names(rcx1) <- NULL
+          do.call(rbind, rcx1)
+        },
+        simplify = FALSE
       )
       if (fit_save) {
         return(
@@ -1218,10 +956,8 @@ sem.cor <- function(
             cor_mat = cor_mat, pvalues = pvalue_mat,
             ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
             fit_measures = fit$fit_measures,
-            residual_cors_y = rcy, residual_cors_y_pvalues = rcy_p,
-            residual_cors_y_ci = list(ci_lower = rcy_l, ci_upper = rcy_u),
-            residual_cors_x = rcx, residual_cors_x_pvalues = rcx_p,
-            residual_cors_x_ci = list(ci_lower = rcx_l, ci_upper = rcx_u)
+            residual_cors_y = rcy,
+            residual_cors_x = rcx
           )
         )
       } else {
@@ -1230,10 +966,8 @@ sem.cor <- function(
             fit = fit$fit,
             cor_mat = cor_mat, pvalues = pvalue_mat,
             ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
-            residual_cors_y = rcy, residual_cors_y_pvalues = rcy_p,
-            residual_cors_y_ci = list(ci_lower = rcy_l, ci_upper = rcy_u),
-            residual_cors_x = rcx, residual_cors_x_pvalues = rcx_p,
-            residual_cors_x_ci = list(ci_lower = rcx_l, ci_upper = rcx_u)
+            residual_cors_y = rcy,
+            residual_cors_x = rcx
           )
         )
       }
@@ -1245,8 +979,7 @@ sem.cor <- function(
           cor_mat = cor_mat, pvalues = pvalue_mat,
           ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
           fit_measures = fit$fit_measures,
-          residual_cors = rcy, residual_cors_pvalues = rcy_p,
-          residual_cors_ci = list(ci_lower = rcy_l, ci_upper = rcy_u)
+          residual_cors = rcy
         )
       )
     } else {
@@ -1255,8 +988,7 @@ sem.cor <- function(
           fit = fit$fit,
           cor_mat = cor_mat, pvalues = pvalue_mat,
           ci = list(ci_lower = ci_lower, ci_upper = ci_upper),
-          residual_cors = rcy, residual_cors_pvalues = rcy_p,
-          residual_cors_ci = list(ci_lower = rcy_l, ci_upper = rcy_u)
+          residual_cors = rcy
         )
       )
     }
