@@ -25,10 +25,10 @@ sem.cor(
 \item{data}{A dataframe or object coercible to a dataframe.
 Data must include all observed variables used in any of the models.}
 
-\item{fit_y}{A named list of CFA fitted objects.}
+\item{fit_y}{A named list of CFA or bi-factor fitted objects.}
 
-\item{fit_x}{A named list of CFA fitted objects to be correlated with fit_y variables
-or 'NULL'.}
+\item{fit_x}{'NULL' or a named list of CFA or bi-factor fitted objects to be correlated
+with fit_y variables. Defaults to 'NULL'.}
 
 \item{items}{A vector of single-item variables to correlate with \code{fit_y} latent variables.
 Must not include any items contributing to the measurement of a \code{fit_y}
@@ -110,15 +110,15 @@ variables.
 }
 \details{
 The function computes correlations between latent variables from fitted CFA
-models, including either all latent variables, or between two sets of latent
-variables.
+or bi-factor models.
 If both \code{fit_x = NULL} and \code{items = NULL}, then correlations between all
 \code{fit_y} latent variables are computed. If either \code{fit_x} or \code{items}
 are specified, then correlations will be computed between \code{fit_y} latent
 variables and any specified \code{fit_x} latent variables and \code{items}.
 Items are treated as single item latent variables with loadings of
-\code{item_loadings} if specified or freely estimated otherwise (equivalent to
-correlations with the items themselves).
+\code{item_loadings} if specified or freely estimated otherwise.
+Hierarchical models are not supported and the function will exit with an
+error if included.
 
 Correlation are calculated in separate models.
 Primarily, this approach means that correlations can be calculated with
@@ -170,7 +170,12 @@ or model fit matter, except, perhaps, for large sets of variables.
 If Nagy and colleagues' (2017) method is selected (with \code{nagy = TRUE}, the
 default), correlations between factors and item residuals will be included in
 the output and may provide useful insight into idiosyncratic item variance
-(Nagy et al., 2017).
+(Nagy et al., 2017). \code{nagy = TRUE} is not currently supported for measurement
+models with more than one latent variable.
+Any such models (except for hierarchical models, which are not supported at
+all) will be switched to use Burt's method with a warning.
+If all included measurement models included more than one latent variable,
+then outputs will be switched to match \code{nagy = FALSE} with a warning.
 
 It is possible for latent variable correlations to produce a non-positive
 definite correlation matrix between variables included in \code{fit_y} (when

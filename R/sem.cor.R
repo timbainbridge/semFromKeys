@@ -5,10 +5,10 @@
 #' variables.
 #'
 #' @inheritParams sem.check
-#' @param fit_y A named list of CFA fitted objects.
+#' @param fit_y A named list of CFA or bi-factor fitted objects.
 #' @param fit_x
-#' A named list of CFA fitted objects to be correlated with fit_y variables
-#' or 'NULL'.
+#' 'NULL' or a named list of CFA or bi-factor fitted objects to be correlated
+#' with fit_y variables. Defaults to 'NULL'.
 #' @param items
 #' A vector of single-item variables to correlate with `fit_y` latent variables.
 #' Must not include any items contributing to the measurement of a `fit_y`
@@ -50,15 +50,15 @@
 #'
 #' @details
 #' The function computes correlations between latent variables from fitted CFA
-#' models, including either all latent variables, or between two sets of latent
-#' variables.
+#' or bi-factor models.
 #' If both `fit_x = NULL` and `items = NULL`, then correlations between all
 #' `fit_y` latent variables are computed. If either `fit_x` or `items`
 #' are specified, then correlations will be computed between `fit_y` latent
 #' variables and any specified `fit_x` latent variables and `items`.
 #' Items are treated as single item latent variables with loadings of
-#' `item_loadings` if specified or freely estimated otherwise (equivalent to
-#' correlations with the items themselves).
+#' `item_loadings` if specified or freely estimated otherwise.
+#' Hierarchical models are not supported and the function will exit with an
+#' error if included.
 #'
 #' Correlation are calculated in separate models.
 #' Primarily, this approach means that correlations can be calculated with
@@ -110,7 +110,12 @@
 #' If Nagy and colleagues' (2017) method is selected (with `nagy = TRUE`, the
 #' default), correlations between factors and item residuals will be included in
 #' the output and may provide useful insight into idiosyncratic item variance
-#' (Nagy et al., 2017).
+#' (Nagy et al., 2017). `nagy = TRUE` is not currently supported for measurement
+#' models with more than one latent variable.
+#' Any such models (except for hierarchical models, which are not supported at
+#' all) will be switched to use Burt's method with a warning.
+#' If all included measurement models included more than one latent variable,
+#' then outputs will be switched to match `nagy = FALSE` with a warning.
 #'
 #' It is possible for latent variable correlations to produce a non-positive
 #' definite correlation matrix between variables included in `fit_y` (when
