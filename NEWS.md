@@ -4,7 +4,7 @@
 * Fixed a couple of small issues in the README file.
 * Fixed an issue whereby correlations could be inverted in `sem.cor` when `nagy = TRUE`.
 * Fixed a bug where correlations were not correctly selected into the matrix when `fit_x` was specified in `sem.cor`.
-* Added (partial) multi-factor support for `sem.cor`.
+* Added (partial) support for bi-factor and correlated factor models to `sem.cor`.
 
 # semFromKeys 0.5.3
 
