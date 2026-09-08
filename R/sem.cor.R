@@ -302,6 +302,25 @@ sem.cor <- function(
           )
         )
       }
+      var_lhs <- par$lhs[par$op == "=~"]
+      var_rhs <- par$rhs[par$op == "=~"]
+      sapply(
+        var_lhs,
+        function(x) {
+          if (x %in% var_rhs) {
+            stop(
+              paste0(
+                "The '", sel, "' model including '",
+                paste(nm, collapse = "' and '"),
+                "' appears to be a hierarchical model (i.e., there is at ",
+                "least one variable that is both a latent variable and ",
+                "contributes to a latent variable's measurement). ",
+                "Hierarchical models are not currently supported in 'sem.cor'."
+              )
+            )
+          }
+        }
+      )
     }
   )
   nagy_sel <- rep(nagy, length(par_yx))
@@ -406,11 +425,11 @@ sem.cor <- function(
             y <- p[["y0"]]
             x1 <- x[x$op == "~~" | x$op == "=~", ]
             y1 <- y[y$op == "~~" | y$op == "=~", ]
+            xfn <- unique(x1$lhs[x1$op == "=~"])
+            yfn <- unique(y1$lhs[y1$op == "=~"])
             key_x <- unique(x1$rhs[x1$op == "=~"])
             key_y <- unique(y1$rhs[y1$op == "=~"])
             key0 <- unique(c(key_y, key_x))
-            xfn <- unique(x1$lhs[x1$op == "=~"])
-            yfn <- unique(y1$lhs[y1$op == "=~"])
             ns <- sum(nagy_sel[c(xn, yn)]) == 2
             # Any shared items?
             i <- x1$lhs[x1$lhs %in% y1$lhs]
@@ -639,7 +658,7 @@ sem.cor <- function(
               i_r <- ""
             }
             i_l <- paste0(i, "_l")
-            key0 <- c(y$rhs[y$op == "=~"], i)
+            key0 <- c(y$rhs[y$op == "=~" & !y$rhs %in% unlist(yfn)], i)
             if (!ns) {
               mod0 <- paste0(
                 # CFA
@@ -739,9 +758,13 @@ sem.cor <- function(
     cors_y <- sapply(
       extract,
       function(ext) {
-        sel <- !grepl(
-          paste0("\\.", items, "$", collapse = "|"), names(fit$par_std)
-        )
+        if (!is.null(items)) {
+          sel <- !grepl(
+            paste0("\\.", items, "$", collapse = "|"), names(fit$par_std)
+          )
+        } else {
+          sel <- names(fit$par_std)
+        }
         tmp <- do.call(
           rbind,
           mapply(

@@ -581,6 +581,25 @@ test_that(
   }
 )
 test_that(
+  "Hierarchical model in 'sem.cor'",
+  {
+    mod <- paste0(
+      c(
+        sapply(
+          paste0("bfi_c", 1:3),
+          function(x) paste(x, "=~", paste0(x, "_", 1:4, collapse = " + "))
+        ),
+        paste("bfi_c =~", paste0("bfi_c", 1:3, collapse = " + "))
+      ),
+      collapse = "\n"
+    )
+    cfa_new <-
+      sem(mod, BFIGritHope, std.lv = TRUE, missing = "ML", orthogonal = TRUE)
+    fit_y <- c(new = cfa_new, cfa_fit[4])
+    expect_error(sem.cor(BFIGritHope, fit_y))
+  }
+)
+test_that(
   "Item from 'fit_y' in 'items'",
   {
     expect_error(
