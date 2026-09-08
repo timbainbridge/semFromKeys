@@ -879,15 +879,16 @@ sem.cor <- function(
     pvalue_mat <- rbind(cor_mat_y$pvalue, cor_mat_yi$pvalue)
   }
   if (nagy) {
-    if (length(fit_y) > 1 | !is.null(fit_x)) {
+    if ((length(fit_y) > 1 & is.null(items)) | !is.null(fit_x)) {
       if (!is.null(items)) {
-        nagy_par <- fit$par_std[c(ns, ns_i)]
+        ns2 <- c(ns, ns_i)
       } else {
-        nagy_par <- fit$par_std[ns]
+        ns2 <- ns
       }
     } else {
-      nagy_par <- fit$par_std[ns_i]
+      ns2 <- ns_i
     }
+    nagy_par <- fit$par_std[ns2]
     rcy0 <- sapply(
       extract,
       function(ext) {
@@ -895,7 +896,7 @@ sem.cor <- function(
           names(fit_y)[nagy_sel[names(fit_y)]],
           function(y0) {
             ptn <- paste0("^", y0, "\\.|\\.", y0, "$")
-            y <- fit$par_std[ns][grep(ptn, names(fit$par_std[ns]))]
+            y <- fit$par_std[ns2][grep(ptn, names(fit$par_std[ns2]))]
             do.call(
               cbind,
               lapply(
@@ -955,7 +956,7 @@ sem.cor <- function(
             names(fit_x)[nagy_sel[names(fit_x)]],
             function(x0) {
               ptn <- paste0("^", x0, "\\.|\\.", x0, "$")
-              x <- fit$par_std[ns][grep(ptn, names(fit$par_std[ns]))]
+              x <- fit$par_std[ns2][grep(ptn, names(fit$par_std[ns2]))]
               do.call(
                 cbind,
                 lapply(
