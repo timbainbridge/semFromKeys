@@ -1,3 +1,5 @@
+# semFromKeys (development version)
+
 * Added (partial) support for bi-factor and correlated factor models to `sem.cor`.
 
 # semFromKeys 0.5.4
