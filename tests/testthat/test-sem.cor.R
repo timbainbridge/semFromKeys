@@ -581,6 +581,26 @@ test_that(
   }
 )
 test_that(
+  "Bi-factor model in 'sem.cor' with items",
+  {
+    fit_y <- c(bif_fit["hope"], cfa_fit[2])
+    items <- names(BFIGritHope)[grep("bfi.c\\d_1", names(BFIGritHope))]
+    expect_warning(
+      cors <- sem.cor(BFIGritHope, fit_y, items = items),
+      "more than one latent variable"
+    )
+    expect_equal(length(cors), 5)
+    expect_equal(length(cors$fit), length(fit_y) * length(items))
+    expect_all_equal(
+      c(
+        ncol(cors$residual_cors$est.std), ncol(cors$residual_cors$pvalues),
+        ncol(cors$residual_cors$ci.lower), ncol(cors$residual_cors$ci.upper)
+      ),
+      length(items)
+    )
+  }
+)
+test_that(
   "Hierarchical model in 'sem.cor'",
   {
     mod <- paste0(
