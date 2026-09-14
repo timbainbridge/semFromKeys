@@ -1,3 +1,5 @@
+# semFromKeys (development version)
+
 * Fixed a bug which caused `sem.cor` to fail with multi-factor measurement models and items.
 
 # semFromKeys 0.5.5
