@@ -622,10 +622,10 @@ sem.cor <- function(
   if (!is.null(items)) {
     # Correlations with single items
     mod_key_i <- mapply(
-      y = par_y, ns = nagy_sel[names(fit_y)], SIMPLIFY = FALSE,
-      FUN = function(y, ns) {
+      y = par_y, ns = nagy_sel[names(fit_y)], yn = names(par_y),
+      SIMPLIFY = FALSE,
+      FUN = function(y, ns, yn) {
         y1 <- y[y$op == "=~" | (y$op == "~~" & y$lhs == y$rhs), ]
-        yn <- unique(y$lhs[y$op == "=~"])
         yfn <- unique(y1$lhs[y1$op == "=~"])
         if (ns) {
           y1l <- y1[y1$op == "=~", ]
@@ -726,7 +726,8 @@ sem.cor <- function(
         return(
           list(
             mod = mod1, key = key1,
-            yfn = rep(yfn, each = length(items)),
+            yfn =
+              stats::setNames(rep(list(yfn), each = length(items)), nm = items),
             ns = rep(ns, each = length(items))
           )
         )
@@ -735,6 +736,7 @@ sem.cor <- function(
     mods_i <- unlist(lapply(mod_key_i, function(x) x$mod), recursive = FALSE)
     key_i <- unlist(lapply(mod_key_i, function(x) x$key), recursive = FALSE)
     yfn_i <- unlist(lapply(mod_key_i, function(x) x$yfn), recursive = FALSE)
+    yn_i <- unlist(lapply(mod_key_i, function(x) x$yn), recursive = FALSE)
     ns_i <- unlist(lapply(mod_key_i, function(x) x$ns), recursive = FALSE)
     if (is.null(mods)) {
       mods <- mods_i
@@ -842,17 +844,33 @@ sem.cor <- function(
     cor_mat_yi <- sapply(
       extract,
       function(ext) {
+        sel <- grepl(
+          paste0("\\.", items, "$", collapse = "|"), names(fit$par_std)
+        )
+        tmp0 <- do.call(
+          rbind,
+          mapply(
+            x = fit$par_std[sel],
+            i0 = rep(items, length(yfn_i) / length(items)),
+            yn0 = yfn_i,
+            FUN = function(x, i0, yn0) {
+              i <- paste0(i0, "_l")
+              selr <- x$lhs %in% yn0 & x$rhs == i
+              selc <- c("lhs", "rhs", ext)
+              x[selr, selc]
+            },
+            SIMPLIFY = FALSE
+          )
+        )
+        tmp0 <- tmp0[!duplicated(tmp0), ]
         tmp <- sapply(
-          stats::setNames(nm = unique(unlist(yfn_i))),
+          unique(unlist(yfn_i)),
           function(y) {
             sapply(
-              stats::setNames(nm = items),
-              function(i) {
-                ptn <- paste0("^", y, "\\.", i, "$", collapse = "|")
-                x <- fit$par_std[grepl(ptn, names(fit$par_std))][[1]]
-                sel <- x$lhs != x$rhs & x$op == "~~" &
-                  grepl(y, x$lhs) & grepl(paste0(i, "_l"), x$rhs)
-                x[[ext]][sel]
+              items,
+              function(i0) {
+                i <- paste0(i0, "_l")
+                tmp0[[ext]][tmp0$lhs == y & tmp0$rhs == i]
               }
             )
           }
