@@ -1,5 +1,11 @@
 ## Current submission
 
+### Notes
+
+* Fixed a bug whereby including items and a multi-factor measurement model as inputs in `sem.cor` would not work and added a neglected test to check it.
+
+## 14-09-2026 submission
+
 ### R CMD check results
 
 0 errors | 0 warnings | 0 notes

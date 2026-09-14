@@ -1,3 +1,5 @@
+* Fixed a bug which caused `sem.cor` to fail with multi-factor measurement models and items.
+
 # semFromKeys 0.5.5
 
 * Added (partial) support for bi-factor and correlated factor models to `sem.cor`.
