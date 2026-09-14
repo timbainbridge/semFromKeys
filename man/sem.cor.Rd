@@ -25,10 +25,10 @@ sem.cor(
 \item{data}{A dataframe or object coercible to a dataframe.
 Data must include all observed variables used in any of the models.}
 
-\item{fit_y}{A named list of CFA fitted objects.}
+\item{fit_y}{A named list of CFA or bi-factor fitted objects.}
 
-\item{fit_x}{A named list of CFA fitted objects to be correlated with fit_y variables
-or 'NULL'.}
+\item{fit_x}{'NULL' or a named list of CFA or bi-factor fitted objects to be correlated
+with fit_y variables. Defaults to 'NULL'.}
 
 \item{items}{A vector of single-item variables to correlate with \code{fit_y} latent variables.
 Must not include any items contributing to the measurement of a \code{fit_y}
@@ -89,7 +89,7 @@ time if \code{check = TRUE} the next time the code is run and nothing has change
 in the meantime.}
 }
 \value{
-Returns a list of length 4-11 depending on option selections.
+Returns a list of length 4-7 depending on option selections.
 All versions include fitted lavaan models (\code{fit});
 a correlation matrix (\code{cor_mat});
 p-values of the correlations (\code{pvalues}); and
@@ -97,10 +97,9 @@ a list of upper and lower 95\% confidence intervals of the correlations
 (\code{ci}).
 If \code{fit_save = TRUE}, a list of fit measures is also returned
 (\code{fit_measures}), and,
-if \code{nagy = TRUE}, matrices of residual correlations (\code{residual_cors}), their
-p-values (\code{residual_cors_pvalues}), and lists of their 95\% confidence
-intervals (\code{residual_cors_ci}) are also returned.
-If both \code{fit_y} and \code{fit_x} are specified, then there one set of residual
+if \code{nagy = TRUE}, matrices of residual correlations, their p-values, and
+lists of their 95\% confidence intervals are also returned (\code{residual_cors}).
+If both \code{fit_y} and \code{fit_x} are specified, then there is one set of residual
 correlation results for the items from each set of factors
 (i.e., \code{residual_cors_x} and \code{residual_cors_y} for the items of 'x' and 'y'
 factors, respectively).
@@ -111,79 +110,89 @@ variables.
 }
 \details{
 The function computes correlations between latent variables from fitted CFA
-models, including either all latent variables, or between two sets of latent
-variables.
+or bi-factor models.
 If both \code{fit_x = NULL} and \code{items = NULL}, then correlations between all
 \code{fit_y} latent variables are computed. If either \code{fit_x} or \code{items}
 are specified, then correlations will be computed between \code{fit_y} latent
 variables and any specified \code{fit_x} latent variables and \code{items}.
 Items are treated as single item latent variables with loadings of
-\code{item_loadings} if specified or freely estimated otherwise (equivalent to
-correlations with the items themselves).
+\code{item_loadings} if specified or freely estimated otherwise.
+Hierarchical models are not supported and the function will exit with an
+error if included.
 
-Each correlation is calculated in a separate model.
-This approach saves time for longer lists of variables compared to including
-everything in one model and it also means that excluding a variable cannot
-change correlations between other variables (which is possible when all are
-included together).
-The function uses either Burt's 2-stage procedure when \code{nagy = FALSE} or
-Nagy and colleagues' (2017) extension procedure when \code{nagy = TRUE}
-to control for interpretational confounding (Burt, 1976).
+Correlation are calculated in separate models.
+Primarily, this approach means that correlations can be calculated with
+typical sample sizes in a manageable time frame compared to including
+everything in one model.
 
-Burt's method works by fixing measurement model parameters in the model
+To control for interpretational confounding (Burt, 1976), the function uses
+either Burt's (1976) 2-stage procedure (\code{nagy = FALSE}) or Nagy and
+colleagues' (2017) extension procedure (\code{nagy = TRUE}).
+Interpretational confounding occurs when the interpretation of a latent
+variable is confounded by the inclusion of a conceptually distinct variable
+in the model.
+That is, the loadings of items on a latent variable can change, in some
+cases markedly, due to the inclusion of a conceptually distinct factor.
+This means that the factor does not represent a consistent concept for
+different models, even in the same sample, as the loadings can change model
+to model.
+
+Burt (1976) proposed simply fixing measurement model parameters in the model
 estimating structural parameters.
-This method means that less than ideal fit at the measurement level does not
-latent variable correlations as the measurement parameters are fixed.
-It also means that the latent variables interpretation cannot change with the
-addition of different variables, thereby solving interpretational
-confounding.
-However, it underestimates uncertainty in the measurement part of the
-structural model (e.g., Nagy et al., 2017), which results in biased standard
-errors and fit statistics.
+This method means that latent variables' interpretations cannot change with
+the addition or removal of different variables and less than ideal fit at the
+measurement level cannot affect latent variable correlations.
+Burt's (1976) method therefore solve interpretational confounding.
+However, Burt's method also underestimates uncertainty in the measurement
+part of the full model (e.g., Nagy et al., 2017), which results in biased
+standard errors and fit statistics, although effects are usually small.
 
 Alternatively, Nagy's method involves allowing item residuals to correlate
-with external variables (or factors) and constrains those relationships
-such that the model is identifiable.
-Specifically, for a standard two latent variable model, the sum of squares of
-the correlations between the first latent variable's items' residuals and the
-second latent variable is minimised, and the sum of squares of the
-correlations between the second latent variable's items' residuals and the
-first latent variable is minimised.
-When a model includes a single latent variable and an item, the sum of
-squares of the correlations between the latent variable's items' residuals
-and the item's latent variable is minimised.
+with external variables and constrains those relationships such that the
+model is identifiable.
+Specifically, one of the methods to constrain these relationships minimises
+the sum of squares of the correlations between each latent variable's items'
+residuals and each of the structural variables in the model (excluding the
+factor(s) they form part of the measurement of).
 By using this method, measurement parameters in the structural model match
 those of isolated measurement models without having to constrain them
 directly.
 As a result, unbiased standard errors are preserved while simultaneously
 eliminating interpretational confounding.
 
-If Nagy and colleagues' (2017) method is selected, correlations between
-factors and item residuals will be included in the output and may provide
-useful insight into idiosyncratic item variance (Nagy et al., 2017).
-
+Which method should be chosen?
 Burt's method is faster but artificially constrains parameters,
 thereby biasing standard errors and model fit indices.
 They should, however, give very similar point estimates for correlations.
 Therefore, Nagy's method should be preferred whenever confidence intervals
-or model fit matter, except for large sets of variables.
+or model fit matter, except, perhaps, for large sets of variables.
+
+If Nagy and colleagues' (2017) method is selected (with \code{nagy = TRUE}, the
+default), correlations between factors and item residuals will be included in
+the output and may provide useful insight into idiosyncratic item variance
+(Nagy et al., 2017). \code{nagy = TRUE} is not currently supported for measurement
+models with more than one latent variable.
+Any such models (except for hierarchical models, which are not supported at
+all) will be switched to use Burt's method with a warning.
+If all included measurement models included more than one latent variable,
+then outputs will be switched to match \code{nagy = FALSE} with a warning.
 
 It is possible for latent variable correlations to produce a non-positive
-definite correlation matrix between variables included in \code{fit_y},
-especially when closely related factors are included.
+definite correlation matrix between variables included in \code{fit_y} (when
+\code{fit_x} and \code{items} are not specified), especially when closely related
+factors are included.
 If the matrix of latent variables is not positive definite, then the matrix
 will be adjusted to the nearest positive definite matrix using the
 \link[Matrix:nearPD]{Matrix::nearPD} function, which employs the method developed by Higham
-(2002), and a message will state that the matrix was adjusted and the maximum
-adjustment to any cell.
-Confidence intervals will be adjusted by the same amount, but p-values will
-not be adjusted, so will be very slightly incorrect.
+(2002), and a message will state that the matrix was adjusted, and what the
+maximum adjustment to any cell was.
+Confidence intervals will be adjusted by the same amount as the corresponding
+cell of the correlation matrix.
+P-values will not be adjusted, however, so will be very slightly incorrect.
 In general, inaccuracies in p-values will be most likely for larger
 correlations (i.e., ones more likely to be highly significant) but if the
 maximum adjustment, printed in the warning, is large, then use p-values with
-care. Unadjusted correlations can be returned by running \code{sem.cor} with a
-smaller set of variables such that non-positive definiteness is not an
-issue (except when \code{lavaan} returns a measured correlation greater than 1).
+care.
 
 The model relies on \link{sem.check} for the back-end of running the models,
 which enables saving inputs and outputs from model runs
@@ -191,9 +200,12 @@ which enables saving inputs and outputs from model runs
 prior runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
-In the case of \code{sem.cor}, the number of correlations can add up quickly,
-so the functionality may be useful
-(e.g., with 20 scales, there are 19 + 18 + 17 + ... + 1 = 190 correlations).
+In the case of \code{sem.cor}, the number of correlations can add up quickly.
+When \code{nagy = FALSE}, this is unlikely to be an issue as each model typically
+runs in a fraction of a second, but with \code{nagy = TRUE} and 20 scales, 19 +
+18 + 17 + ... + 1 = 190 correlations would need to be calculated and, if they
+took an average of 5 seconds each to run, the total run time would be ~16
+minutes. In these cases, the functionality may be useful.
 For further details on how this works, see the \link{sem.check} function
 documentation.
 }

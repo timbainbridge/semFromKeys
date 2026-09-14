@@ -5,7 +5,7 @@ test_that(
     cors <- sem.cor(
       BFIGritHope, fit_y, fit_save = TRUE, fit_measures = c("cfi", "rmsea")
     )
-    expect_equal(length(cors), 8)
+    expect_equal(length(cors), 6)
     expect_equal(length(cors$fit), ncol(combn(names(fit_y), 2)))
     expect_equal(nrow(cors$fit_measures), length(cors$fit))
     expect_all_equal(
@@ -14,9 +14,9 @@ test_that(
         ncol(cors$pvalues), nrow(cors$pvalues),
         ncol(cors$ci$ci_lower), nrow(cors$ci$ci_lower),
         ncol(cors$ci$ci_upper), nrow(cors$ci$ci_upper),
-        ncol(cors$residual_cors), ncol(cors$residual_cors),
-        ncol(cors$residual_cors_ci$ci_lower),
-        ncol(cors$residual_cors_ci$ci_upper)
+        ncol(cors$residual_cors$est.std), ncol(cors$residual_cors$pvalue),
+        ncol(cors$residual_cors$ci.lower),
+        ncol(cors$residual_cors$ci.upper)
       ),
       length(fit_y)
     )
@@ -37,9 +37,7 @@ test_that(
         ncol(cors$cor_mat), nrow(cors$cor_mat),
         ncol(cors$pvalues), nrow(cors$pvalues),
         ncol(cors$ci$ci_lower), nrow(cors$ci$ci_lower),
-        ncol(cors$ci$ci_upper), nrow(cors$ci$ci_upper),
-        ncol(cors$residual_cors), ncol(cors$ci$ci_lower),
-        ncol(cors$ci$ci_upper)
+        ncol(cors$ci$ci_upper), nrow(cors$ci$ci_upper)
       ),
       length(cfa_fit)
     )
@@ -51,7 +49,7 @@ test_that(
     fit_y <- cfa_fit[1:2]
     items <- names(BFIGritHope)[grep("bfi.c\\d_1", names(BFIGritHope))]
     cors <- sem.cor(BFIGritHope, fit_y, items = items)
-    expect_equal(length(cors), 7)
+    expect_equal(length(cors), 5)
     expect_equal(length(cors$fit), length(fit_y) * length(items))
     expect_all_equal(
       c(
@@ -64,8 +62,8 @@ test_that(
       c(
         nrow(cors$cor_mat), nrow(cors$pvalues),
         nrow(cors$ci_lower), nrow(cors$ci_upper),
-        ncol(cors$residual_cors), ncol(cors$residual_cors_ci$ci_lower),
-        ncol(cors$residual_cors_ci$ci_upper)
+        ncol(cors$residual_cors$est.std), ncol(cors$residual_cors$pvalue),
+        ncol(cors$residual_cors$ci.lower), ncol(cors$residual_cors$ci.upper)
       ),
       length(items)
     )
@@ -104,15 +102,14 @@ test_that(
       BFIGritHope, fit_y, fit_x,
       fit_save = TRUE, fit_measures = c("cfi", "rmsea")
     )
-    expect_equal(length(cors), 11)
+    expect_equal(length(cors), 7)
     expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
     expect_all_equal(
       c(
         ncol(cors$cor_mat), ncol(cors$pvalues),
         ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper),
-        ncol(cors$residual_cors_x), ncol(cors$residual_cors_x_pvalues),
-        ncol(cors$residual_cors_x_ci$ci_lower),
-        ncol(cors$residual_cors_x_ci$ci_upper)
+        ncol(cors$residual_cors_x$est.std), ncol(cors$residual_cors_x$pvalues),
+        ncol(cors$residual_cors_x$ci.lower), ncol(cors$residual_cors_x$ci.upper)
       ),
       length(fit_y)
     )
@@ -120,9 +117,8 @@ test_that(
       c(
         nrow(cors$cor_mat), nrow(cors$pvalues),
         nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper),
-        ncol(cors$residual_cors_y), ncol(cors$residual_cors_y_pvalues),
-        ncol(cors$residual_cors_y_ci$ci_lower),
-        ncol(cors$residual_cors_y_ci$ci_upper)
+        ncol(cors$residual_cors_y$est.std), ncol(cors$residual_cors_y$pvalues),
+        ncol(cors$residual_cors_y$ci.lower), ncol(cors$residual_cors_y$ci.upper)
       ),
       length(fit_x)
     )
@@ -159,7 +155,7 @@ test_that(
     fit_x <- cfa_fit[3:4]
     items <- names(BFIGritHope)[grep("bfi.c\\d_1", names(BFIGritHope))]
     cors <- sem.cor(BFIGritHope, fit_y, fit_x, items = items)
-    expect_equal(length(cors), 10)
+    expect_equal(length(cors), 6)
     expect_equal(
       length(cors$fit), length(fit_y) * (length(fit_x) + length(items))
     )
@@ -167,9 +163,8 @@ test_that(
       c(
         ncol(cors$cor_mat), ncol(cors$pvalues),
         ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper),
-        ncol(cors$residual_cors_x), ncol(cors$residual_cors_x_pvalues),
-        ncol(cors$residual_cors_x_ci$ci_lower),
-        ncol(cors$residual_cors_x_ci$ci_upper)
+        ncol(cors$residual_cors_x$est.std), ncol(cors$residual_cors_x$pvalues),
+        ncol(cors$residual_cors_x$ci.lower), ncol(cors$residual_cors_x$ci.upper)
       ),
       length(fit_y)
     )
@@ -177,9 +172,8 @@ test_that(
       c(
         nrow(cors$cor_mat), nrow(cors$pvalues),
         nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper),
-        ncol(cors$residual_cors_y), ncol(cors$residual_cors_y_pvalues),
-        ncol(cors$residual_cors_y_ci$ci_lower),
-        ncol(cors$residual_cors_y_ci$ci_upper)
+        ncol(cors$residual_cors_y$est.std), ncol(cors$residual_cors_y$pvalues),
+        ncol(cors$residual_cors_y$ci.lower), ncol(cors$residual_cors_y$ci.upper)
       ),
       length(fit_x) + length(items)
     )
@@ -217,7 +211,7 @@ test_that(
     items <- "bfi_e1_1"
     fit_y <- cfa_fit[1]
     cors <- sem.cor(BFIGritHope, fit_y, items = items)
-    expect_equal(length(cors), 7)
+    expect_equal(length(cors), 5)
     expect_equal(length(cors$fit), length(fit_y) * length(items))
     expect_all_equal(
       c(
@@ -239,10 +233,58 @@ test_that(
   }
 )
 test_that(
-  "Works with length 1 'fit_y' and 'items', 'nagy = FALSE'",
+  "Works with length 1 'fit_y' and length 1 'items', 'nagy = FALSE'",
   {
     items <- "bfi_e1_1"
     fit_y <- cfa_fit[1]
+    cors <- sem.cor(BFIGritHope, fit_y, items = items, nagy = FALSE)
+    expect_equal(length(cors), 4)
+    expect_equal(length(cors$fit), length(fit_y) * length(items))
+    expect_all_equal(
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
+      length(fit_y)
+    )
+    expect_all_equal(
+      c(
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci_lower), nrow(cors$ci_upper)
+      ),
+      length(items)
+    )
+  }
+)
+test_that(
+  "Works with length 1 'fit_y' and length > 1 'items', 'nagy = FALSE'",
+  {
+    items <- names(BFIGritHope)[grep("bfi_e\\d_1", names(BFIGritHope))]
+    fit_y <- cfa_fit[1]
+    cors <- sem.cor(BFIGritHope, fit_y, items = items, nagy = FALSE)
+    expect_equal(length(cors), 4)
+    expect_equal(length(cors$fit), length(fit_y) * length(items))
+    expect_all_equal(
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
+      length(fit_y)
+    )
+    expect_all_equal(
+      c(
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci_lower), nrow(cors$ci_upper)
+      ),
+      length(items)
+    )
+  }
+)
+test_that(
+  "Works with length > 1 'fit_y' and length 1 'items', 'nagy = FALSE'",
+  {
+    items <- "bfi_e1_1"
+    fit_y <- cfa_fit[1:2]
     cors <- sem.cor(BFIGritHope, fit_y, items = items, nagy = FALSE)
     expect_equal(length(cors), 4)
     expect_equal(length(cors$fit), length(fit_y) * length(items))
@@ -268,15 +310,15 @@ test_that(
     fit_y <- cfa_fit[1]
     fit_x <- cfa_fit[3]
     cors <- sem.cor(BFIGritHope, fit_y, fit_x)
-    expect_equal(length(cors), 10)
+    expect_equal(length(cors), 6)
     expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
     expect_all_equal(
       c(
         ncol(cors$cor_mat), ncol(cors$pvalues),
         ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper),
-        ncol(cors$residual_cors_x), ncol(cors$residual_cors_x_pvalues),
-        ncol(cors$residual_cors_x_ci$ci_lower),
-        ncol(cors$residual_cors_x_ci$ci_upper)
+        ncol(cors$residual_cors_x$est.std), ncol(cors$residual_cors_x$pvalues),
+        ncol(cors$residual_cors_x$ci.lower),
+        ncol(cors$residual_cors_x$ci.upper)
       ),
       length(fit_y)
     )
@@ -284,9 +326,9 @@ test_that(
       c(
         nrow(cors$cor_mat), nrow(cors$pvalues),
         nrow(cors$ci$ci_lower), nrow(cors$ci$ci_upper),
-        ncol(cors$residual_cors_y), ncol(cors$residual_cors_y_pvalues),
-        ncol(cors$residual_cors_y_ci$ci_lower),
-        ncol(cors$residual_cors_y_ci$ci_upper)
+        ncol(cors$residual_cors_y$est.std), ncol(cors$residual_cors_y$pvalues),
+        ncol(cors$residual_cors_y$ci.lower),
+        ncol(cors$residual_cors_y$ci.upper)
       ),
       length(fit_x)
     )
@@ -296,6 +338,54 @@ test_that(
   "Works with length 1 'fit_y' and 'fit_x', 'nagy = FALSE'",
   {
     fit_y <- cfa_fit[1]
+    fit_x <- cfa_fit[3]
+    cors <- sem.cor(BFIGritHope, fit_y, fit_x, nagy = FALSE)
+    expect_equal(length(cors), 4)
+    expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
+    expect_all_equal(
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
+      length(fit_y)
+    )
+    expect_all_equal(
+      c(
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci_lower), nrow(cors$ci_upper)
+      ),
+      length(fit_x)
+    )
+  }
+)
+test_that(
+  "Works with length 1 'fit_y' and length > 1 'fit_x', 'nagy = FALSE'",
+  {
+    fit_y <- cfa_fit[1]
+    fit_x <- cfa_fit[3:4]
+    cors <- sem.cor(BFIGritHope, fit_y, fit_x, nagy = FALSE)
+    expect_equal(length(cors), 4)
+    expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
+    expect_all_equal(
+      c(
+        ncol(cors$cor_mat), ncol(cors$pvalues),
+        ncol(cors$ci$ci_lower), ncol(cors$ci$ci_upper)
+      ),
+      length(fit_y)
+    )
+    expect_all_equal(
+      c(
+        nrow(cors$cor_mat), nrow(cors$pvalues),
+        nrow(cors$ci_lower), nrow(cors$ci_upper)
+      ),
+      length(fit_x)
+    )
+  }
+)
+test_that(
+  "Works with length > 1 'fit_y' and length 1 'fit_x', 'nagy = FALSE'",
+  {
+    fit_y <- cfa_fit[1:2]
     fit_x <- cfa_fit[3]
     cors <- sem.cor(BFIGritHope, fit_y, fit_x, nagy = FALSE)
     expect_equal(length(cors), 4)
@@ -377,7 +467,7 @@ test_that(
   }
 )
 test_that(
-  "Model with 2 factors in 'fit_y'",
+  "Models with 2 factors with only 'fit_y' with 'nagy = TRUE'",
   {
     mod <- paste(
       "grit_c =~",
@@ -391,11 +481,23 @@ test_that(
     )
     cfa_new <- sem(mod, BFIGritHope, std.lv = TRUE, missing = "ML")
     fit_y <- c(cfa_fit[3:4], list(new = cfa_new))
-    expect_error(sem.cor(BFIGritHope, fit_y), "more than one latent variable")
+    expect_warning(
+      cors <- sem.cor(BFIGritHope, fit_y), "more than one latent variable"
+    )
+    expect_equal(length(cors), 5)
+    expect_equal(length(cors$fit), ncol(combn(names(fit_y), 2)))
+    expect_all_equal(
+      c(
+        ncol(cors$residual_cors$est.std), ncol(cors$residual_cors$pvalue),
+        ncol(cors$residual_cors$ci.lower),
+        ncol(cors$residual_cors$ci.upper)
+      ),
+      length(fit_y) - 1
+    )
   }
 )
 test_that(
-  "Model with 2 factors in 'fit_x'",
+  "Models with 2 factors with 'fit_x' with 'nagy = TRUE'",
   {
     mod <- paste(
       "grit_c =~",
@@ -408,10 +510,113 @@ test_that(
       )
     )
     cfa_new <- sem(mod, BFIGritHope, std.lv = TRUE, missing = "ML")
-    expect_error(
-      sem.cor(BFIGritHope, cfa_fit[3:4], list(new = cfa_new)),
+    fit_y <- cfa_fit[3]
+    fit_x <- c(new = cfa_new, cfa_fit[4])
+    expect_warning(
+      cors <- sem.cor(BFIGritHope, fit_y, fit_x),
       "more than one latent variable"
     )
+    expect_equal(length(cors), 6)
+    expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
+    expect_all_equal(
+      c(
+        ncol(cors$residual_cors_x$est.std), ncol(cors$residual_cors_x$pvalues),
+        ncol(cors$residual_cors_x$ci.lower), ncol(cors$residual_cors_x$ci.upper)
+      ),
+      length(fit_y)
+    )
+    expect_all_equal(
+      c(
+        ncol(cors$residual_cors_y$est.std), ncol(cors$residual_cors_y$pvalues),
+        ncol(cors$residual_cors_y$ci.lower), ncol(cors$residual_cors_y$ci.upper)
+      ),
+      length(fit_x) - 1
+    )
+  }
+)
+test_that(
+  "Bi-factor model in 'sem.cor' with only 'fit_y'",
+  {
+    fit_y <- c(bif_fit["hope"], cfa_fit[1:2])
+    expect_warning(
+      cors <- sem.cor(BFIGritHope, fit_y), "more than one latent variable"
+    )
+    expect_equal(length(cors), 5)
+    expect_equal(length(cors$fit), ncol(combn(names(fit_y), 2)))
+    expect_all_equal(
+      c(
+        ncol(cors$residual_cors$est.std), ncol(cors$residual_cors$pvalue),
+        ncol(cors$residual_cors$ci.lower),
+        ncol(cors$residual_cors$ci.upper)
+      ),
+      length(fit_y) - 1
+    )
+  }
+)
+test_that(
+  "Bi-factor model in 'sem.cor' with 'fit_x'",
+  {
+    fit_y <- cfa_fit[1]
+    fit_x <- c(bif_fit["hope"], cfa_fit[2])
+    expect_warning(
+      cors <- sem.cor(BFIGritHope, fit_y, fit_x),
+      "more than one latent variable"
+    )
+    expect_equal(length(cors), 6)
+    expect_equal(length(cors$fit), length(fit_y) * length(fit_x))
+    expect_all_equal(
+      c(
+        ncol(cors$residual_cors_x$est.std), ncol(cors$residual_cors_x$pvalues),
+        ncol(cors$residual_cors_x$ci.lower), ncol(cors$residual_cors_x$ci.upper)
+      ),
+      length(fit_y)
+    )
+    expect_all_equal(
+      c(
+        ncol(cors$residual_cors_y$est.std), ncol(cors$residual_cors_y$pvalues),
+        ncol(cors$residual_cors_y$ci.lower), ncol(cors$residual_cors_y$ci.upper)
+      ),
+      length(fit_x) - 1
+    )
+  }
+)
+test_that(
+  "Bi-factor model in 'sem.cor' with items",
+  {
+    fit_y <- c(bif_fit["hope"], cfa_fit[2])
+    items <- names(BFIGritHope)[grep("bfi.c\\d_1", names(BFIGritHope))]
+    expect_warning(
+      cors <- sem.cor(BFIGritHope, fit_y, items = items),
+      "more than one latent variable"
+    )
+    expect_equal(length(cors), 5)
+    expect_equal(length(cors$fit), length(fit_y) * length(items))
+    expect_all_equal(
+      c(
+        ncol(cors$residual_cors$est.std), ncol(cors$residual_cors$pvalues),
+        ncol(cors$residual_cors$ci.lower), ncol(cors$residual_cors$ci.upper)
+      ),
+      length(items)
+    )
+  }
+)
+test_that(
+  "Hierarchical model in 'sem.cor'",
+  {
+    mod <- paste0(
+      c(
+        sapply(
+          paste0("bfi_c", 1:3),
+          function(x) paste(x, "=~", paste0(x, "_", 1:4, collapse = " + "))
+        ),
+        paste("bfi_c =~", paste0("bfi_c", 1:3, collapse = " + "))
+      ),
+      collapse = "\n"
+    )
+    cfa_new <-
+      sem(mod, BFIGritHope, std.lv = TRUE, missing = "ML", orthogonal = TRUE)
+    fit_y <- c(new = cfa_new, cfa_fit[4])
+    expect_error(sem.cor(BFIGritHope, fit_y))
   }
 )
 test_that(
@@ -458,12 +663,12 @@ test_that(
     # Specifying fit_x, nagy = TRUE
     expect_error(
       sem.cor(BFIGritHope, cfa_fit[1:2], fit_x, nagy = TRUE),
-      "are in both the 'grit_c' and 'grit' factors"
+      "are in both the 'grit_c' and 'grit' models"
     )
     # Only with fit_y, nagy = FALSE
     expect_error(
       sem.cor(BFIGritHope, c(cfa_fit[1:2], fit_x), nagy = TRUE),
-      "are in both the 'grit_c' and 'grit' factors"
+      "are in both the 'grit_c' and 'grit' models"
     )
   }
 )
@@ -482,22 +687,22 @@ test_that(
     # Specifying fit_x, nagy = FALSE
     expect_warning(
       sem.cor(BFIGritHope, cfa_fit[2], fit_x, nagy = FALSE),
-      "in both the 'grit_p' and 'grit_c' factors"
+      "in both the 'grit_p' and 'grit_c' models"
     )
     # Only with fit_y, nagy = FALSE
     expect_warning(
       sem.cor(BFIGritHope, c(cfa_fit[2], fit_x), nagy = FALSE),
-      "in both the 'grit_p' and 'grit_c' factors"
+      "in both the 'grit_p' and 'grit_c' models"
     )
     # Specifying fit_x, nagy = FALSE
     expect_error(
       sem.cor(BFIGritHope, cfa_fit[2], fit_x, nagy = TRUE),
-      "are in both the 'grit_p' and 'grit_c' factors"
+      "are in both the 'grit_p' and 'grit_c' models"
     )
     # Only with fit_y, nagy = FALSE
     expect_error(
       sem.cor(BFIGritHope, c(cfa_fit[2], fit_x), nagy = TRUE),
-      "are in both the 'grit_p' and 'grit_c' factors"
+      "are in both the 'grit_p' and 'grit_c' models"
     )
   }
 )
@@ -584,19 +789,19 @@ test_that(
     )$fit
     expect_error(
       sem.cor(BFIGritHope, cfa_fit_ord, nagy = FALSE),
-      "The 'fit_y' model including '.*' is a model with ordinal variables"
+      "The 'fit_y' model including '.*' includes ordinal variables"
     )
     expect_error(
       sem.cor(BFIGritHope, cfa_fit[3:4], cfa_fit_ord, nagy = FALSE),
-      "The 'fit_x' model including '.*' is a model with ordinal variables"
+      "The 'fit_x' model including '.*' includes ordinal variables"
     )
-    expect_warning(
+    expect_error(
       sem.cor(BFIGritHope, cfa_fit_ord),
-      "The 'fit_y' models listed below include ordinal variables"
+      "The 'fit_y' model including '.*' includes ordinal variables"
     )
-    expect_warning(
+    expect_error(
       sem.cor(BFIGritHope, cfa_fit[3:4], cfa_fit_ord),
-      "The 'fit_x' models listed below include ordinal variables"
+      "The 'fit_x' model including '.*' includes ordinal variables"
     )
   }
 )

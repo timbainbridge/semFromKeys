@@ -1,11 +1,23 @@
-## Next submission
+## Current submission
+
+### Notes
+
+* Fixed a bug whereby including items and a multi-factor measurement model as inputs in `sem.cor` would not work and added a neglected test to check it.
+
+## 14-09-2026 submission
+
+### R CMD check results
+
+0 errors | 0 warnings | 0 notes
 
 ### Notes
 
 * The main correlation matrix output of `sem.cor` was not correctly selecting correlations when `fit_x` was specified.
-* `rstudioapi` was inadvertently left in suggests for the last update despite no longer being used.
-* A few small issues in the README were fixed.
+* `bifactor.from.keys` failed when all general factors had the same number of items.
 * Correlations could occasionally be inverted in `sem.cor` when `nagy = TRUE`.
+* `rstudioapi` was inadvertently left in 'suggests' for the last update despite no longer being used.
+* A few small issues in the README were fixed.
+* Some multi-factor models (e.g., bi-factor models) can now be used as inputs to `sem.cor`.
 
 ## 02-9-2026 submission
 

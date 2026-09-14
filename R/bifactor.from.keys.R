@@ -216,7 +216,7 @@ bifactor.from.keys <- function(
           x
         }
       },
-      x = keys_g, xn = names(keys_g), y = keys_b
+      x = keys_g, xn = names(keys_g), y = keys_b, SIMPLIFY = FALSE
     )
   )
   mods <- mapply(

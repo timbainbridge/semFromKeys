@@ -192,3 +192,19 @@ test_that(
     expect_equal(sum(sapply(bif_fit$fit, function(x) class(x) != "lavaan")), 0)
   }
 )
+test_that(
+  "Test same length general facotrs",
+  {
+    keys_g <- sapply(
+      keys_g, function(x) x[grep("[1-4]", x)], simplify = FALSE
+    )
+    keys <- sapply(
+      keys, function(x) x[grep("[1-4]", x)], simplify = FALSE
+    )
+    expect_no_error(
+      bifactor.from.keys(
+        keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE
+      )
+    )
+  }
+)

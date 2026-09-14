@@ -1,3 +1,12 @@
+# semFromKeys (development version)
+
+* Fixed a bug which caused `sem.cor` to fail with multi-factor measurement models and items.
+
+# semFromKeys 0.5.5
+
+* Added (partial) support for bi-factor and correlated factor models to `sem.cor`.
+* Fixed a bug where `bifactor.from.keys` failed if all general factors had the same number of items.
+
 # semFromKeys 0.5.4
 
 * Removed the rstudioapi suggestion as it is no longer used.
