@@ -103,9 +103,9 @@ test_that(
 test_that(
   "Non-list keys list",
   {
-    expect_error(
+    expect_warning(
       cfa.from.keys(keys$grit_c, BFIGritHope, fit_save = FALSE),
-      "'keys_s' is not a list"
+      "'keys' appears to be a vector of items rather than a keys list"
     )
   }
 )
