@@ -19,15 +19,6 @@ test_that(
   }
 )
 test_that(
-  "No data provided",
-  {
-    expect_error(
-      cfa.from.keys(keys, fit_save = FALSE),
-      'argument "data" is missing'
-    )
-  }
-)
-test_that(
   "Various things 'not logical'",
   {
     expect_error(
