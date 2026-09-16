@@ -1,16 +1,16 @@
 #' Runs CFA models for multiple scales based on items in a keys list.
 #'
 #' `cfa.from.keys` runs a confirmatory factor analysis (CFA) model for each
-#' element of a keys list. The keys list must be a named list of scales, where
-#' each element is an item from the corresponding scale. The function is
-#' designed to streamline running CFA models for all scales in a sample and to
-#' input model outputs into downstream functions.
+#' element of a keys list. The keys list should be a named list of scales, where
+#' each element contains a vector of items from the corresponding scale.
+#' The function is designed to streamline running CFA models for all scales in a
+#' sample and to input model outputs into downstream functions.
 #'
 #' @inheritParams sem.check
 #' @param keys
 #' A named list of keys.
-#' Names should be scale names,
-#' elements should a list of items included in each scale.
+#' Names should be scale names, elements should a vector of items included in
+#' each scale.
 #' @param data
 #' A dataframe or object coercible to a dataframe.
 #' Data must include all observed variables in any of the keys.
@@ -37,6 +37,11 @@
 #' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
+#' If `keys` is specified as a vector of items, the function will assume those
+#' items are meant to comprise a single scale, and will convert the input to a
+#' length 1 list with the element named 'factor'. A warning will be sent when
+#' this occurs.
+#'
 #' The model relies on [sem.check] for the back-end of running the models.
 #' This enables saving inputs and outputs from model runs
 #' (with `save_out = TRUE`) and checking to see if anything has changed from
@@ -78,6 +83,17 @@ cfa.from.keys <- function(
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
     name = "cfa", check = FALSE, save_out = FALSE
 ) {
+  if (sum(sapply(keys, function(x) length(x) != 1)) == 0) {
+    if (sum(sapply(keys, function(x) !(x %in% names(data)))) == 0) {
+      warning(
+        paste0(
+          "'keys' appears to be a vector of items rather than a keys list and ",
+          "has been converted into a length 1 keys list with the name 'factor'."
+        )
+      )
+      keys <- list(factor = keys)
+    }
+  }
   mods <- mapply(
     function(y, z) {
       if (length(z) > 2) {

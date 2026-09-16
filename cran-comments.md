@@ -3,6 +3,7 @@
 ### Notes
 
 * Fixed a bug whereby including items and a multi-factor measurement model as inputs in `sem.cor` would not work and added a neglected test to check it.
+* A vector of items is now acceptable input into `cfa.from.keys` for running a single CFA model.
 
 ## 14-09-2026 submission
 
