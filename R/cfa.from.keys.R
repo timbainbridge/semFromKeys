@@ -78,6 +78,17 @@ cfa.from.keys <- function(
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
     name = "cfa", check = FALSE, save_out = FALSE
 ) {
+  if (sum(sapply(keys, function(x) length(x) != 1)) == 0) {
+    if (sum(sapply(keys, function(x) !(x %in% names(data)))) == 0) {
+      warning(
+        paste0(
+          "'keys' appears to be a vector of items rather than a keys list and ",
+          "has been converted into a length 1 keys list with the name 'factor'."
+        )
+      )
+      keys <- list(factor = keys)
+    }
+  }
   mods <- mapply(
     function(y, z) {
       if (length(z) > 2) {
