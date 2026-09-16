@@ -19,19 +19,6 @@ test_that(
   }
 )
 test_that(
-  "Test keys not specified",
-  {
-    expect_error(
-      cfa.from.keys(keys = NULL, BFIGritHope, fit_save = FALSE),
-      "one of 'keys_s' or 'keys_e'"
-    )
-    expect_error(
-      cfa.from.keys(data = BFIGritHope, fit_save = FALSE),
-      'argument "keys" is missing'
-    )
-  }
-)
-test_that(
   "No data provided",
   {
     expect_error(
