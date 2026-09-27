@@ -274,6 +274,6 @@ Journal of Experimental Education, 85(4).
 https://doi.org/10.1080/00220973.2016.1260524.
 }
 \seealso{
-\link{sem.check}, \link{cfa.from.keys}, \link{efa.from.keys}, \link{bifactor.from.keys},
-\link[lavaan:sem]{lavaan::sem}.
+\link{esem.from.keys}, \link{sem.check}, \link{cfa.from.keys}, \link{efa.from.keys},
+\link{bifactor.from.keys}, \link[lavaan:sem]{lavaan::sem}.
 }

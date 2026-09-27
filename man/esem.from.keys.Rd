@@ -246,5 +246,5 @@ Psychological Methods, 29(3), 561-588.
 https://doi.org/10.1037/met0000503.
 }
 \seealso{
-\link{sem.check}, \link[lavaan:sam]{lavaan::sam}
+\link{esem.from.mods}, \link{sem.check}, \link[lavaan:sam]{lavaan::sam}
 }
