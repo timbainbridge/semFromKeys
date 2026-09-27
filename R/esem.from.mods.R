@@ -39,6 +39,10 @@
 #' interpretational confounding (see below). The function is designed to run
 #' analyses equivalent to that of Bainbridge, Ludeke, and Smillie (2022).
 #'
+#' The same analyses can be done with the [esem.from.keys] function, only it
+#' uses the Rosseel and Loh's (2022) Structure After Measurement (SAM) method
+#' instead of Burt's method (see below).
+#'
 #' The function requires fitted lavaan objects as inputs in order to properly
 #' employ the 2-stage procedure. Using [efa.from.keys], [cfa.from.keys], and/or
 #' [bifactor.from.keys] should make this relatively straight-forward. The
@@ -123,13 +127,15 @@
 #' standard errors of the structural model.
 #'
 #' Despite the benefits of the SAM methods, they are not used in
-#' `esem.from.mods`. Largely this is a legacy issues; however, the function is
-#' currently maintained due to [lavaan::sam] currently treating all latent
-#' variables that are not in a regression path in the structural model as
-#' unrelated to the other factors. Given regressing the general factor of a
-#' bifactor model on EFA factors requires the group factors to correlate with
-#' the EFA factors, [lavaan::sam] is currently inappropriate for bifactor
-#' models (as at lavaan version 0.7-2).
+#' `esem.from.mods`. Largely this is a legacy issues and the [esem.from.keys]
+#' function uses Rosseel and Loh's method for CFA measurement models.
+#' However, [lavaan::sam] (the lavaan function that implements the SAM method)
+#' currently treats all latent variables that are not in a regression path in
+#' the structural model as unrelated to the other factors (cov = 0).
+#' Given regressing the general factor of a bifactor model on EFA factors
+#' requires the group factors to correlate with the EFA factors,
+#' [lavaan::sam] is currently inappropriate for bifactor models (as at lavaan
+#' version 0.7-2).
 #'
 #' As a result of these considerations, the 2-stage procedure of fixing
 #' measurement parameters in the structural models remains appropriate for
@@ -187,6 +193,11 @@
 #' Extension Procedures for Confirmatory Factor Analysis.
 #' Journal of Experimental Education, 85(4).
 #' https://doi.org/10.1080/00220973.2016.1260524.
+#'
+#' Rosseel, Y. & Loh, W. W. (2022).
+#' A structural after measurement approach to structural equation modeling.
+#' Psychological Methods, 29(3), 561-588.
+#' https://doi.org/10.1037/met0000503.
 #'
 #' @importFrom lavaan summary
 #' @export
