@@ -223,31 +223,9 @@ esem.from.keys <- function(
     fit_save = TRUE, fit_measures = "all", miss = "default", est = "default",
     name = "esam", check = FALSE, save_out = FALSE
 ) {
-  ####### Copied from bifactor.from.keys #######
-  # if (!is.list(keys_b)) {
-  #   stop("'keys_b' is not a list.")
-  # }
   if (!is.list(keys)) {
     stop("'keys' is not a list.")
   }
-  # if (!is.null(keys_b)) {
-  #   for (x in keys_b) {
-  #     if (sum(!x %in% names(keys)) > 0) {
-  #       grps <- x[!x %in% names(keys)]
-  #       stop(
-  #         paste0(
-  #           "The following group factor(s) in 'keys_b' are not in 'keys':",
-  #           "\n    ",
-  #           paste(grps, collapse = "\n    "),
-  #           "\n\nIf these are items, not group factors,",
-  #           "check that keys_b only contains group factor names."
-  #         )
-  #       )
-  #     }
-  #   }
-  # }
-  ####### Copied from bifactor.from.keys #######
-
   # Keys must be named
   if (any(names(keys_e) == "")) {
     stop("At least one element of 'keys_e' has an empty name.")
@@ -255,14 +233,6 @@ esem.from.keys <- function(
   if (any(names(keys) == "")) {
     stop("At least one element of 'keys' has an empty name.")
   }
-  # if (!is.null(keys_b)) {
-  #   if (any(names(keys) == "")) {
-  #     stop("At least one element of 'keys_b' has an empty name.")
-  #   }
-  #   if (any(!unlist(keys_b) %in% names(keys))) {
-  #     stop("Elements of 'keys_b' elements must match names of 'keys'.")
-  #   }
-  # }
 
   ####### Modified from efa.from.keys #######
   target <- sapply(keys_e, function(y) ifelse(!unlist(keys_e) %in% y, 0, NA))
@@ -279,67 +249,15 @@ esem.from.keys <- function(
     function(x, xn) paste(xn, "=~", paste(x, collapse = " + ")),
     x = keys, xn = names(keys), SIMPLIFY = FALSE
   )
-  # mods_bif <- mapply(
-  #   function(x, xn) {
-  #     group_facs <- unlist(x)[!unlist(x) %in% exclude_factors]
-  #     paste0(
-  #       c(
-  #         paste(xn, "=~", paste0(unlist(keys[unlist(x)]), collapse = " + ")),
-  #         mapply(
-  #           function(i, ni) paste(ni, "=~", paste0(i, collapse = " + ")),
-  #           i = keys[group_facs], ni = names(keys[group_facs]), SIMPLIFY = FALSE
-  #         ),
-  #         paste(xn, "~~ 0 *", paste0(group_facs, collapse = " + 0 * ")),
-  #         if (length(group_facs) > 1) {
-  #           sapply(
-  #             seq_along(group_facs[length(group_facs)]),
-  #             function(i) {
-  #               paste(
-  #                 group_facs[i], "~~ 0 *",
-  #                 paste0(group_facs[(i:length(group_facs))], collapse = " + ")
-  #               )
-  #             }
-  #           )
-  #         }
-  #       ),
-  #       collapse = "\n"
-  #     )
-  #   },
-  #   x = keys_b, xn = names(keys_b), SIMPLIFY = FALSE
-  # )
-  # keys_bif <- lapply(keys_b, function(x) unlist(keys[x]))
   regr_cfa <- sapply(
     names(keys),
     function(x) paste(x, "~", paste0(names(keys_e), collapse = " + ")),
     simplify = FALSE
   )
-  # regr_bif <- mapply(
-  #   function(x, xn) {
-  #     paste0(
-  #       paste(xn, "~", paste0(names(keys_e), collapse = " + ")),
-  #       "\n",
-  #       paste(
-  #         sapply(
-  #           x[!x %in% exclude_factors],
-  #           function(y) paste(y, "~", paste0(names(keys_e), collapse = " + "))
-  #         ),
-  #         collapse = "\n"
-  #       )
-  #     )
-  #   },
-  #   x = keys_b, xn = names(keys_b), SIMPLIFY = FALSE
-  # )
-  mods <-
-    # c(
-    mapply(
-      function(x, y) paste0(x, "\n", mod_efa, "\n", y),
-      x = mods_cfa, y = regr_cfa, SIMPLIFY = FALSE
-    )
-  # , mapply(
-  #     function(x, y) paste0(x, "\n", mod_efa, "\n", y),
-  #     x = mods_bif, y = regr_bif, SIMPLIFY = FALSE
-  #   )
-  # )
+  mods <- mapply(
+    function(x, y) paste0(x, "\n", mod_efa, "\n", y),
+    x = mods_cfa, y = regr_cfa, SIMPLIFY = FALSE
+  )
   mod_out <- sem.check(
     mods,
     data,
