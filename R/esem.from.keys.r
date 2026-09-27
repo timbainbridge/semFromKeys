@@ -160,7 +160,7 @@
 #' options that are easily implemented.
 #'
 #' @seealso
-#' [sem.check], [lavaan::sam]
+#' [esem.from.mods], [sem.check], [lavaan::sam]
 #'
 #' @references
 #' Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).

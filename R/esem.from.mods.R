@@ -163,8 +163,8 @@
 #' fit before running `esem.from.mods`.
 #'
 #' @seealso
-#' [sem.check], [cfa.from.keys], [efa.from.keys], [bifactor.from.keys],
-#' [lavaan::sem].
+#' [esem.from.keys], [sem.check], [cfa.from.keys], [efa.from.keys],
+#' [bifactor.from.keys], [lavaan::sem].
 #'
 #' @references
 #' Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).
