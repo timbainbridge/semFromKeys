@@ -771,51 +771,54 @@ sem.check <- function(
   )
   if (fit_save) {
     message("Generating model fit statistics")
-    fit_m1 <- mapply(
-      function(m1, hash_d1, n_mod, fit1, n) {
-        # If the model's the same and fit measures exist...
-        if (hash_d1 & m1 & (n_mod %in% rownames(fit_m0)) & param_test) {
-          # If fit_measures == "all"
-          if (fit_measures[1] == "all") {
-            # If existing fit_m0 includes all fit stats...
-            if (length(fit_m0[n_mod, ]) >= 55) {
-              # Return existing
-              fit_m0[n_mod, ]
+    fit_m1 <- with_options(
+      list(warn = 1),
+      mapply(
+        function(m1, hash_d1, n_mod, fit1, n) {
+          # If the model's the same and fit measures exist...
+          if (hash_d1 & m1 & (n_mod %in% rownames(fit_m0)) & param_test) {
+            # If fit_measures == "all"
+            if (fit_measures[1] == "all") {
+              # If existing fit_m0 includes all fit stats...
+              if (length(fit_m0[n_mod, ]) >= 55) {
+                # Return existing
+                fit_m0[n_mod, ]
+              } else {
+                # Else, recalculate
+                message(paste(n, "/", length(fit), " ", n_mod))
+                fitMeasures(fit1)
+              }
             } else {
-              # Else, recalculate
-              message(paste(n, "/", length(fit), " ", n_mod))
-              fitMeasures(fit1)
+              # If fit_m0 includes all required fit measures
+              if (
+                sum(fit_measures %in% names(fit_m0[n_mod, ])) ==
+                length(fit_measures)
+              ) {
+                # Return existing (with only required fit measures)
+                fit_m0[n_mod, fit_measures]
+              } else {
+                # Else, recalculate with required fit measures
+                message(paste(n, "/", length(fit), " ", n_mod))
+                fitMeasures(fit1, fit.measures = fit_measures)
+              }
             }
           } else {
-            # If fit_m0 includes all required fit measures
-            if (
-              sum(fit_measures %in% names(fit_m0[n_mod, ])) ==
-              length(fit_measures)
-            ) {
-              # Return existing (with only required fit measures)
-              fit_m0[n_mod, fit_measures]
+            # If the model has changed, recalculate with required fit measures
+            message(paste(n, "/", length(fit), " ", n_mod))
+            if (fit_measures[1] == "all") {
+              fitMeasures(fit1)
             } else {
-              # Else, recalculate with required fit measures
-              message(paste(n, "/", length(fit), " ", n_mod))
               fitMeasures(fit1, fit.measures = fit_measures)
             }
           }
-        } else {
-          # If the model has changed, recalculate with required fit measures
-          message(paste(n, "/", length(fit), " ", n_mod))
-          if (fit_measures[1] == "all") {
-            fitMeasures(fit1)
-          } else {
-            fitMeasures(fit1, fit.measures = fit_measures)
-          }
-        }
-      },
-      fit1 = fit,
-      m1 = m_test,
-      hash_d1 = hash_d_test,
-      n_mod = names(fit),
-      n = seq_along(fit),
-      SIMPLIFY = FALSE
+        },
+        fit1 = fit,
+        m1 = m_test,
+        hash_d1 = hash_d_test,
+        n_mod = names(fit),
+        n = seq_along(fit),
+        SIMPLIFY = FALSE
+      )
     )
     if (length(unlist(fit_m1)) == 0) {
       warning(
