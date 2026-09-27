@@ -2,6 +2,7 @@
 
 * Fixed a bug which caused `sem.cor` to fail with multi-factor measurement models and items.
 * Entering a vector of items instead of a keys list in `cfa.from.keys` will now work with a warning.
+* Warnings generated during fit statistic calculations are now printed immediately so the model that caused them can be easily identified.
 
 # semFromKeys 0.5.5
 
