@@ -114,7 +114,7 @@
 #' Although it is recommended to use the appropriate upstream function whenever
 #' possible, there are not (currently) options to do so when customised lavaan
 #' models are required (with the exception of the `extra` argument in
-#' [sem.path];
+#' [sem.path]);
 #' for example, when allowing two items' residuals to correlate in a CFA.
 #' `sem.check` can be used in these cases (see example).
 #'
