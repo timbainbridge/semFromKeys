@@ -248,9 +248,18 @@ esem.from.keys <- function(
     fit_save = TRUE, fit_measures = "all", miss = "default", est = "default",
     name = "esam", check = FALSE, save_out = FALSE
 ) {
-  if (!is.list(keys)) {
-    stop("'keys' is not a list.")
+  if (sum(sapply(keys, function(x) length(x) != 1)) == 0) {
+    if (sum(sapply(keys, function(x) !(x %in% names(data)))) == 0) {
+      warning(
+        paste0(
+          "'keys' appears to be a vector of items rather than a keys list and ",
+          "has been converted into a length 1 keys list with the name 'factor'."
+        )
+      )
+      keys <- list(factor = keys)
+    }
   }
+  if (!is.list(keys)) stop("'keys' is not a list.")
   # Keys must be named
   if (any(names(keys_e) == "")) {
     stop("At least one element of 'keys_e' has an empty name.")
