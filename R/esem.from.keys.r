@@ -219,12 +219,24 @@
 #'   },
 #'   simplify = FALSE
 #' )
+#'
+#' # Run 'esem.from.keys' models
+#' esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
+#' # Examine results
+#' summary(esam_fit$fit$hope_a)  # Standard lavaan summary
+#' esam_fit$r2                   # R-squareds
+#' esam_fit$b                    # Betas
+#'
+#' # Run 'esem.from.mods' models
+#' # First, create fitted objects to use as inputs
+#' cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)
+#' efa_fit <- efa.from.keys(keys_e, BFIGritHope, fit_save = FALSE)
 #' # Run models
-#' esem_fit <- esem.from.keys(
-#'   BFIGritHope, keys_e, keys, fit_save = FALSE
+#' esem_fit <- esem.from.mods(
+#'   efa_fit$fit, cfa_fit$fit, data = BFIGritHope, fit_save = FALSE
 #' )
 #' # Examine results
-#' summary(esem_fit$fit$hope_a)  # Standard lavaan summary
+#' summary(esem_fit$fit$grit_c)  # Standard lavaan summary
 #' esem_fit$r2                   # R-squareds
 #' esem_fit$b                    # Betas
 #'
