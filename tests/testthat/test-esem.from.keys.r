@@ -89,15 +89,3 @@ test_that(
     )
   }
 )
-# test_that(
-#   "Test ordered",
-#   {
-#     expect_warning(
-#       esem.from.keys(
-#         BFIGritHope, keys_e, keys[1], fit_save = FALSE,
-#         ordered = names(BFIGritHope)
-#       ),
-#       "The SAM method.*does not support 'ordered' variables in ESEM"
-#     )
-#   }
-# )
