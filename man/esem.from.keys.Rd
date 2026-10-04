@@ -112,7 +112,8 @@ predict confirmatory factor analysis (CFA) factors.
 \details{
 The functions streamline running exploratory structural equation models
 (ESEM) where EFA factors predict a series of latent variables in separate
-models.
+models, similar to the primary analyses of Bainbridge, Ludeke, and Smillie
+(2022).
 \code{esem.from.keys} takes keys lists as inputs and \code{esem.from.mods} takes fitted
 measurement models as inputs.
 To prevent interpretational confounding (Burt, 1976), \code{esem.from.keys} uses

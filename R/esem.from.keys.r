@@ -53,7 +53,8 @@
 #' @details
 #' The functions streamline running exploratory structural equation models
 #' (ESEM) where EFA factors predict a series of latent variables in separate
-#' models.
+#' models, similar to the primary analyses of Bainbridge, Ludeke, and Smillie
+#' (2022).
 #' `esem.from.keys` takes keys lists as inputs and `esem.from.mods` takes fitted
 #' measurement models as inputs.
 #' To prevent interpretational confounding (Burt, 1976), `esem.from.keys` uses
@@ -244,7 +245,6 @@
 
 esem.from.keys <- function(
     data, keys_e, keys,
-    # keys_b = NULL, exclude_factors = NULL,
     fit_save = TRUE, fit_measures = "all", miss = "default", est = "default",
     name = "esam", check = FALSE, save_out = FALSE
 ) {
