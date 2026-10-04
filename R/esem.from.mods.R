@@ -200,7 +200,6 @@
 #' https://doi.org/10.1037/met0000503.
 #'
 #' @importFrom lavaan summary
-#' @export
 #'
 #' @examples
 #' # Create CFA keys
