@@ -83,9 +83,9 @@ test_that(
 test_that(
   "Non-list keys",
   {
-    expect_error(
+    expect_warning(
       esem.from.keys(BFIGritHope, keys_e, keys$grit_c),
-      "'keys' is not a list"
+      "'keys' appears to be a vector of items"
     )
   }
 )
