@@ -244,7 +244,7 @@
 #' @export
 
 esem.from.keys <- function(
-    data, keys_e, keys,
+    data, keys_e, keys, extra = NULL,
     fit_save = TRUE, fit_measures = "all", miss = "default", est = "default",
     name = "esam", check = FALSE, save_out = FALSE
 ) {
@@ -267,6 +267,31 @@ esem.from.keys <- function(
   if (any(names(keys) == "")) {
     stop("At least one element of 'keys' has an empty name.")
   }
+
+  ####### Modified from sem.path #######
+  if (!is.null(extra)) {
+    # Removal all fixed values and parameter names
+    extra_vars0 <- gsub("((\\+|~~|~).*?(\\*))", " ", extra)
+    # Remove punctuation
+    extra_vars1 <- gsub("\\+|~|\n", " ", extra_vars0)
+    extra_vars2 <- unique(unlist(stringr::str_split(extra_vars1, " +")))
+    extra_vars <- extra_vars2[!extra_vars2 %in% c(x_vars, y_vars)]
+  }
+  if (length(extra_vars) > 0) {
+    items_m <- extra_vars[!extra_vars %in% names(cfa_keys)]
+    if (length(items_m) > 0) {
+      item_miss_m <- items_m[!items_m %in% names(data)]
+      if (length(item_miss_m) > 0) {
+        stop(
+          paste0(
+            "'", item_miss_m[1], "' is in 'extra' but does not match ",
+            "either a latent variable name, nor a variable name in 'data'."
+          )
+        )
+      }
+    }
+  }
+  ####### Modified from sem.path #######
 
   ####### Modified from efa.from.keys #######
   target <- sapply(keys_e, function(y) ifelse(!unlist(keys_e) %in% y, 0, NA))
