@@ -91,17 +91,9 @@
 #' This is sometimes a good solution, but, in other cases, it is not.
 #' For example, if the measurement model was for a well-established scale and it
 #' requires changing, then it loses easy comparison with past research.
-#' This issue is most relevant when changes to a measurement model require
-#' entirely different factors, or items to be removed but it is still an
-#' issue for less dramatic changes. When a single scale is being assessed,
-#' these issues can be resolved by suggesting a thorough evaluation of the scale
-#' and, perhaps, the suggestion of a new measurement model or a new scale for a
-#' particular population; however, when many scales are being assessed this
-#' solution is impractical, and may not solve the interpretational confounding
-#' issue regardless.
 #'
-#' An alternative solution, proposed by Burt (1976) is to fix measurement model
-#' parameters in a model estimating structural parameters.
+#' An alternative solution, proposed by Burt (1976), is to fix measurement model
+#' parameters in the model estimating structural parameters.
 #' This method means that misspecification of one measurement model cannot
 #' affect other measurement models and that the interpretation of measured
 #' constructs cannot change based on unrelated factors.
@@ -111,7 +103,7 @@
 #'
 #' A third option was proposed by Nagy and colleagues (2017), who introduced an
 #' extension procedure such that item residuals are allowed to correlate with
-#' external variables (or factors).
+#' external variables or factors.
 #' To make the model identifiable, these relationships are constrained using
 #' one of a number of methods. If the sums of squares of correlations between
 #' each factor's items' residuals and each external factor are minimised,
@@ -122,7 +114,7 @@
 #' Unfortunately, estimating these models becomes increasingly slow with more
 #' items and factors, and the method only works with correlations, not
 #' regressions, so some method to run regressions using the correlations needs
-#' to be implemented.
+#' to be implemented whenever more complicated structural models are required.
 #' These methods will typically bias the estimates due to ignored uncertainty in
 #' the correlation estimates, thereby undermining the primary benefit of the
 #' method.
@@ -270,11 +262,17 @@ esem.from.keys <- function(
 
   ####### Modified from sem.path #######
   if (!is.null(extra)) {
-    # Removal all fixed values and parameter names
-    extra_vars0 <- gsub("((\\+|~~|~).*?(\\*))", " ", extra)
-    # Remove punctuation
-    extra_vars1 <- gsub("\\+|~|\n", " ", extra_vars0)
-    extra_vars2 <- unique(unlist(stringr::str_split(extra_vars1, " +")))
+    # Removal all fixed values and parameter names; remove punctuation
+    extra_vars1 <- lapply(
+      extra,
+      function(y) {
+        tmp <- gsub("((\\+|~~|~).*?(\\*))", " ", y) |>
+          # gsub("\\+|~|\n", " ", x = _) |>
+          stringr::str_split("\\+|~|\n| ", simplify = TRUE)
+        tmp[tmp != ""]
+      }
+    )
+    # extra_vars2 <- unique(unlist(stringr::str_split(extra_vars1, " +")))
     extra_vars <- extra_vars2[!extra_vars2 %in% c(x_vars, y_vars)]
   }
   if (length(extra_vars) > 0) {
