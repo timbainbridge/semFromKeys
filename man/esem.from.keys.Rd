@@ -45,6 +45,10 @@ Names must be the names of the factors.
 List element must be a vector of items that load on the factors.
 For bi-factor models, these should be group factor names and items.}
 
+\item{extra}{Extra lavaan code to be added.
+Currently the argument only supports allowing correlations between item
+residuals.}
+
 \item{fit_save}{Logical.
 \code{TRUE} indicates model fit measures should be included in the output;
 \code{FALSE} indicates model fit measures should not be included in the output.
@@ -116,8 +120,8 @@ structural equation models (ESEM) where EFA factors predict a series of
 latent variables in separate models, similar to the primary analyses of
 Bainbridge, Ludeke, and Smillie (2022).
 The functions are designed to determine how well a broad instrument, such as
-the BFI-2 (Soto & John, 2017) or the HEXACO-PI () can describe scales'
-variance.
+the BFI-2 (Soto & John, 2017) or the HEXACO-PI (Lee & Ashton, 2004) can
+describe scales' variance.
 
 \code{esem.from.keys} takes keys lists as inputs and \code{esem.from.mods} takes fitted
 measurement models as inputs.
@@ -302,8 +306,14 @@ https://doi.org/10.1037/pspp0000395.
 
 Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation
-Models. Sociological Methods & Research, 5(1), 3-52.
+Models.
+Sociological Methods & Research, 5(1), 3-52.
 https://doi.org/10.1177/004912417600500101.
+
+Lee, K. & Ashton, M. C. (2004).
+Psychometric Properties of the HEXACO Personality Inventory.
+Multivariate Behavioral Research, 39(2), 329-358.
+https://doi.org/10.1207/s15327906mbr3902_8.
 
 Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
 Extension Procedures for Confirmatory Factor Analysis.
@@ -314,6 +324,12 @@ Rosseel, Y. & Loh, W. W. (2022).
 A structural after measurement approach to structural equation modeling.
 Psychological Methods, 29(3), 561-588.
 https://doi.org/10.1037/met0000503.
+
+Soto, C. J. & John, O. P. (2017).
+The next Big Five Inventory (BFI-2): Developing and assessing a hierarchical
+model with 15 facets to enhance bandwidth, fidelity, and predictive power.
+Journal of Personality and Social Psychology, 113(1), 117-143.
+https://doi.org/10.1037/pspp0000096.
 }
 \seealso{
 \link{sem.check}, \link[lavaan:sam]{lavaan::sam}

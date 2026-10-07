@@ -16,6 +16,10 @@
 #' Names must be the names of the factors.
 #' List element must be a vector of items that load on the factors.
 #' For bi-factor models, these should be group factor names and items.
+#' @param extra
+#' Extra lavaan code to be added.
+#' Currently the argument only supports allowing correlations between item
+#' residuals.
 
 # SAM does not currently work with efa and bifactor models.
 # Keep this here in case it does at some stage.
@@ -56,8 +60,8 @@
 #' latent variables in separate models, similar to the primary analyses of
 #' Bainbridge, Ludeke, and Smillie (2022).
 #' The functions are designed to determine how well a broad instrument, such as
-#' the BFI-2 (Soto & John, 2017) or the HEXACO-PI () can describe scales'
-#' variance.
+#' the BFI-2 (Soto & John, 2017) or the HEXACO-PI (Lee & Ashton, 2004) can
+#' describe scales' variance.
 #'
 #' `esem.from.keys` takes keys lists as inputs and `esem.from.mods` takes fitted
 #' measurement models as inputs.
@@ -199,8 +203,14 @@
 #'
 #' Burt, R. S. (1976).
 #' Interpretational confounding of unobserved variables in Structural Equation
-#' Models. Sociological Methods & Research, 5(1), 3-52.
+#' Models.
+#' Sociological Methods & Research, 5(1), 3-52.
 #' https://doi.org/10.1177/004912417600500101.
+#'
+#' Lee, K. & Ashton, M. C. (2004).
+#' Psychometric Properties of the HEXACO Personality Inventory.
+#' Multivariate Behavioral Research, 39(2), 329-358.
+#' https://doi.org/10.1207/s15327906mbr3902_8.
 #'
 #' Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
 #' Extension Procedures for Confirmatory Factor Analysis.
@@ -211,6 +221,12 @@
 #' A structural after measurement approach to structural equation modeling.
 #' Psychological Methods, 29(3), 561-588.
 #' https://doi.org/10.1037/met0000503.
+#'
+#' Soto, C. J. & John, O. P. (2017).
+#' The next Big Five Inventory (BFI-2): Developing and assessing a hierarchical
+#' model with 15 facets to enhance bandwidth, fidelity, and predictive power.
+#' Journal of Personality and Social Psychology, 113(1), 117-143.
+#' https://doi.org/10.1037/pspp0000096.
 #'
 #' @importFrom lavaan summary
 #'
@@ -289,41 +305,49 @@ esem.from.keys <- function(
     extra_vars <- lapply(
       extra,
       function(y) {
-        tmp <- gsub("((\\+|~~|~).*?(\\*))", " ", y) |>
-          stringr::str_split("\\+|~|\n| ", simplify = TRUE)
+        tmp <- stringr::str_split(
+          gsub("((\\+|~~|~).*?(\\*))", " ", y), "\\+|~|=|\n| ", simplify = TRUE
+        )
         tmp[tmp != ""]
       }
     )
     extra_vars1 <- unique(unlist(extra_vars))
     extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(c(keys, keys_e))]
-  }
-  if (length(extra_vars2) > 0) {
-    items_m <- extra_vars2[!extra_vars2 %in% c(names(keys), names(keys_e))]
-    if (length(items_m) > 0) {
-      stop(
-        paste0(
-          "'", item_m[1], "' is in 'extra' but does not match either a latent",
-          "variable name, nor a variable name in 'keys' or 'keys_e'."
+    if (length(extra_vars2) > 0) {
+      if (length(extra_vars2) > 1) {
+        stop(
+          paste0(
+            "The following items were found in 'extra' but do not match either ",
+            "a variable name in 'keys' or 'keys_e', or standard lavaan code.\n\n",
+            "     ", paste(extra_vars2, collapse = ", ")
+          )
         )
-      )
+      } else {
+        stop(
+          paste0(
+            "'", extra_vars2, "' was found in 'extra' but does not match either ",
+            "a variable name in 'keys' or 'keys_e', or standard lavaan code."
+          )
+        )
+      }
     }
-  }
   ####### Modified from sem.path #######
 
-  mod_extra <- mapply(
-    k = keys, kn = names(keys),
-    FUN = function(k, kn) {
-      tmp <- mapply(
-        xv = extra_vars, x = extra,
-        FUN = function(xv, x) {
-          if (sum(!(xv %in% c(k, kn, unlist(keys_e), names(keys_e)))) == 0) {
-            x
-          } else ""
-        }
-      )
-      paste0(tmp[tmp != ""], collapse = "\n")
-    }
-  )
+    mod_extra <- mapply(
+      k = keys, kn = names(keys),
+      FUN = function(k, kn) {
+        tmp <- mapply(
+          xv = extra_vars, x = extra,
+          FUN = function(xv, x) {
+            if (sum(!(xv %in% c(k, kn, unlist(keys_e), names(keys_e)))) == 0) {
+              x
+            } else ""
+          }
+        )
+        paste0(tmp[tmp != ""], collapse = "\n")
+      }
+    )
+  }
 
   ####### Modified from efa.from.keys #######
   target <- sapply(keys_e, function(y) ifelse(!unlist(keys_e) %in% y, 0, NA))
@@ -345,10 +369,17 @@ esem.from.keys <- function(
     function(x) paste(x, "~", paste0(names(keys_e), collapse = " + ")),
     simplify = FALSE
   )
-  mods <- mapply(
-    function(x, y, z) paste0(x, "\n", mod_efa, "\n", y, "\n", z),
-    x = mods_cfa, y = regr_cfa, z = mod_extra, SIMPLIFY = FALSE
-  )
+  if (is.null(extra)) {
+    mods <- mapply(
+      function(x, y) paste0(x, "\n", mod_efa, "\n", y),
+      x = mods_cfa, y = regr_cfa, SIMPLIFY = FALSE
+    )
+  } else {
+    mods <- mapply(
+      function(x, y, z) paste0(x, "\n", mod_efa, "\n", y, "\n", z),
+      x = mods_cfa, y = regr_cfa, z = mod_extra, SIMPLIFY = FALSE
+    )
+  }
   mod_out <- sem.check(
     mods,
     data,
