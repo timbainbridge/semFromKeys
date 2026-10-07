@@ -10,7 +10,7 @@ esem.from.keys(
   keys_e,
   keys,
   extra = NULL,
-  fit_save = TRUE,
+  fit_save = FALSE,
   fit_measures = "all",
   miss = "default",
   est = "default",
@@ -111,18 +111,30 @@ models (ESEM) in lavaan where exploratory factor analysis (EFA) factors
 predict confirmatory factor analysis (CFA) factors.
 }
 \details{
-The functions streamline running exploratory structural equation models
-(ESEM) where EFA factors predict a series of latent variables in separate
-models, similar to the primary analyses of Bainbridge, Ludeke, and Smillie
-(2022).
+\code{esem.from.keys} and \code{esem.from.mods} streamline running exploratory
+structural equation models (ESEM) where EFA factors predict a series of
+latent variables in separate models, similar to the primary analyses of
+Bainbridge, Ludeke, and Smillie (2022).
+The functions are designed to determine how well a broad instrument, such as
+the BFI-2 (Soto & John, 2017) or the HEXACO-PI () can describe scales'
+variance.
+
 \code{esem.from.keys} takes keys lists as inputs and \code{esem.from.mods} takes fitted
 measurement models as inputs.
 To prevent interpretational confounding (Burt, 1976), \code{esem.from.keys} uses
 Rosseel and Loh's (2022) Structural After Measurement (SAM) method and
 \code{esem.from.mods} uses Burt's (1976) 2-stage procedure.
 In general, \code{esem.from.keys} should be used for CFA measurement models and
-\code{esem.from.mods} should be used for bifactor measurement models, which are
-not supported in \code{esem.from.keys}.
+\code{esem.from.mods} should be used for bi-factor measurement models, which are
+not supported in \code{esem.from.keys} (see the Bi-factor Measurement Models
+section).
+
+The SAM method includes "local" and "global" versions (see the
+Interpretational Confounding section).
+Although local SAM is preferable in most circumstances, as implemented in
+lavaan it currently (as at version 0.7-2) incorrectly sets ESEM factor
+covariances as equal, so it is not appropriate for \code{esem.from.keys}.
+Therefore, \code{esem.from.keys} uses global SAM.
 
 The functions rely on \link{sem.check} for the back-end of running the models.
 This enables saving inputs and outputs from model runs (with
@@ -132,6 +144,20 @@ The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
 For further details on how this works, see the \link{sem.check} function
 documentation.
+
+When using \code{esem.from.keys} with \code{fit_save = TRUE}, lavaan will produce a
+warning for every fit calculation (at version 0.7-2).
+The warning notes that, "the behaviour of fit measures in this context has
+not been studied, and they should be interpreted with caution."
+As fit statistics are used to determine if a model approximates a complete
+description of the data, this should not be an issue for \code{esem.from.keys} as
+the goal of the function is to assess the overlap between ESEM factors and
+independent scales with the better measurement of latent variable models, not
+to create a parsimonious model of the items.
+Moreover, given interpretational confounding has been dealt with and all
+structural paths are specified, fit is entirely determined by the measurement
+models and should be evaluated in separate measurement models, not in the
+full structural model, created by the \code{esem.from.keys} function.
 }
 \section{Interpretational Confounding}{
 
@@ -190,12 +216,9 @@ structural model, thereby preserving the structure of the measurement models
 while also preserving the uncertainty.
 Global SAM treats the measurement parameters as given, but corrects the
 standard errors of the structural model.
-Although local SAM is preferable in most circumstances, as implemented in
-lavaan it currently (as at version 0.7-2) incorrectly sets ESEM factor
-covariances as equal.
 }
 
-\section{Bifactor Measurement Models}{
+\section{Bi-factor Measurement Models}{
 
 Bi-factor models are not currently supported in \code{esem.from.keys}.
 \link[lavaan:sam]{lavaan::sam}---the lavaan function that implements the SAM method---

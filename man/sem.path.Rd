@@ -196,9 +196,6 @@ structural model, thereby preserving the structure of the measurement models
 while also preserving the uncertainty.
 Global SAM treats the measurement parameters as given, but corrects the
 standard errors of the structural model.
-Although local SAM is preferable in most circumstances, as implemented in
-lavaan it currently (as at version 0.7-2) incorrectly sets ESEM factor
-covariances as equal.
 }
 
 \examples{

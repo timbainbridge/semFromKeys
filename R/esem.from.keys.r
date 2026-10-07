@@ -51,18 +51,30 @@
 #' and a dataframe of R-squared values from each model.
 #'
 #' @details
-#' The functions streamline running exploratory structural equation models
-#' (ESEM) where EFA factors predict a series of latent variables in separate
-#' models, similar to the primary analyses of Bainbridge, Ludeke, and Smillie
-#' (2022).
+#' `esem.from.keys` and `esem.from.mods` streamline running exploratory
+#' structural equation models (ESEM) where EFA factors predict a series of
+#' latent variables in separate models, similar to the primary analyses of
+#' Bainbridge, Ludeke, and Smillie (2022).
+#' The functions are designed to determine how well a broad instrument, such as
+#' the BFI-2 (Soto & John, 2017) or the HEXACO-PI () can describe scales'
+#' variance.
+#'
 #' `esem.from.keys` takes keys lists as inputs and `esem.from.mods` takes fitted
 #' measurement models as inputs.
 #' To prevent interpretational confounding (Burt, 1976), `esem.from.keys` uses
 #' Rosseel and Loh's (2022) Structural After Measurement (SAM) method and
 #' `esem.from.mods` uses Burt's (1976) 2-stage procedure.
 #' In general, `esem.from.keys` should be used for CFA measurement models and
-#' `esem.from.mods` should be used for bifactor measurement models, which are
-#' not supported in `esem.from.keys`.
+#' `esem.from.mods` should be used for bi-factor measurement models, which are
+#' not supported in `esem.from.keys` (see the Bi-factor Measurement Models
+#' section).
+#'
+#' The SAM method includes "local" and "global" versions (see the
+#' Interpretational Confounding section).
+#' Although local SAM is preferable in most circumstances, as implemented in
+#' lavaan it currently (as at version 0.7-2) incorrectly sets ESEM factor
+#' covariances as equal, so it is not appropriate for `esem.from.keys`.
+#' Therefore, `esem.from.keys` uses global SAM.
 #'
 #' The functions rely on [sem.check] for the back-end of running the models.
 #' This enables saving inputs and outputs from model runs (with
@@ -72,6 +84,20 @@
 #' faster models, such that time spent rerunning them would be onerous.
 #' For further details on how this works, see the [sem.check] function
 #' documentation.
+#'
+#' When using `esem.from.keys` with `fit_save = TRUE`, lavaan will produce a
+#' warning for every fit calculation (at version 0.7-2).
+#' The warning notes that, "the behaviour of fit measures in this context has
+#' not been studied, and they should be interpreted with caution."
+#' As fit statistics are used to determine if a model approximates a complete
+#' description of the data, this should not be an issue for `esem.from.keys` as
+#' the goal of the function is to assess the overlap between ESEM factors and
+#' independent scales with the better measurement of latent variable models, not
+#' to create a parsimonious model of the items.
+#' Moreover, given interpretational confounding has been dealt with and all
+#' structural paths are specified, fit is entirely determined by the measurement
+#' models and should be evaluated in separate measurement models, not in the
+#' full structural model, created by the `esem.from.keys` function.
 #'
 #' @section Interpretational Confounding:
 #' In Structural Equation Models (SEM), standard methods do not distinguish
@@ -129,11 +155,8 @@
 #' while also preserving the uncertainty.
 #' Global SAM treats the measurement parameters as given, but corrects the
 #' standard errors of the structural model.
-#' Although local SAM is preferable in most circumstances, as implemented in
-#' lavaan it currently (as at version 0.7-2) incorrectly sets ESEM factor
-#' covariances as equal.
 #'
-#' @section Bifactor Measurement Models:
+#' @section Bi-factor Measurement Models:
 #' Bi-factor models are not currently supported in `esem.from.keys`.
 #' [lavaan::sam]---the lavaan function that implements the SAM method---
 #' currently treats all latent variables that are not in a regression path in
@@ -237,7 +260,7 @@
 
 esem.from.keys <- function(
     data, keys_e, keys, extra = NULL,
-    fit_save = TRUE, fit_measures = "all", miss = "default", est = "default",
+    fit_save = FALSE, fit_measures = "all", miss = "default", est = "default",
     name = "esam", check = FALSE, save_out = FALSE
 ) {
   if (sum(sapply(keys, function(x) length(x) != 1)) == 0) {
@@ -263,33 +286,44 @@ esem.from.keys <- function(
   ####### Modified from sem.path #######
   if (!is.null(extra)) {
     # Removal all fixed values and parameter names; remove punctuation
-    extra_vars1 <- lapply(
+    extra_vars <- lapply(
       extra,
       function(y) {
         tmp <- gsub("((\\+|~~|~).*?(\\*))", " ", y) |>
-          # gsub("\\+|~|\n", " ", x = _) |>
           stringr::str_split("\\+|~|\n| ", simplify = TRUE)
         tmp[tmp != ""]
       }
     )
-    # extra_vars2 <- unique(unlist(stringr::str_split(extra_vars1, " +")))
-    extra_vars <- extra_vars2[!extra_vars2 %in% c(x_vars, y_vars)]
+    extra_vars1 <- unique(unlist(extra_vars))
+    extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(c(keys, keys_e))]
   }
-  if (length(extra_vars) > 0) {
-    items_m <- extra_vars[!extra_vars %in% names(cfa_keys)]
+  if (length(extra_vars2) > 0) {
+    items_m <- extra_vars2[!extra_vars2 %in% c(names(keys), names(keys_e))]
     if (length(items_m) > 0) {
-      item_miss_m <- items_m[!items_m %in% names(data)]
-      if (length(item_miss_m) > 0) {
-        stop(
-          paste0(
-            "'", item_miss_m[1], "' is in 'extra' but does not match ",
-            "either a latent variable name, nor a variable name in 'data'."
-          )
+      stop(
+        paste0(
+          "'", item_m[1], "' is in 'extra' but does not match either a latent",
+          "variable name, nor a variable name in 'keys' or 'keys_e'."
         )
-      }
+      )
     }
   }
   ####### Modified from sem.path #######
+
+  mod_extra <- mapply(
+    k = keys, kn = names(keys),
+    FUN = function(k, kn) {
+      tmp <- mapply(
+        xv = extra_vars, x = extra,
+        FUN = function(xv, x) {
+          if (sum(!(xv %in% c(k, kn, unlist(keys_e), names(keys_e)))) == 0) {
+            x
+          } else ""
+        }
+      )
+      paste0(tmp[tmp != ""], collapse = "\n")
+    }
+  )
 
   ####### Modified from efa.from.keys #######
   target <- sapply(keys_e, function(y) ifelse(!unlist(keys_e) %in% y, 0, NA))
@@ -312,8 +346,8 @@ esem.from.keys <- function(
     simplify = FALSE
   )
   mods <- mapply(
-    function(x, y) paste0(x, "\n", mod_efa, "\n", y),
-    x = mods_cfa, y = regr_cfa, SIMPLIFY = FALSE
+    function(x, y, z) paste0(x, "\n", mod_efa, "\n", y, "\n", z),
+    x = mods_cfa, y = regr_cfa, z = mod_extra, SIMPLIFY = FALSE
   )
   mod_out <- sem.check(
     mods,
