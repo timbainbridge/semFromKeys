@@ -118,8 +118,8 @@ cfa.from.keys <- function(
       if (length(extra_vars2) > 1) {
         stop(
           paste0(
-            "The following items were found in 'extra' but do not match either ",
-            "a variable name in 'keys' or 'keys_e', or standard lavaan code.",
+            "The following items were found in 'extra' but do not match ",
+            "either a variable name in 'keys' or standard lavaan code.",
             "\n\n    ", paste(extra_vars2, collapse = ", ")
           )
         )
@@ -127,8 +127,7 @@ cfa.from.keys <- function(
         stop(
           paste0(
             "'", extra_vars2, "' was found in 'extra' but does not match ",
-            "either a variable name in 'keys' or 'keys_e', or standard lavaan ",
-            "code."
+            "either a variable name in 'keys' or standard lavaan code."
           )
         )
       }
@@ -138,11 +137,7 @@ cfa.from.keys <- function(
       FUN = function(k, kn) {
         tmp <- mapply(
           xv = extra_vars, x = extra,
-          FUN = function(xv, x) {
-            if (sum(!(xv %in% c(k, kn, unlist(keys_e), names(keys_e)))) == 0) {
-              x
-            } else ""
-          }
+          FUN = function(xv, x) if (sum(!(xv %in% c(k, kn))) == 0) x else ""
         )
         tmp[tmp != ""]
       }
