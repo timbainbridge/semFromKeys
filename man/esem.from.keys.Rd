@@ -2,17 +2,33 @@
 % Please edit documentation in R/esem.from.keys.r
 \name{esem.from.keys}
 \alias{esem.from.keys}
+\alias{esem.from.mods}
 \title{Runs ESEM based on CFA and EFA model outputs.}
 \usage{
 esem.from.keys(
   data,
   keys_e,
   keys,
-  fit_save = TRUE,
+  extra = NULL,
+  fit_save = FALSE,
   fit_measures = "all",
   miss = "default",
   est = "default",
   name = "esam",
+  check = FALSE,
+  save_out = FALSE
+)
+
+esem.from.mods(
+  data,
+  efa_fit,
+  cfa_fit = NULL,
+  bif_fit = NULL,
+  fit_save = FALSE,
+  fit_measures = "all",
+  miss = "default",
+  est = "default",
+  name = "esem",
   check = FALSE,
   save_out = FALSE
 )
@@ -28,6 +44,12 @@ vectors of items that should be targeted to load on the factor.}
 Names must be the names of the factors.
 List element must be a vector of items that load on the factors.
 For bi-factor models, these should be group factor names and items.}
+
+\item{extra}{A vector of strings of extra lavaan code to be added.
+Code can be in any order and will be added to all models containing all
+referenced items.
+Currently the argument only supports allowing correlations between item
+residuals.}
 
 \item{fit_save}{Logical.
 \code{TRUE} indicates model fit measures should be included in the output;
@@ -53,7 +75,7 @@ The default ('default') uses the lavaan default for the model being run.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.
-Defaults to "esam".
+Defaults to "esam" for \code{esem.from.keys} and "esem" for \code{esem.from.mods}.
 Irrelevant if both \code{save_out = FALSE} and \code{check = FALSE}.
 The name should be unique for each set of models, or outputs from calls with
 the same name will be overwritten.}
@@ -71,6 +93,14 @@ parameter values, and output will be saved;
 Selecting \code{save_out = TRUE} enables the function to not rerun models next
 time if \code{check = TRUE} the next time the code is run and nothing has changed
 in the meantime.}
+
+\item{efa_fit}{A fitted lavaan object of an EFA model.}
+
+\item{cfa_fit}{A named list of fitted lavaan objects of CFA models.
+Can be \code{NULL} if \code{bif_fit} is not \code{NULL}.}
+
+\item{bif_fit}{A named list of fitted lavaan objects of bifactor models.
+Can be \code{NULL} if \code{cfa_fit} is not \code{NULL}.}
 }
 \value{
 Returns a list of length 4 (if \code{fit_save = FALSE}) or
@@ -82,118 +112,151 @@ a list of regression beta parameters from each model;
 and a dataframe of R-squared values from each model.
 }
 \description{
-\code{esem.from.keys} runs exploratory structural equation models (ESEM) in lavaan
-where the exploratory factor analysis (EFA) factors predict confirmatory
-factor analysis (CFA) factors
-in separate models for each CFA
-model.
-The function takes a keys list to describe the EFA factors and keys lists to
-describe the CFA
-models.
+\code{esem.from.keys} and \code{efa.from.mods} run exploratory structural equation
+models (ESEM) in lavaan where exploratory factor analysis (EFA) factors
+predict confirmatory factor analysis (CFA) factors.
 }
 \details{
-The function was designed to streamline running exploratory structural
-equation models (ESEM) where EFA factors predict a series of latent variables
-in separate models using Rosseel and Loh's (2022) SAM method to prevent
-interpretational confounding (see below). The function is designed to run
-analyses analogous to that of Bainbridge, Ludeke, and Smillie (2022) only
-using the SAM method instead of Burt's 2-stage method.
+\code{esem.from.keys} and \code{esem.from.mods} streamline running exploratory
+structural equation models (ESEM) where EFA factors predict a series of
+latent variables in separate models, similar to the primary analyses of
+Bainbridge, Ludeke, and Smillie (2022).
+The functions are designed to determine how well a broad instrument, such as
+the BFI-2 (Soto & John, 2017) or the HEXACO-PI (Lee & Ashton, 2004) can
+describe scales' variance.
 
-The function is designed to run for multiple models with a similar design.
-If you are using the function for a single model,
-transform inputs into lists as appropriate.
+\code{esem.from.keys} takes keys lists as inputs and \code{esem.from.mods} takes fitted
+measurement models as inputs.
+To prevent interpretational confounding (Burt, 1976), \code{esem.from.keys} uses
+Rosseel and Loh's (2022) Structural After Measurement (SAM) method and
+\code{esem.from.mods} uses Burt's (1976) 2-stage procedure.
+In general, \code{esem.from.keys} should be used for CFA measurement models and
+\code{esem.from.mods} should be used for bi-factor measurement models, which are
+not supported in \code{esem.from.keys} (see the Bi-factor Measurement Models
+section).
 
-The model relies on \link{sem.check} for the back-end of running the models.
-This enables saving inputs and outputs from model runs
-(with \code{save_out = TRUE}) and checking to see if anything has changed from
-prior runs before running again (with \code{check = TRUE}).
+The SAM method includes "local" and "global" versions (see the
+Interpretational Confounding section).
+Although local SAM is preferable in most circumstances, as implemented in
+lavaan it currently (as at version 0.7-2) incorrectly sets ESEM factor
+covariances as equal, so it is not appropriate for \code{esem.from.keys}.
+Therefore, \code{esem.from.keys} uses global SAM.
+
+The functions rely on \link{sem.check} for the back-end of running the models.
+This enables saving inputs and outputs from model runs (with
+\code{save_out = TRUE}) and checking to see if anything has changed from prior
+runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
-For further details on how this works,
-see the \link{sem.check} function  documentation.
+For further details on how this works, see the \link{sem.check} function
+documentation.
 
-In SEM, standard methods do not distinguish between measurement and
-structural parameters. As a result, measurement model parameters can change
-with the addition of theoretically unrelated constructs in a structural
-model, and can change differently for different sets of unrelated constructs.
+When using \code{esem.from.keys} with \code{fit_save = TRUE}, lavaan will produce a
+warning for every fit calculation (at version 0.7-2).
+The warning notes that, "the behaviour of fit measures in this context has
+not been studied, and they should be interpreted with caution."
+As fit statistics are used to determine if a model approximates a complete
+description of the data, this should not be an issue for \code{esem.from.keys} as
+the goal of the function is to assess the overlap between ESEM factors and
+independent scales with the better measurement of latent variable models, not
+to create a parsimonious model of the items.
+Moreover, given interpretational confounding has been dealt with and all
+structural paths are specified, fit is entirely determined by the measurement
+models and should be evaluated in separate measurement models, not in the
+full structural model, created by the \code{esem.from.keys} function.
+}
+\section{Interpretational Confounding}{
+
+In Structural Equation Models (SEM), standard methods do not distinguish
+between measurement and structural parameters.
+As a result, measurement model parameters can change with the addition of
+theoretically unrelated constructs in a structural model, and can change
+differently for different sets of unrelated constructs.
 This means that the unrelated constructs are changing the interpretation of
-the latent variable, which Burt (1976) referred to as
-"interpretational confounding".
+the latent variable, which Burt (1976) labelled "interpretational
+confounding".
 
 There are various ways to deal with interpretational confounding.
-The standard solution (other than ignoring it) is to create good fitting
-measurement models first, then freely estimate the structural model
-with checks to ensure adequate fit of the model and that measurement
-parameters do not substantially change with different combinations of
-factors. This is sometimes a good solution, but, in other cases, it is not.
+The standard solution (other than ignoring it) is to create measurement
+models with good fit first, then freely estimate the structural model with
+checks to ensure adequate fit of the model and that measurement parameters do
+not change substantially with different combinations of factors.
+This is sometimes a good solution, but, in other cases, it is not.
 For example, if the measurement model was for a well-established scale and it
 requires changing, then it loses easy comparison with past research.
-This issue is most clearly relevant when changes to a measurement model
-require entirely different factors, or items to be removed but it is still an
-issue for less dramatic changes. When a single scale is being assessed,
-these issues can be resolved by suggesting a thorough evaluation of the scale
-and, perhaps, the suggestion of a new measurement model or a new scale for a
-particular population; however, when many scales are being assessed this
-solution is impractical, and may not solve the interpretational confounding
-issue regardless.
 
-An alternative solution, proposed by Burt (1976) is to fix measurement model
-parameters in a model estimating structural parameters.
+An alternative solution, proposed by Burt (1976), is to fix measurement model
+parameters in the model estimating structural parameters.
 This method means that misspecification of one measurement model cannot
 affect other measurement models and that the interpretation of measured
 constructs cannot change based on unrelated factors.
-However, it is not a perfect solution because, by fixing measurement
-parameters, uncertainty in their estimation is neglected
-(e.g., Nagy et al., 2017), which results in biased standard errors and fit
-statistics.
+However, it is not a perfect solution---by fixing measurement parameters,
+uncertainty in their estimation is neglected (e.g., Nagy et al., 2017), which
+results in biased standard errors and fit statistics.
 
-A third option was proposed by Nagy and colleagues (2017),
-who introduced an extension procedure such that item residuals are allowed to
-correlate with external variables (or factors).
+A third option was proposed by Nagy and colleagues (2017), who introduced an
+extension procedure such that item residuals are allowed to correlate with
+external variables or factors.
 To make the model identifiable, these relationships are constrained using
 one of a number of methods. If the sums of squares of correlations between
-all combinations of factors' items and external factors are minimised,
-measurement parameters in isolated measurement models are preserved in the
-structural model without having to constrain them directly.
+each factor's items' residuals and each external factor are minimised,
+measurement parameters are preserved in the structural model without having
+to constrain them directly.
 As a result, unbiased standard errors are preserved while simultaneously
-eliminating interpretational confounding since the measurement parameters
-from the measurement models are preserved regardless of external factors.
+eliminating interpretational confounding.
 Unfortunately, estimating these models becomes increasingly slow with more
-items and factors, such that it quickly becomes untenable.
-Moreover, the method only works with correlations, not regressions,
-so some method to run regressions using the correlations needs to be
-implemented that does not itself result in biased estimates due to ignored
-uncertainty in the correlation estimates.
+items and factors, and the method only works with correlations, not
+regressions, so some method to run regressions using the correlations needs
+to be implemented whenever more complicated structural models are required.
+These methods will typically bias the estimates due to ignored uncertainty in
+the correlation estimates, thereby undermining the primary benefit of the
+method.
 
-Although this latter issue may be solvable for Nagy and colleagues' (2017)
-method, a more practical solution to these issues was proposed by
-Rosseel and Loh (2022) with their SAM approach. This method essentially
-follows Burt's (1976) method but adjust the procedure to overcome its issues.
+A final solution to interpretation confounding was proposed by Rosseel and
+Loh (2022) with their SAM approach. This method essentially follows Burt's
+(1976) method but adjust the procedure to overcome its issues.
 They distinguish two SAM varieties--"local SAM" and "global SAM".
 Local SAM uses the observed summary statistics of the parameters of the
 measurement models to generate mean and covariance matrices to use in the
-structural model, which preserves the structure of the measurement models
+structural model, thereby preserving the structure of the measurement models
 while also preserving the uncertainty.
 Global SAM treats the measurement parameters as given, but corrects the
-standard errors of the structural model. Although local SAM is preferable in
-most circumstances, it currently (as at version 0.7-2) sets ESEM factor
-covariances as equal, which is likely a bug.
-
-Given its practicality and the absence of the aforementioned bug,
-\code{esem.from.keys} uses the global SAM method.
-
-Note that bifactor models are not currently supported in \code{esem.from.keys}.
-There is currently (as at version 0.7-2) no way to force lavaan to freely
-estimate covariances with factors that are not involved in a structural path.
-Instead the \link[lavaan:sam]{lavaan::sam} function treats them as 0, which alters the
-model from what it ought to be. This may also be a bug in the \link[lavaan:sam]{lavaan::sam}
-function.
-
-In the meantime, I suggest using \link{esem.from.mods} for bifactor models.
-Standard errors and fit statistics are not quite right with that method but
-they are likely close enough for most contexts and there are not any better
-options that are easily implemented.
+standard errors of the structural model.
 }
+
+\section{Bi-factor Measurement Models}{
+
+Bi-factor models are not currently supported in \code{esem.from.keys}.
+\link[lavaan:sam]{lavaan::sam}---the lavaan function that implements the SAM method---
+currently treats all latent variables that are not in a regression path in
+the structural model as unrelated to the other factors.
+Given regressing the general factor of a bi-factor model on EFA factors
+requires the group factors to correlate with the EFA factors,
+\link[lavaan:sam]{lavaan::sam} is currently inappropriate for bi-factor models predicted by
+ESEM factors (as at lavaan version 0.7-2).
+
+As a result, \code{esem.from.mods} should be used whenever bi-factor models are
+included. Note, however, that the solution to interpretational confounding
+means that standard errors and fit statistics will be biased, so inferring
+precise p-values, determining an optimal model, or checking that a model
+surpasses some cut-off of "good fit" should only be used with care.
+Instead, the function is intended to allow variables to be regressed on EFA
+factors with much better measurement than would be achieved with aggregate
+scores.
+
+Bi-factor models do come with a further complication---they require
+orthogonal relationships between the general and group factors.
+When a factor is an outcome of a regression in a structural model, it is not
+possible to include such a constraint because the instructions normally used
+to do so will constrain residual variance instead.
+However, given the 2-stage procedure is employed, there is little room for
+measurement models to change to allow factor correlations to change.
+As a result, the parameter can be relaxed, and implied correlations between
+the group and general factors should remain close to zero.
+Given that \code{esem.from.mods} already uses the 2-stage procedure, this method
+is employed when bi-factor models are used.
+}
+
 \examples{
 # Create CFA keys
 keys0 <- c("hope_a", "hope_p")
@@ -214,14 +277,27 @@ keys_e <- sapply(
   },
   simplify = FALSE
 )
+
+# Run 'esem.from.keys' models
+esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
+# Examine results
+summary(esam_fit$fit$hope_a)  # Standard lavaan summary
+esam_fit$r2                   # R-squareds
+esam_fit$b                    # Betas
+
+# Run 'esem.from.mods' models
+# First, create fitted objects to use as inputs
+cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = FALSE)
+efa_fit <- efa.from.keys(keys_e, BFIGritHope, fit_save = FALSE)
 # Run models
-esem_fit <- esem.from.keys(
-  BFIGritHope, keys_e, keys, fit_save = FALSE
+esem_fit <- esem.from.mods(
+  efa_fit$fit, cfa_fit$fit, data = BFIGritHope, fit_save = FALSE
 )
 # Examine results
-summary(esem_fit$fit$hope_a)  # Standard lavaan summary
+summary(esem_fit$fit$grit_c)  # Standard lavaan summary
 esem_fit$r2                   # R-squareds
 esem_fit$b                    # Betas
+
 }
 \references{
 Bainbridge, T. F., Ludeke, S. G., & Smillie, L. D. (2022).
@@ -232,8 +308,14 @@ https://doi.org/10.1037/pspp0000395.
 
 Burt, R. S. (1976).
 Interpretational confounding of unobserved variables in Structural Equation
-Models. Sociological Methods & Research, 5(1), 3-52.
+Models.
+Sociological Methods & Research, 5(1), 3-52.
 https://doi.org/10.1177/004912417600500101.
+
+Lee, K. & Ashton, M. C. (2004).
+Psychometric Properties of the HEXACO Personality Inventory.
+Multivariate Behavioral Research, 39(2), 329-358.
+https://doi.org/10.1207/s15327906mbr3902_8.
 
 Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017).
 Extension Procedures for Confirmatory Factor Analysis.
@@ -244,7 +326,13 @@ Rosseel, Y. & Loh, W. W. (2022).
 A structural after measurement approach to structural equation modeling.
 Psychological Methods, 29(3), 561-588.
 https://doi.org/10.1037/met0000503.
+
+Soto, C. J. & John, O. P. (2017).
+The next Big Five Inventory (BFI-2): Developing and assessing a hierarchical
+model with 15 facets to enhance bandwidth, fidelity, and predictive power.
+Journal of Personality and Social Psychology, 113(1), 117-143.
+https://doi.org/10.1037/pspp0000096.
 }
 \seealso{
-\link{esem.from.mods}, \link{sem.check}, \link[lavaan:sam]{lavaan::sam}
+\link{sem.check}, \link[lavaan:sam]{lavaan::sam}
 }

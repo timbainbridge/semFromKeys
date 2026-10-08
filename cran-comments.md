@@ -4,6 +4,7 @@
 
 * Fixed a bug whereby including items and a multi-factor measurement model as inputs in `sem.cor` would not work and added a neglected test to check it.
 * A couple of small quality of life changes (see NEWS).
+* Some added features (see NEWS).
 
 ## 14-09-2026 submission
 
