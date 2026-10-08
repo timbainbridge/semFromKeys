@@ -181,9 +181,9 @@ The standard solution (other than ignoring it) is to create measurement
 models with good fit first, then freely estimate the structural model with
 checks to ensure adequate fit of the model and that measurement parameters do
 not change substantially with different combinations of factors.
-This is sometimes a good solution, but, in other cases, it is not.
-For example, if the measurement model was for a well-established scale and it
-requires changing, then it loses easy comparison with past research.
+This is sometimes a good solution, but if, for example, the measurement model
+was for a well-established scale and it requires changing, then it loses easy
+comparison with past research.
 
 An alternative solution, proposed by Burt (1976), is to fix measurement model
 parameters in the model estimating structural parameters.
@@ -198,10 +198,10 @@ A third option was proposed by Nagy and colleagues (2017), who introduced an
 extension procedure such that item residuals are allowed to correlate with
 external variables or factors.
 To make the model identifiable, these relationships are constrained using
-one of a number of methods. If the sums of squares of correlations between
-each factor's items' residuals and each external factor are minimised,
-measurement parameters are preserved in the structural model without having
-to constrain them directly.
+one of a number of methods.
+If the sums of squares of correlations between each factor's items' residuals
+and each external factor are minimised, measurement parameters are preserved
+in the structural model without having to constrain them directly.
 As a result, unbiased standard errors are preserved while simultaneously
 eliminating interpretational confounding.
 Unfortunately, estimating these models becomes increasingly slow with more
@@ -213,15 +213,17 @@ the correlation estimates, thereby undermining the primary benefit of the
 method.
 
 A final solution to interpretation confounding was proposed by Rosseel and
-Loh (2022) with their SAM approach. This method essentially follows Burt's
-(1976) method but adjust the procedure to overcome its issues.
+Loh (2022) with their SAM approach.
+This method essentially follows Burt's (1976) method but adjust the procedure
+to overcome its issues.
 They distinguish two SAM varieties--"local SAM" and "global SAM".
 Local SAM uses the observed summary statistics of the parameters of the
 measurement models to generate mean and covariance matrices to use in the
 structural model, thereby preserving the structure of the measurement models
 while also preserving the uncertainty.
 Global SAM treats the measurement parameters as given, but corrects the
-standard errors of the structural model.
+standard errors of the structural model to account for the uncertainty in
+their measurement.
 }
 
 \section{Bi-factor Measurement Models}{

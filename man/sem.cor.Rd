@@ -114,7 +114,7 @@ or bi-factor models.
 If both \code{fit_x = NULL} and \code{items = NULL}, then correlations between all
 \code{fit_y} latent variables are computed. If either \code{fit_x} or \code{items}
 are specified, then correlations will be computed between \code{fit_y} latent
-variables and any specified \code{fit_x} latent variables and \code{items}.
+variables and any specified \code{items} and \code{fit_x} latent variables.
 Items are treated as single item latent variables with loadings of
 \code{item_loadings} if specified or freely estimated otherwise.
 Hierarchical models are not supported and the function will exit with an
@@ -127,45 +127,8 @@ everything in one model.
 
 To control for interpretational confounding (Burt, 1976), the function uses
 either Burt's (1976) 2-stage procedure (\code{nagy = FALSE}) or Nagy and
-colleagues' (2017) extension procedure (\code{nagy = TRUE}).
-Interpretational confounding occurs when the interpretation of a latent
-variable is confounded by the inclusion of a conceptually distinct variable
-in the model.
-That is, the loadings of items on a latent variable can change, in some
-cases markedly, due to the inclusion of a conceptually distinct factor.
-This means that the factor does not represent a consistent concept for
-different models, even in the same sample, as the loadings can change model
-to model.
-
-Burt (1976) proposed simply fixing measurement model parameters in the model
-estimating structural parameters.
-This method means that latent variables' interpretations cannot change with
-the addition or removal of different variables and less than ideal fit at the
-measurement level cannot affect latent variable correlations.
-Burt's (1976) method therefore solve interpretational confounding.
-However, Burt's method also underestimates uncertainty in the measurement
-part of the full model (e.g., Nagy et al., 2017), which results in biased
-standard errors and fit statistics, although effects are usually small.
-
-Alternatively, Nagy's method involves allowing item residuals to correlate
-with external variables and constrains those relationships such that the
-model is identifiable.
-Specifically, one of the methods to constrain these relationships minimises
-the sum of squares of the correlations between each latent variable's items'
-residuals and each of the structural variables in the model (excluding the
-factor(s) they form part of the measurement of).
-By using this method, measurement parameters in the structural model match
-those of isolated measurement models without having to constrain them
-directly.
-As a result, unbiased standard errors are preserved while simultaneously
-eliminating interpretational confounding.
-
-Which method should be chosen?
-Burt's method is faster but artificially constrains parameters,
-thereby biasing standard errors and model fit indices.
-They should, however, give very similar point estimates for correlations.
-Therefore, Nagy's method should be preferred whenever confidence intervals
-or model fit matter, except, perhaps, for large sets of variables.
+colleagues' (2017) extension procedure (\code{nagy = TRUE}) (see the
+Interpretational Confounding section below).
 
 If Nagy and colleagues' (2017) method is selected (with \code{nagy = TRUE}, the
 default), correlations between factors and item residuals will be included in
@@ -177,6 +140,23 @@ all) will be switched to use Burt's method with a warning.
 If all included measurement models included more than one latent variable,
 then outputs will be switched to match \code{nagy = FALSE} with a warning.
 
+Which method should be used?
+Burt's method is faster but artificially constrains parameters, thereby
+biasing standard errors and model fit indices.
+Nagy's method is slower, but produces accurate standard errors and fit
+statistics as well as correlations between item residuals and factors (noted
+above).
+Both methods should, however, produce very similar point estimates for
+correlations.
+Therefore, Nagy and colleagues' method should be preferred whenever
+confidence intervals, model fit, or residuals' correlations with factors
+matter, except, perhaps, for large sets of variables.
+Burt's method should be preferred whenever multi-factor models are specified,
+although the function will make this change automatically for such models
+when \code{nagy = TRUE}. Either can be used in other cases.
+}
+\section{Non-Positive Definite Correlation Matrix Warning}{
+
 It is possible for latent variable correlations to produce a non-positive
 definite correlation matrix between variables included in \code{fit_y} (when
 \code{fit_x} and \code{items} are not specified), especially when closely related
@@ -184,20 +164,23 @@ factors are included.
 If the matrix of latent variables is not positive definite, then the matrix
 will be adjusted to the nearest positive definite matrix using the
 \link[Matrix:nearPD]{Matrix::nearPD} function, which employs the method developed by Higham
-(2002), and a message will state that the matrix was adjusted, and what the
-maximum adjustment to any cell was.
+(2002).
+In such cases, a message will state that the matrix was adjusted, and what
+the maximum adjustment to any cell was.
 Confidence intervals will be adjusted by the same amount as the corresponding
 cell of the correlation matrix.
 P-values will not be adjusted, however, so will be very slightly incorrect.
 In general, inaccuracies in p-values will be most likely for larger
-correlations (i.e., ones more likely to be highly significant) but if the
-maximum adjustment, printed in the warning, is large, then use p-values with
-care.
+correlations (i.e., ones more likely to be highly significant) so will rarely
+or never make any material difference.
+}
+
+\section{save_out and check}{
 
 The model relies on \link{sem.check} for the back-end of running the models,
-which enables saving inputs and outputs from model runs
-(with \code{save_out = TRUE}) and checking to see if anything has changed from
-prior runs before running again (with \code{check = TRUE}).
+which enables saving inputs and outputs from model runs (with
+\code{save_out = TRUE}) and checking to see if anything has changed from prior
+runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
 In the case of \code{sem.cor}, the number of correlations can add up quickly.
@@ -209,6 +192,68 @@ minutes. In these cases, the functionality may be useful.
 For further details on how this works, see the \link{sem.check} function
 documentation.
 }
+
+\section{Interpretational Confounding}{
+
+In Structural Equation Models (SEM), standard methods do not distinguish
+between measurement and structural parameters.
+As a result, measurement model parameters can change with the addition of
+theoretically unrelated constructs in a structural model, and can change
+differently for different sets of unrelated constructs.
+This means that the unrelated constructs are changing the interpretation of
+the latent variable, which Burt (1976) labelled "interpretational
+confounding".
+
+There are various ways to deal with interpretational confounding.
+The standard solution (other than ignoring it) is to create measurement
+models with good fit first, then freely estimate the structural model with
+checks to ensure adequate fit of the model and that measurement parameters do
+not change substantially with different combinations of factors.
+This is sometimes a good solution, but if, for example, the measurement model
+was for a well-established scale and it requires changing, then it loses easy
+comparison with past research.
+
+An alternative solution, proposed by Burt (1976), is to fix measurement model
+parameters in the model estimating structural parameters.
+This method means that misspecification of one measurement model cannot
+affect other measurement models and that the interpretation of measured
+constructs cannot change based on unrelated factors.
+However, it is not a perfect solution---by fixing measurement parameters,
+uncertainty in their estimation is neglected (e.g., Nagy et al., 2017), which
+results in biased standard errors and fit statistics.
+
+A third option was proposed by Nagy and colleagues (2017), who introduced an
+extension procedure such that item residuals are allowed to correlate with
+external variables or factors.
+To make the model identifiable, these relationships are constrained using
+one of a number of methods.
+If the sums of squares of correlations between each factor's items' residuals
+and each external factor are minimised, measurement parameters are preserved
+in the structural model without having to constrain them directly.
+As a result, unbiased standard errors are preserved while simultaneously
+eliminating interpretational confounding.
+Unfortunately, estimating these models becomes increasingly slow with more
+items and factors, and the method only works with correlations, not
+regressions, so some method to run regressions using the correlations needs
+to be implemented whenever more complicated structural models are required.
+These methods will typically bias the estimates due to ignored uncertainty in
+the correlation estimates, thereby undermining the primary benefit of the
+method.
+
+A final solution to interpretation confounding was proposed by Rosseel and
+Loh (2022) with their SAM approach.
+This method essentially follows Burt's (1976) method but adjust the procedure
+to overcome its issues.
+They distinguish two SAM varieties--"local SAM" and "global SAM".
+Local SAM uses the observed summary statistics of the parameters of the
+measurement models to generate mean and covariance matrices to use in the
+structural model, thereby preserving the structure of the measurement models
+while also preserving the uncertainty.
+Global SAM treats the measurement parameters as given, but corrects the
+standard errors of the structural model to account for the uncertainty in
+their measurement.
+}
+
 \examples{
 # Create CFA keys
 keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")

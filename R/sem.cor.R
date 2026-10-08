@@ -54,7 +54,7 @@
 #' If both `fit_x = NULL` and `items = NULL`, then correlations between all
 #' `fit_y` latent variables are computed. If either `fit_x` or `items`
 #' are specified, then correlations will be computed between `fit_y` latent
-#' variables and any specified `fit_x` latent variables and `items`.
+#' variables and any specified `items` and `fit_x` latent variables.
 #' Items are treated as single item latent variables with loadings of
 #' `item_loadings` if specified or freely estimated otherwise.
 #' Hierarchical models are not supported and the function will exit with an
@@ -67,45 +67,8 @@
 #'
 #' To control for interpretational confounding (Burt, 1976), the function uses
 #' either Burt's (1976) 2-stage procedure (`nagy = FALSE`) or Nagy and
-#' colleagues' (2017) extension procedure (`nagy = TRUE`).
-#' Interpretational confounding occurs when the interpretation of a latent
-#' variable is confounded by the inclusion of a conceptually distinct variable
-#' in the model.
-#' That is, the loadings of items on a latent variable can change, in some
-#' cases markedly, due to the inclusion of a conceptually distinct factor.
-#' This means that the factor does not represent a consistent concept for
-#' different models, even in the same sample, as the loadings can change model
-#' to model.
-#'
-#' Burt (1976) proposed simply fixing measurement model parameters in the model
-#' estimating structural parameters.
-#' This method means that latent variables' interpretations cannot change with
-#' the addition or removal of different variables and less than ideal fit at the
-#' measurement level cannot affect latent variable correlations.
-#' Burt's (1976) method therefore solve interpretational confounding.
-#' However, Burt's method also underestimates uncertainty in the measurement
-#' part of the full model (e.g., Nagy et al., 2017), which results in biased
-#' standard errors and fit statistics, although effects are usually small.
-#'
-#' Alternatively, Nagy's method involves allowing item residuals to correlate
-#' with external variables and constrains those relationships such that the
-#' model is identifiable.
-#' Specifically, one of the methods to constrain these relationships minimises
-#' the sum of squares of the correlations between each latent variable's items'
-#' residuals and each of the structural variables in the model (excluding the
-#' factor(s) they form part of the measurement of).
-#' By using this method, measurement parameters in the structural model match
-#' those of isolated measurement models without having to constrain them
-#' directly.
-#' As a result, unbiased standard errors are preserved while simultaneously
-#' eliminating interpretational confounding.
-#'
-#' Which method should be chosen?
-#' Burt's method is faster but artificially constrains parameters,
-#' thereby biasing standard errors and model fit indices.
-#' They should, however, give very similar point estimates for correlations.
-#' Therefore, Nagy's method should be preferred whenever confidence intervals
-#' or model fit matter, except, perhaps, for large sets of variables.
+#' colleagues' (2017) extension procedure (`nagy = TRUE`) (see the
+#' Interpretational Confounding section below).
 #'
 #' If Nagy and colleagues' (2017) method is selected (with `nagy = TRUE`, the
 #' default), correlations between factors and item residuals will be included in
@@ -117,6 +80,22 @@
 #' If all included measurement models included more than one latent variable,
 #' then outputs will be switched to match `nagy = FALSE` with a warning.
 #'
+#' Which method should be used?
+#' Burt's method is faster but artificially constrains parameters, thereby
+#' biasing standard errors and model fit indices.
+#' Nagy's method is slower, but produces accurate standard errors and fit
+#' statistics as well as correlations between item residuals and factors (noted
+#' above).
+#' Both methods should, however, produce very similar point estimates for
+#' correlations.
+#' Therefore, Nagy and colleagues' method should be preferred whenever
+#' confidence intervals, model fit, or residuals' correlations with factors
+#' matter, except, perhaps, for large sets of variables.
+#' Burt's method should be preferred whenever multi-factor models are specified,
+#' although the function will make this change automatically for such models
+#' when `nagy = TRUE`. Either can be used in other cases.
+#'
+#' @section Non-Positive Definite Correlation Matrix Warning:
 #' It is possible for latent variable correlations to produce a non-positive
 #' definite correlation matrix between variables included in `fit_y` (when
 #' `fit_x` and `items` are not specified), especially when closely related
@@ -124,20 +103,21 @@
 #' If the matrix of latent variables is not positive definite, then the matrix
 #' will be adjusted to the nearest positive definite matrix using the
 #' [Matrix::nearPD] function, which employs the method developed by Higham
-#' (2002), and a message will state that the matrix was adjusted, and what the
-#' maximum adjustment to any cell was.
+#' (2002).
+#' In such cases, a message will state that the matrix was adjusted, and what
+#' the maximum adjustment to any cell was.
 #' Confidence intervals will be adjusted by the same amount as the corresponding
 #' cell of the correlation matrix.
 #' P-values will not be adjusted, however, so will be very slightly incorrect.
 #' In general, inaccuracies in p-values will be most likely for larger
-#' correlations (i.e., ones more likely to be highly significant) but if the
-#' maximum adjustment, printed in the warning, is large, then use p-values with
-#' care.
+#' correlations (i.e., ones more likely to be highly significant) so will rarely
+#' or never make any material difference.
 #'
+#' @section save_out and check:
 #' The model relies on [sem.check] for the back-end of running the models,
-#' which enables saving inputs and outputs from model runs
-#' (with `save_out = TRUE`) and checking to see if anything has changed from
-#' prior runs before running again (with `check = TRUE`).
+#' which enables saving inputs and outputs from model runs (with
+#' `save_out = TRUE`) and checking to see if anything has changed from prior
+#' runs before running again (with `check = TRUE`).
 #' The functionality was included for a number of very slow models or a lot of
 #' faster models, such that time spent rerunning them would be onerous.
 #' In the case of `sem.cor`, the number of correlations can add up quickly.
@@ -148,6 +128,8 @@
 #' minutes. In these cases, the functionality may be useful.
 #' For further details on how this works, see the [sem.check] function
 #' documentation.
+#'
+#' @inheritSection esem.from.keys Interpretational Confounding
 #'
 #' @seealso
 #' [sem.check], [lavaan::sem], [matrixcalc::is.positive.definite],
