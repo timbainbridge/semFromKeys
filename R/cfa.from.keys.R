@@ -132,6 +132,20 @@ cfa.from.keys <- function(
         )
       }
     }
+    sapply(
+      extra_vars,
+      function(x) {
+        if (sum(sapply(keys, function(y) sum(!x %in% y) == 0)) == 0) {
+          warning(
+            paste0(
+              "The extra code containing '", paste(x, collapse = "' and '"),
+              "' includes items that are not both/all in any single model. ",
+              "Therefore, the code has been included in any model. "
+            )
+          )
+        }
+      }
+    )
     mod_extra <- mapply(
       k = keys, kn = names(keys),
       FUN = function(k, kn) {
