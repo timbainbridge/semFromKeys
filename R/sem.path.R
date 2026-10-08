@@ -70,7 +70,7 @@
 #' other structural variables. Similarly, if you are attempting to follow Hayes
 #' (2021) recommendations for incremental validity, then there is no way to
 #' force the focal variable to correlate with the outcome using SAM and, by
-#' extention, `sem.path`.
+#' extension, `sem.path`.
 #' Therefore, `sem.path` should *NOT* be used with bi-factor models or to test
 #' for incremental validity using Hayes (2021) method.
 #'

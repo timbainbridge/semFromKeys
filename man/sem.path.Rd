@@ -127,7 +127,7 @@ are not part of the structural path model will be assumed to be unrelated to
 other structural variables. Similarly, if you are attempting to follow Hayes
 (2021) recommendations for incremental validity, then there is no way to
 force the focal variable to correlate with the outcome using SAM and, by
-extention, \code{sem.path}.
+extension, \code{sem.path}.
 Therefore, \code{sem.path} should \emph{NOT} be used with bi-factor models or to test
 for incremental validity using Hayes (2021) method.
 
