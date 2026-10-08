@@ -7,6 +7,7 @@
 cfa.from.keys(
   keys,
   data,
+  extra = NULL,
   fit_save = TRUE,
   fit_measures = "all",
   std.lv = TRUE,
@@ -25,6 +26,11 @@ each scale.}
 
 \item{data}{A dataframe or object coercible to a dataframe.
 Data must include all observed variables in any of the keys.}
+
+\item{extra}{A vector of strings of extra lavaan code to be added.
+Code can be in any order and will be added to all models containing all
+referenced items.
+The argument is for allowing correlations between item residuals.}
 
 \item{fit_save}{Logical.
 \code{TRUE} indicates model fit measures should be included in the output;
