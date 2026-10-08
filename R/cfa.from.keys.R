@@ -14,6 +14,11 @@
 #' @param data
 #' A dataframe or object coercible to a dataframe.
 #' Data must include all observed variables in any of the keys.
+#' @param extra
+#' A vector of strings of extra lavaan code to be added.
+#' Code can be in any order and will be added to all models containing all
+#' referenced items.
+#' The argument is for allowing correlations between item residuals.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
@@ -79,7 +84,7 @@
 #' cfa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 
 cfa.from.keys <- function(
-    keys, data, fit_save = TRUE, fit_measures = "all",
+    keys, data, extra = NULL, fit_save = TRUE, fit_measures = "all",
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
     name = "cfa", check = FALSE, save_out = FALSE
 ) {
@@ -94,21 +99,124 @@ cfa.from.keys <- function(
       keys <- list(factor = keys)
     }
   }
-  mods <- mapply(
-    function(y, z) {
-      if (length(z) > 2) {
-        paste(y, "=~", paste(sapply(z, "["), collapse = " + "))
+
+  ####### Modified from esem.from.keys #######
+  if (!is.null(extra)) {
+    # Removal all fixed values and parameter names; remove punctuation
+    extra_vars <- lapply(
+      extra,
+      function(y) {
+        tmp <- stringr::str_split(
+          gsub("((\\+|~~|~).*?(\\*))", " ", y), "\\+|~|=|\n| ", simplify = TRUE
+        )
+        tmp[tmp != ""]
+      }
+    )
+    extra_vars1 <- unique(unlist(extra_vars))
+    extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(keys)]
+    if (length(extra_vars2) > 0) {
+      if (length(extra_vars2) > 1) {
+        stop(
+          paste0(
+            "The following items were found in 'extra' but do not match ",
+            "either a variable name in 'keys' or standard lavaan code.",
+            "\n\n    ", paste(extra_vars2, collapse = ", ")
+          )
+        )
       } else {
-        if (length(z) == 2) {
-          warning(paste(y, "is only length 2. Model results may be poor."))
-          paste0(y, " =~ 1 * ", z[[1]], "\n", y, " =~ ", z[[2]])
-        } else {
-          stop(paste(y, "is only length 1. Model cannot be run."))
+        stop(
+          paste0(
+            "'", extra_vars2, "' was found in 'extra' but does not match ",
+            "either a variable name in 'keys' or standard lavaan code."
+          )
+        )
+      }
+    }
+    sapply(
+      extra_vars,
+      function(x) {
+        if (sum(sapply(keys, function(y) sum(!x %in% y) == 0)) == 0) {
+          warning(
+            paste0(
+              "The extra code containing '", paste(x, collapse = "' and '"),
+              "' includes items that are not both/all in any single model. ",
+              "Therefore, the code has been included in any model. "
+            )
+          )
         }
       }
-    },
-    y = names(keys), z = keys, SIMPLIFY = FALSE
-  )
+    )
+    mod_extra <- mapply(
+      k = keys, kn = names(keys),
+      FUN = function(k, kn) {
+        tmp <- mapply(
+          xv = extra_vars, x = extra,
+          FUN = function(xv, x) if (sum(!(xv %in% c(k, kn))) == 0) x else ""
+        )
+        tmp[tmp != ""]
+      }
+    )
+    ####### Modified from esem.from.keys #######
+
+    mods <- mapply(
+      function(x, y, z) {
+        if (length(z) > 3) {
+          # Check no. df
+          if (length(x) > choose(length(z) + 1, 2) - length(z) * 2 - 1) {
+            stop(
+              paste0(
+                "There are not enough degrees of freedom in the model for '", y,
+                "'. Remove at least one element of extra that includes only ",
+                "items in '", y, "'."
+              )
+            )
+          }
+          paste(
+            y, "=~", paste(z, collapse = " + "), "\n", paste(x, collapse = "\n")
+          )
+        } else {
+          if (length(z) == 3) {
+            # Not enough df for extra
+            if (length(x) > 0) {
+              warning(
+                paste0(
+                  "With only 3 items in '", y, "', there are not enough ",
+                  "degrees of freedom to include anything in extra for the ",
+                  "model. Therefore, the extra code that applied to the model ",
+                  "has been omitted."
+                )
+              )
+            }
+            paste(y, "=~", paste(z, collapse = " + "))
+          } else {
+            if (length(z) == 2) {
+              warning(paste(y, "is only length 2. Model results may be poor."))
+              paste0(y, " =~ 1 * ", z[[1]], "\n", y, " =~ ", z[[2]])
+            } else {
+              stop(paste(y, "is only length 1. Model cannot be run."))
+            }
+          }
+        }
+      },
+      x = mod_extra, y = names(keys), z = keys, SIMPLIFY = FALSE
+    )
+  } else {
+    mods <- mapply(
+      function(y, z) {
+        if (length(z) > 2) {
+          paste(y, "=~", paste(z, collapse = " + "))
+        } else {
+          if (length(z) == 2) {
+            warning(paste(y, "is only length 2. Model results may be poor."))
+            paste0(y, " =~ 1 * ", z[[1]], "\n", y, " =~ ", z[[2]])
+          } else {
+            stop(paste(y, "is only length 1. Model cannot be run."))
+          }
+        }
+      },
+      y = names(keys), z = keys, SIMPLIFY = FALSE
+    )
+  }
   sem.check(
     mods,
     data,

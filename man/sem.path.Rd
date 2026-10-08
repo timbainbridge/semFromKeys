@@ -98,103 +98,37 @@ The function runs an SEM with fitted CFA models, a specified path, and,
 optionally, 'extra' lavaan code.
 The function uses Rosseel and Loh's (2022) "Structure-After-Measurement"
 (SAM) procedure to control for interpretational confounding.
+Specifically, \code{sem.path} uses the local SAM method not the global SAM method
+because Rosseel and Loh (2022) "recommend local SAM over global SAM whenever
+possible." (p. 21 of the pre-print version).
 
-Like lavaan, the model assumes independent variables in the structural model
-should be allowed to correlate by default but extends the treatment to
+Like lavaan, \code{sem.path} models assume independent variables in the structural
+model should be allowed to correlate by default but extends the treatment to
 single-item variables. As a corollary, if you do not want any combination of
 independent variables to correlate freely, you will have to specify that in
 'extra' (see examples).
 
 The model relies on \link{sem.check} for the back-end of running the models.
-This enables saving inputs and outputs from model runs
-(with \code{save_out = TRUE}) and checking to see if anything has changed from
-prior runs before running again (with \code{check = TRUE}).
+This enables saving inputs and outputs from model runs (with
+\code{save_out = TRUE}) and checking to see if anything has changed from prior
+runs before running again (with \code{check = TRUE}).
 The functionality was included for a number of very slow models or a lot of
 faster models, such that time spent rerunning them would be onerous.
 Given \code{sem.path} runs a single model at a time, it is unlikely to be
 necessary except for extremely complex models.
-For further details on how this works,
-see the \link{sem.check} function  documentation.
-
-In SEM, standard methods do not distinguish between measurement and
-structural parameters. As a result, measurement model parameters can change
-with the addition of theoretically unrelated constructs in a structural
-model, and can change differently for different sets of unrelated constructs.
-This means that the unrelated constructs are changing the interpretation of
-the latent variable, which Burt (1976) referred to as
-"interpretational confounding".
-
-There are various ways to deal with interpretational confounding.
-The standard solution (other than ignoring it) is to create good fitting
-measurement models first, then freely estimate the structural model
-with checks to ensure adequate fit of the model and that measurement
-parameters do not substantially change with different combinations of
-factors. This is sometimes a good solution, but, in other cases, it is not.
-For example, if the measurement model was for a well-established scale and it
-requires changing, then it loses easy comparison with past research.
-This issue is most clearly relevant when changes to a measurement model
-require entirely different factors, or items to be removed but it is still an
-issue for less dramatic changes. When a single scale is being assessed,
-these issues can be resolved by suggesting a thorough evaluation of the scale
-and, perhaps, the suggestion of a new measurement model or a new scale for a
-particular population; however, when many scales are being assessed this
-solution is impractical, and may not solve the interpretational confounding
-issue regardless.
-
-An alternative solution, proposed by Burt (1976) is to fix measurement model
-parameters in a model estimating structural parameters.
-This method means that misspecification of one measurement model cannot
-affect other measurement models and that the interpretation of measured
-constructs cannot change based on unrelated factors.
-However, it is not a perfect solution because, by fixing measurement
-parameters, uncertainty in their estimation is neglected
-(e.g., Nagy et al., 2017), which results in biased standard errors and fit
-statistics.
-
-A third option was proposed by Nagy and colleagues (2017),
-who introduced an extension procedure such that item residuals are allowed to
-correlate with external variables (or factors).
-To make the model identifiable, these relationships are constrained using
-one of a number of methods. If the sums of squares of correlations between
-all combinations of factors' items and external factors are minimised,
-measurement parameters in isolated measurement models are preserved in the
-structural model without having to constrain them directly.
-As a result, unbiased standard errors are preserved while simultaneously
-eliminating interpretational confounding since the measurement parameters
-from the measurement models are preserved regardless of external factors.
-Unfortunately, estimating these models becomes increasingly slow with more
-items and factors, such that it quickly becomes untenable.
-Moreover, the method only works with correlations, not regressions,
-so some method to run regressions using the correlations needs to be
-implemented that does not itself result in biased estimates due to ignored
-uncertainty in the correlation estimates.
-
-Although this latter issue may be solvable for Nagy and colleagues' (2017)
-method, a more practical solution to these issues was proposed by
-Rosseel and Loh (2022) with their SAM approach. This method essentially
-follows Burt's (1976) method but adjust the procedure to overcome its issues.
-They distinguish two SAM varieties--"local SAM" and "global SAM".
-Local SAM uses the observed summary statistics of the parameters of the
-measurement models to generate mean and covariance matrices to use in the
-structural model, which preserves the structure of the measurement models
-while also preserving the uncertainty.
-Global SAM treats the measurement parameters as given, but corrects the
-standard errors of the structural model.
-
-Given its practicality, \code{sem.path} uses the local SAM method.
-Local SAM was selected over the global SAM because Rosseel and Loh (2022)
-"recommend local SAM over global SAM whenever possible."
-(p. 21 of the pre-print version).
+For further details on how this works, see the \link{sem.check} function
+documentation.
 
 Note that latent variables that are included in a measurement model that are
 not part of a regression path are assumed (by lavaan) to be unrelated,
 even if explicitly freed in the code. In most cases, you would not want such
-variables; however, if you include a bi-factor model, group variables that
+variables. However, if you include a bi-factor model, group variables that
 are not part of the structural path model will be assumed to be unrelated to
 other structural variables. Similarly, if you are attempting to follow Hayes
 (2021) recommendations for incremental validity, then there is no way to
-force the focal variable to correlate with the outcome using SAM.
-\code{sem.path} should, therefore, \emph{NOT} be used with bifactor models or to test
+force the focal variable to correlate with the outcome using SAM and, by
+extention, \code{sem.path}.
+Therefore, \code{sem.path} should \emph{NOT} be used with bi-factor models or to test
 for incremental validity using Hayes (2021) method.
 
 Finally, the function also does not currently work correctly with ESEM.
@@ -205,6 +139,67 @@ In the future, the function may change to allow users to select
 included but neither of these is currently implemented, so you should also
 \emph{NOT} include ESEM in \code{sem.path} models.
 }
+\section{Interpretational Confounding}{
+
+In Structural Equation Models (SEM), standard methods do not distinguish
+between measurement and structural parameters.
+As a result, measurement model parameters can change with the addition of
+theoretically unrelated constructs in a structural model, and can change
+differently for different sets of unrelated constructs.
+This means that the unrelated constructs are changing the interpretation of
+the latent variable, which Burt (1976) labelled "interpretational
+confounding".
+
+There are various ways to deal with interpretational confounding.
+The standard solution (other than ignoring it) is to create measurement
+models with good fit first, then freely estimate the structural model with
+checks to ensure adequate fit of the model and that measurement parameters do
+not change substantially with different combinations of factors.
+This is sometimes a good solution, but if, for example, the measurement model
+was for a well-established scale and it requires changing, then it loses easy
+comparison with past research.
+
+An alternative solution, proposed by Burt (1976), is to fix measurement model
+parameters in the model estimating structural parameters.
+This method means that misspecification of one measurement model cannot
+affect other measurement models and that the interpretation of measured
+constructs cannot change based on unrelated factors.
+However, it is not a perfect solution---by fixing measurement parameters,
+uncertainty in their estimation is neglected (e.g., Nagy et al., 2017), which
+results in biased standard errors and fit statistics.
+
+A third option was proposed by Nagy and colleagues (2017), who introduced an
+extension procedure such that item residuals are allowed to correlate with
+external variables or factors.
+To make the model identifiable, these relationships are constrained using
+one of a number of methods.
+If the sums of squares of correlations between each factor's items' residuals
+and each external factor are minimised, measurement parameters are preserved
+in the structural model without having to constrain them directly.
+As a result, unbiased standard errors are preserved while simultaneously
+eliminating interpretational confounding.
+Unfortunately, estimating these models becomes increasingly slow with more
+items and factors, and the method only works with correlations, not
+regressions, so some method to run regressions using the correlations needs
+to be implemented whenever more complicated structural models are required.
+These methods will typically bias the estimates due to ignored uncertainty in
+the correlation estimates, thereby undermining the primary benefit of the
+method.
+
+A final solution to interpretation confounding was proposed by Rosseel and
+Loh (2022) with their SAM approach.
+This method essentially follows Burt's (1976) method but adjust the procedure
+to overcome its issues.
+They distinguish two SAM varieties--"local SAM" and "global SAM".
+Local SAM uses the observed summary statistics of the parameters of the
+measurement models to generate mean and covariance matrices to use in the
+structural model, thereby preserving the structure of the measurement models
+while also preserving the uncertainty.
+Global SAM treats the measurement parameters as given, but corrects the
+standard errors of the structural model to account for the uncertainty in
+their measurement.
+}
+
 \examples{
 # Create CFA keys
 keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
@@ -213,6 +208,7 @@ keys <- sapply(
 )
 # Run CFA models
 cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = FALSE)
+
 # Run a path model with grit_c allowed to correlate with hope_p's residual
 # and the correlation between hope_a and grit_c constrained to 0.
 # Note: "\n" indicates a new line and is interpreted identically to an new

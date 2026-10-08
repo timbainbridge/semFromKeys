@@ -19,15 +19,6 @@ test_that(
   }
 )
 test_that(
-  "No data provided",
-  {
-    expect_error(
-      cfa.from.keys(keys, fit_save = FALSE),
-      'argument "data" is missing'
-    )
-  }
-)
-test_that(
   "Various things 'not logical'",
   {
     expect_error(
@@ -456,5 +447,55 @@ test_that(
     cache.setup("tests/testthat/cache", interactive = FALSE)
     expect_no_error(cfa.from.keys(keys[1:2], BFIGritHope, check = TRUE))
     cache.clean(0, interactive = FALSE)
+  }
+)
+test_that(
+  "Test normal behaviour with extra specified",
+  {
+    cfa_fit <- cfa.from.keys(
+      keys, BFIGritHope, extra = "grit_c_1 ~~ grit_c_2", fit_save = FALSE
+    )
+    expect_equal(length(cfa_fit), 2)
+    expect_equal(length(cfa_fit$fit), length(keys))
+    expect_equal(length(cfa_fit$par), length(keys))
+    expect_equal(sum(sapply(cfa_fit$fit, function(x) class(x) != "lavaan")), 0)
+  }
+)
+test_that(
+  "Test warnings with invalid extra specified",
+  {
+    expect_warning(
+      cfa.from.keys(
+        keys, BFIGritHope, extra = "grit_c_1 ~~ grit_p_2", fit_save = FALSE
+      ),
+      "The extra code containing '.*' includes items"
+    )
+  }
+)
+test_that(
+  "Test too many extra conditions included",
+  {
+    expect_error(
+      cfa.from.keys(
+        keys, BFIGritHope,
+        extra = c("hope_a_1 ~~ hope_a_2", "hope_a_3 ~~ hope_a_4"),
+        fit_save = FALSE
+      ),
+      "There are not enough degrees of freedom in the model"
+    )
+    keys_alt <- keys
+    keys_alt[[1]] <- keys[[1]][1:5]
+    expect_error(
+      cfa.from.keys(
+        keys_alt, BFIGritHope,
+        extra = c(
+          "grit_c_1 ~~ grit_c_2", "grit_c_3 ~~ grit_c_4",
+          "grit_c_2 ~~ grit_c_3", "grit_c_4 ~~ grit_c_5",
+          "grit_c_1 ~~ grit_c_3"
+        ),
+        fit_save = FALSE
+      ),
+      "There are not enough degrees of freedom in the model"
+    )
   }
 )
