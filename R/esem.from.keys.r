@@ -17,7 +17,9 @@
 #' List element must be a vector of items that load on the factors.
 #' For bi-factor models, these should be group factor names and items.
 #' @param extra
-#' Extra lavaan code to be added.
+#' A vector of strings of extra lavaan code to be added.
+#' Code can be in any order and will be added to all models containing all
+#' referenced items.
 #' Currently the argument only supports allowing correlations between item
 #' residuals.
 
