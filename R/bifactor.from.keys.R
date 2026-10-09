@@ -123,7 +123,8 @@
 #' keys_b <- keys_b1
 #' keys_b$hope <- keys_b1$hope[-1]
 #' bif_fit <- bifactor.from.keys(
-#'   keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
+#'   keys_g, keys_b, keys, BFIGritHope,
+#'   extra = c("grit_c_1 ~~ grit_p_1", "hope_a_1 ~~ hope_p_1")
 #' )
 #' # Examine some results
 #' summary(bif_fit$fit$grit)                  # Standard lavaan summary

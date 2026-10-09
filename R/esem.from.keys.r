@@ -242,7 +242,6 @@
 #'   function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))],
 #'   simplify = FALSE
 #' )
-# keys_b <- list(grit = c("grit_c", "grit_p"), hope = c("hope_a", "hope_p"))
 #' # Create EFA keys
 #' # Using only 3 factors and fewer items to save time for a simple example
 #' # (This results in a less than ideal solution but it doesn't matter for an
@@ -257,9 +256,12 @@
 #' )
 #'
 #' # Run 'esem.from.keys' models
-#' esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
+#' esam_fit <- esem.from.keys(
+#'   BFIGritHope, keys_e, keys,
+#'   extra = c("grit_c_1 ~~ grit_c_2", "grit_p_1 ~~ grit_p_2")
+#' )
 #' # Examine results
-#' summary(esam_fit$fit$hope_a)  # Standard lavaan summary
+#' summary(esam_fit$fit$grit_c)  # Standard lavaan summary
 #' esam_fit$r2                   # R-squareds
 #' esam_fit$b                    # Betas
 #'
