@@ -1,4 +1,4 @@
-## Current submission
+## Version 0.5.6 submission (current)
 
 ### Notes
 
@@ -6,7 +6,7 @@
 * A couple of small quality of life changes (see NEWS).
 * Some added features (see NEWS).
 
-## 14-09-2026 submission
+## Version 0.5.5 submission
 
 ### R CMD check results
 
@@ -21,7 +21,7 @@
 * A few small issues in the README were fixed.
 * Some multi-factor models (e.g., bi-factor models) can now be used as inputs to `sem.cor`.
 
-## 02-9-2026 submission
+## Version 0.5.3 submission
 
 ### R CMD check results
 
@@ -37,7 +37,7 @@
 * A user request for p-values in `sem.cor` output was also added.
 * The `name` argument was added to `cache.clean` to make it possible to remove particular sets of files much more easily.
 
-## 22-8-2026 submission
+## Version 0.5.2 submission
 
 ### R CMD check results
 
@@ -70,38 +70,3 @@
 ### Note
 
 `setup.cache()` and `cache.clean()` create and set up, and clean a cache directory. The `\donttest` examples did not aggressively clean the cache, so model outputs remained when the examples were run. I could have fixed it by including an aggressive version of `cache.clean()` in the examples but, if a user has set up the same cache directory as the example, they may delete results stored there unintentionally because `interactive = FALSE` would have to be set to work in testing. Therefore, I have chosen to wrap the examples in `\dontrun` instead of `\donttest`, so the examples remain useful to users without risking deleting their data, while also passing CRAN's automated tests.
-
-## 17-7-2026 submission
-
-### R CMD check results
-
-0 errors | 0 warnings | 1 note
-
-* Possibly misspelled words in DESCRIPTION:
-  Bainbridge (17:5)
-  Ludeke (17:24)
-  Smillie (17:41)
-
-### Notes
-
-* Possibly misspelled words are correctly spelled names.
-* Removed the code that set an option from esem.from.mods.R.
-
-## 3-7-2026 submission
-
-### R CMD check results
-
-0 errors | 0 warnings | 0 note
-
-### Notes
-
-* Changed setting an option for cache to using an environment variable.
-* Added a reference to Description.
-
-## First submission (21-6-2026)
-
-### R CMD check results
-
-0 errors | 0 warnings | 1 note
-
-* This is a new release.
