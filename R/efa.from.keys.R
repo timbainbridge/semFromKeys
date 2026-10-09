@@ -110,20 +110,6 @@ efa.from.keys <- function(
         )
       }
     }
-    sapply(
-      extra_vars,
-      function(x) {
-        if (sum(!x %in% unlist(keys)) != 0) {
-          warning(
-            paste0(
-              "The extra code containing '", paste(x, collapse = "' and '"),
-              "' includes items that are not both/all in any single model. ",
-              "Therefore, the code has not been included in any model. "
-            )
-          )
-        }
-      }
-    )
     mod_extra <- mapply(
       xv = extra_vars, x = extra,
       FUN = function(xv, x) if (sum(!xv %in% unlist(keys)) == 0) x else ""
