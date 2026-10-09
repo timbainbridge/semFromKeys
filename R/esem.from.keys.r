@@ -260,7 +260,7 @@
 #' # Run 'esem.from.keys' models
 #' esam_fit <- esem.from.keys(
 #'   BFIGritHope, keys_e, keys,
-#'   extra = c("grit_c_1 ~~ grit_c_2", "grit_p_1 ~~ grit_p_2")
+#'   extra = c("hope_a_1 ~~ hope_a_2", "hope_p_1 ~~ hope_p_2")
 #' )
 #' # Examine results
 #' summary(esam_fit$fit$grit_c)  # Standard lavaan summary
