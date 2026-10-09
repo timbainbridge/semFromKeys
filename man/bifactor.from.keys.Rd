@@ -65,7 +65,7 @@ Sets the \code{std.lv} parameter, as per lavaan (see \link[lavaan:lavOptions]{la
 \code{TRUE} indicates that factor variances should be fixed to 1.
 \code{FALSE} indicates that loadings of the first items of factors should be fixed
 to 1.
-Defaults to \code{TRUE}.}
+Defaults to \code{FALSE}.}
 
 \item{miss}{A string.
 Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
@@ -177,7 +177,8 @@ summary(bif_fit0$fit$hope)}
 keys_b <- keys_b1
 keys_b$hope <- keys_b1$hope[-1]
 bif_fit <- bifactor.from.keys(
-  keys_g, keys_b, keys, BFIGritHope, check = FALSE, fit_save = TRUE
+  keys_g, keys_b, keys, BFIGritHope,
+  extra = c("grit_c_1 ~~ grit_p_1", "hope_a_1 ~~ hope_p_1")
 )
 # Examine some results
 summary(bif_fit$fit$grit)                  # Standard lavaan summary

@@ -45,9 +45,11 @@ Names must be the names of the factors.
 List element must be a vector of items that load on the factors.
 For bi-factor models, these should be group factor names and items.}
 
-\item{extra}{A vector of strings of extra lavaan code to be added.
-Code can be in any order and will be added to all models containing all
-referenced items.
+\item{extra}{A vector of strings of residuals to correlate in lavaan code (e.g.,
+\code{"item1 ~~ item2"}).
+Strings of code can be in any order.
+Whenever a model includes all items in a string, the string will be appended
+to the model code.
 Currently the argument only supports allowing correlations between item
 residuals.}
 
@@ -109,7 +111,7 @@ The elements of the list are: a list of lavaan model output objects;
 a list of parameter estimates from the models (standardized if \code{std = TRUE});
 if \code{fit_save = TRUE}, a matrix of fit measures for each model;
 a list of regression beta parameters from each model;
-and a dataframe of R-squared values from each model.
+and a data frame of R-squared values from each model.
 }
 \description{
 \code{esem.from.keys} and \code{efa.from.mods} run exploratory structural equation
@@ -281,9 +283,12 @@ keys_e <- sapply(
 )
 
 # Run 'esem.from.keys' models
-esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
+esam_fit <- esem.from.keys(
+  BFIGritHope, keys_e, keys,
+  extra = c("grit_c_1 ~~ grit_c_2", "grit_p_1 ~~ grit_p_2")
+)
 # Examine results
-summary(esam_fit$fit$hope_a)  # Standard lavaan summary
+summary(esam_fit$fit$grit_c)  # Standard lavaan summary
 esam_fit$r2                   # R-squareds
 esam_fit$b                    # Betas
 

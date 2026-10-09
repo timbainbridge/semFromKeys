@@ -27,11 +27,9 @@ Data must include all observed variables used in any of the models.}
 
 \item{cfa_fit}{A named list of fitted lavaan objects of CFA models.}
 
-\item{extra}{Extra lavaan code to be added that is not created from \code{cfa_fit}, or included
-in \code{path}.
-For example, the argument can be used to set constraints, fix parameters to
-specific values, or allow correlations between item residuals or latent
-variables.}
+\item{extra}{A string of lavaan code to be appended to the model.
+The argument can be used to set constraints, fix parameters to
+specific values, or allow correlations between item residuals.}
 
 \item{fit_save}{Logical.
 \code{TRUE} indicates model fit measures should be included in the output;

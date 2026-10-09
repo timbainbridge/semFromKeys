@@ -20,11 +20,9 @@
 #' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
 #' @param extra
-#' Extra lavaan code to be added that is not created from `cfa_fit`, or included
-#' in `path`.
-#' For example, the argument can be used to set constraints, fix parameters to
-#' specific values, or allow correlations between item residuals or latent
-#' variables.
+#' A string of lavaan code to be appended to the model.
+#' The argument can be used to set constraints, fix parameters to
+#' specific values, or allow correlations between item residuals.
 #'
 #' @return
 #' Returns a list of length 5 (if `fit_save = FALSE`) or

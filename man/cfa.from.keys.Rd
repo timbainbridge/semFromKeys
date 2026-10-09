@@ -134,7 +134,10 @@ keys <- sapply(
   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
 )
 # Run models
-cfa_fit <- cfa.from.keys(keys, BFIGritHope, check = FALSE, fit_save = TRUE)
+cfa_fit <- cfa.from.keys(
+  keys, BFIGritHope,
+  extra = c("grit_c_1 ~~ grit_c_2", "grit_p_1 ~~ grit_p_2")
+)
 # Examine some results
 summary(cfa_fit$fit$grit_c)                # Standard lavaan summary
 cfa_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures

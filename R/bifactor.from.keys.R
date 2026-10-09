@@ -5,7 +5,7 @@
 #' and one for group factors on general factors.
 #'
 #' @inheritParams sem.check
-#' @inheritParams cfa.from.keys extra data
+#' @inheritParams cfa.from.keys extra data std.lv
 #' @param keys_g
 #' A named list of items in general factors.
 #' Names must be the names of the general factors.
@@ -29,13 +29,6 @@
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
-#' @param std.lv
-#' Logical.
-#' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions]).
-#' `TRUE` indicates that factor variances should be fixed to 1.
-#' `FALSE` indicates that loadings of the first items of factors should be fixed
-#' to 1.
-#' Defaults to `TRUE`.
 #'
 #' @return
 #' Returns a list of length 2 (if `fit_save = FALSE`) or

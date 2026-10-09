@@ -4,12 +4,10 @@
 #' rotation targeted based on a keys list.
 #'
 #' @inheritParams sem.check
+#' @inheritParams cfa.from.keys data std.lv
 #' @param keys
 #' A named list of keys. Names must be factor names, elements must be
 #' vectors of items that should be targeted to load on the factor.
-#' @param data
-#' A dataframe or object coercible to a dataframe.
-#' Data must include all observed variables in any of the keys.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
@@ -17,20 +15,16 @@
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
-#' @param std.lv
-#' Sets the `std.lv` param, as per lavaan (see [lavaan::lavOptions]).
-#' Defaults to `TRUE`.
 #'
 #' @return
 #' Returns a list of lists.
-#' The elements are a list of lavaan bifactor model output objects;
+#' The elements are a list of lavaan bi-factor model output objects;
 #' a list of parameter estimates from the models (standardized if `std = TRUE`);
 #' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
 #' The function was designed to streamline running exploratory structural
-#' equation models (ESEM) using Burt's (1976) 2-stage procedure to prevent
-#' interpretational confounding in the context of ESEM. However, it can also be
+#' equation models (ESEM) using [esem.from.mods]. However, it can also be
 #' used to easily run a targeted EFA with only a keys list to avoid having to
 #' manually specify the target and model.
 #'
@@ -48,7 +42,7 @@
 #' documentation.
 #'
 #' @seealso
-#' [sem.check], [lavaan::sem]
+#' [sem.check], [lavaan::sem], [esem.from.mods]
 #'
 #' @references
 #' Burt, R. S. (1976).
