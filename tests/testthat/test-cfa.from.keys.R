@@ -499,3 +499,14 @@ test_that(
     )
   }
 )
+test_that(
+  "Test errors with non-existant items specified in extra",
+  {
+    expect_error(
+      cfa.from.keys(
+        keys, BFIGritHope, extra = "grit_c_1 ~~ helloWorld", fit_save = FALSE
+      ),
+      "items were found in 'extra' but do not match either a variable name"
+    )
+  }
+)
