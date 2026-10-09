@@ -208,3 +208,28 @@ test_that(
     )
   }
 )
+test_that(
+  "Test normal behaviour with extra specified",
+  {
+    bif_fit <- bifactor.from.keys(
+      keys_g, keys_b, keys, BFIGritHope, extra = "grit_c_1 ~~ grit_p_1",
+      fit_save = FALSE
+    )
+    expect_equal(length(bif_fit), 2)
+    expect_equal(length(bif_fit$fit), length(keys_g))
+    expect_equal(length(bif_fit$par), length(keys_g))
+    expect_equal(sum(sapply(bif_fit$fit, function(x) class(x) != "lavaan")), 0)
+  }
+)
+test_that(
+  "Test warnings with invalid extra specified",
+  {
+    expect_warning(
+      bifactor.from.keys(
+        keys_g, keys_b, keys, BFIGritHope, extra = "grit_c_1 ~~ hope_p_1",
+        fit_save = FALSE
+      ),
+      "The extra code containing '.*' includes items"
+    )
+  }
+)

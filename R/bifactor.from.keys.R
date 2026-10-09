@@ -220,7 +220,7 @@ bifactor.from.keys <- function(
       }
     )
     extra_vars1 <- unique(unlist(extra_vars))
-    extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(keys)]
+    extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(items)]
     if (length(extra_vars2) > 0) {
       if (length(extra_vars2) > 1) {
         stop(
@@ -234,7 +234,8 @@ bifactor.from.keys <- function(
         stop(
           paste0(
             "'", extra_vars2, "' was found in 'extra' but does not match ",
-            "either a variable name in 'keys' or standard lavaan code."
+            "either a variable name in 'keys', 'keys_g', or standard lavaan ",
+            "code."
           )
         )
       }
@@ -242,7 +243,7 @@ bifactor.from.keys <- function(
     sapply(
       extra_vars,
       function(x) {
-        if (sum(sapply(keys, function(y) sum(!x %in% y) == 0)) == 0) {
+        if (sum(sapply(items, function(y) sum(!x %in% y) == 0)) == 0) {
           warning(
             paste0(
               "The extra code containing '", paste(x, collapse = "' and '"),
@@ -254,11 +255,11 @@ bifactor.from.keys <- function(
       }
     )
     mod_extra <- sapply(
-      keys_g,
-      function(k) {
+      items,
+      FUN = function(i) {
         tmp <- mapply(
           xv = extra_vars, x = extra,
-          FUN = function(xv, x) if (sum(!xv %in% k) == 0) x else ""
+          FUN = function(xv, x) if (sum(!xv %in% i) == 0) x else ""
         )
         tmp[tmp != ""]
       }
@@ -280,7 +281,8 @@ bifactor.from.keys <- function(
           collapse = "\n"
         )
       },
-      g = keys_g, b = keys_b, gn = names(keys_g), x = extra, SIMPLIFY = FALSE
+      g = keys_g, b = keys_b, gn = names(keys_g), x = mod_extra,
+      SIMPLIFY = FALSE
     )
   } else {
     mods <- mapply(
@@ -312,7 +314,7 @@ bifactor.from.keys <- function(
     std.lv = std.lv,
     miss = miss,
     est = est,
-    orthogonal = TRUE,  # Must be TRUE for bifactor models.
+    orthogonal = TRUE,  # Must be TRUE for bi-factor models.
     ordered = ordered,
     check = check,
     save_out = save_out
