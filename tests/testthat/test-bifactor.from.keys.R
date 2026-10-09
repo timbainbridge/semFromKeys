@@ -241,7 +241,7 @@ test_that(
         keys_g, keys_b, keys, BFIGritHope, extra = "grit_c_1 ~~ helloWorld",
         fit_save = FALSE
       ),
-      "items were found in 'extra' but do not match either a variable name"
+      "found in 'extra' but do.* not match either a variable name"
     )
   }
 )
