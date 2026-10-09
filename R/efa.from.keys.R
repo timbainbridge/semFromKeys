@@ -4,7 +4,7 @@
 #' rotation targeted based on a keys list.
 #'
 #' @inheritParams sem.check
-#' @inheritParams cfa.from.keys data std.lv
+#' @inheritParams cfa.from.keys data std.lv extra
 #' @param keys
 #' A named list of keys. Names must be factor names, elements must be
 #' vectors of items that should be targeted to load on the factor.
@@ -44,12 +44,6 @@
 #' @seealso
 #' [sem.check], [lavaan::sem], [esem.from.mods]
 #'
-#' @references
-#' Burt, R. S. (1976).
-#' Interpretational confounding of unobserved variables in Structural Equation
-#' Models. Sociological Methods & Research, 5(1), 3-52.
-#' https://doi.org/10.1177/004912417600500101.
-#'
 #' @importFrom lavaan summary
 #' @export
 #'
@@ -77,20 +71,84 @@
 #' efa_fit$fit_measures    # Selected fit measures
 
 efa.from.keys <- function(
-    keys, data, orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
+    keys, data, extra = NULL,
+    orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
     name = "efa", check = FALSE, save_out = FALSE
 ) {
   target <- sapply(keys, function(y) ifelse(!unlist(keys) %in% y, 0, NA))
-  mod <- list(
-    paste(
-      paste0(
-        paste0('efa("', name, '")*', names(keys), collapse = " + "),
-        " =~\n",
-        paste(unlist(keys), collapse = " + ")
+
+  ####### Modified from esem.from.keys #######
+  if (!is.null(extra)) {
+    # Removal all fixed values and parameter names; remove punctuation
+    extra_vars <- lapply(
+      extra,
+      function(y) {
+        tmp <- stringr::str_split(
+          gsub("((\\+|~~|~).*?(\\*))", " ", y), "\\+|~|=|\n| ", simplify = TRUE
+        )
+        tmp[tmp != ""]
+      }
+    )
+    extra_vars1 <- unique(unlist(extra_vars))
+    extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(keys)]
+    if (length(extra_vars2) > 0) {
+      if (length(extra_vars2) > 1) {
+        stop(
+          paste0(
+            "The following items were found in 'extra' but do not match ",
+            "either a variable name in 'keys' or standard lavaan code.",
+            "\n\n    ", paste(extra_vars2, collapse = ", ")
+          )
+        )
+      } else {
+        stop(
+          paste0(
+            "'", extra_vars2, "' was found in 'extra' but does not match ",
+            "either a variable name in 'keys' or standard lavaan code."
+          )
+        )
+      }
+    }
+    sapply(
+      extra_vars,
+      function(x) {
+        if (sum(!x %in% unlist(keys)) != 0) {
+          warning(
+            paste0(
+              "The extra code containing '", paste(x, collapse = "' and '"),
+              "' includes items that are not both/all in any single model. ",
+              "Therefore, the code has not been included in any model. "
+            )
+          )
+        }
+      }
+    )
+    mod_extra <- mapply(
+      xv = extra_vars, x = extra,
+      FUN = function(xv, x) if (sum(!xv %in% unlist(keys)) == 0) x else ""
+    )
+    ####### Modified from esem.from.keys #######
+
+    mod <- list(
+      paste(
+        paste0(
+          paste0('efa("', name, '")*', names(keys), collapse = " + "),
+          " =~\n", paste(unlist(keys), collapse = " + "),
+          "\n", paste0(mod_extra, collapse = "\n")
+        )
       )
     )
-  )
+  } else {
+    mod <- list(
+      paste(
+        paste0(
+          paste0('efa("', name, '")*', names(keys), collapse = " + "),
+          " =~\n", paste(unlist(keys), collapse = " + ")
+        )
+      )
+    )
+  }
   names(mod) <- name
   fit <- sem.check(
     mod,

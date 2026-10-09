@@ -7,6 +7,7 @@
 efa.from.keys(
   keys,
   data,
+  extra = NULL,
   orthogonal = FALSE,
   fit_save = TRUE,
   fit_measures = "all",
@@ -25,6 +26,12 @@ vectors of items that should be targeted to load on the factor.}
 
 \item{data}{A data frame or object coercible to a data frame.
 Data must include all observed variables used in any of the models.}
+
+\item{extra}{A vector of strings of residuals to correlate in lavaan code (e.g.,
+\code{"item1 ~~ item2"}).
+Strings of code can be in any order.
+Whenever a model includes all items in a string, the string will be appended
+to the model code.}
 
 \item{orthogonal}{Logical.
 Sets the \code{orthogonal} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
@@ -141,12 +148,6 @@ efa_fit <- efa.from.keys(
 # Examine results
 summary(efa_fit$fit)    # Standard lavaan summary
 efa_fit$fit_measures    # Selected fit measures
-}
-\references{
-Burt, R. S. (1976).
-Interpretational confounding of unobserved variables in Structural Equation
-Models. Sociological Methods & Research, 5(1), 3-52.
-https://doi.org/10.1177/004912417600500101.
 }
 \seealso{
 \link{sem.check}, \link[lavaan:sem]{lavaan::sem}, \link{esem.from.mods}
