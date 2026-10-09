@@ -22,7 +22,7 @@ sem.path(
 \item{path}{Regression or paths between latent variables or single-item indicators in
 lavaan code.}
 
-\item{data}{A dataframe or object coercible to a dataframe.
+\item{data}{A data frame or object coercible to a data frame.
 Data must include all observed variables used in any of the models.}
 
 \item{cfa_fit}{A named list of fitted lavaan objects of CFA models.}

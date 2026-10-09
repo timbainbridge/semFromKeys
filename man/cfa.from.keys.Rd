@@ -24,13 +24,14 @@ cfa.from.keys(
 Names should be scale names, elements should a vector of items included in
 each scale.}
 
-\item{data}{A dataframe or object coercible to a dataframe.
+\item{data}{A data frame or object coercible to a data frame.
 Data must include all observed variables in any of the keys.}
 
-\item{extra}{A vector of strings of extra lavaan code to be added.
-Code can be in any order and will be added to all models containing all
-referenced items.
-The argument is for allowing correlations between item residuals.}
+\item{extra}{A vector of strings of residuals to correlate in lavaan code (e.g.,
+\code{"item1 ~~ item2"}).
+Strings of code can be in any order.
+Whenever a model includes all items in a string, the string will be appended
+to the model code.}
 
 \item{fit_save}{Logical.
 \code{TRUE} indicates model fit measures should be included in the output;

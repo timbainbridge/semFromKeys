@@ -58,7 +58,7 @@ test_that(
       bifactor.from.keys(
         keys_b, keys_g, keys, BFIGritHope, fit_save = FALSE
       ),
-      "group factor\\(s\\) in 'keys_b' are not in 'keys'"
+      "group factor\\(s\\) in 'keys_b' are not in 'names(keys)'"
     )
   }
 )
@@ -114,7 +114,7 @@ test_that(
       bifactor.from.keys(
         keys_g, keys_b_mistake, keys, BFIGritHope, fit_save = FALSE
       ),
-      "group factor\\(s\\) in 'keys_b' are not in 'keys'"
+      "group factor\\(s\\) in 'keys_b' are not in 'names(keys)'"
     )
   }
 )
@@ -149,7 +149,7 @@ test_that(
       bifactor.from.keys(
         keys_g, keys_b, keys_missing, BFIGritHope, fit_save = FALSE
       ),
-      "group factor\\(s\\) in 'keys_b' are not in 'keys'"
+      "group factor\\(s\\) in 'keys_b' are not in 'names(keys)'"
     )
   }
 )

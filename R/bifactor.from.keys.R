@@ -5,24 +5,23 @@
 #' and one for group factors on general factors.
 #'
 #' @inheritParams sem.check
+#' @inheritParams cfa.from.keys extra data
 #' @param keys_g
 #' A named list of items in general factors.
 #' Names must be the names of the general factors.
 #' Each list element must be a vector of items that load on the general factors.
-#' Must be the same length as `keys_b`.
+#' `keys_g` must be the same length as `keys_b`.
 #' @param keys_b
 #' A named list of group factors in general factors.
 #' Names must be the names of the general factors.
 #' Each list element must be a vector of group factors.
-#' Must be the same length as `keys_g`.
+#' `keys_b` must be the same length as `keys_g`.
 #' @param keys
 #' A named list of items in group factors.
 #' Names must be the names of the group factors.
 #' Each list element must be a vector of items that load on the group factors.
-#' Need not be the same length as `keys_g` and `keys_b`.
-#' @param data
-#' A dataframe or object coercible to a dataframe.
-#' Data must include all observed variables in any of the keys.
+#' `keys` will only be the same length as `keys_g` and `keys_b` when each model
+#' has only one group factor.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
@@ -42,7 +41,7 @@
 #' Returns a list of length 2 (if `fit_save = FALSE`) or
 #' 3 (if `fit_save = TRUE`).
 #' The elements of the list are: a list of lavaan model output objects;
-#' a list of parameter estimates from the models (standardized if `std = TRUE`);
+#' a list of parameter estimates from the models (standardised if `std = TRUE`);
 #' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
@@ -61,10 +60,9 @@
 #' For further details on how this works, see the [sem.check] function
 #' documentation.
 #'
-#' Please be careful with bifactor models.
-#' In simulation studies, they can fit better than the models that generated the
-#' data in the presence of unspecified complexity
-#' (which is usually the case; Murray & Johnson, 2013).
+#' In simulation studies, bi-factor models can fit better than the models that
+#' generated the data in the presence of unspecified complexity (which is
+#' usually the case; Murray & Johnson, 2013).
 #' They can also produce negative residual variances.
 #' lavaan will warn you of this and you should deal with it before proceeding.
 #' Items can also load in atheoretical ways on the general or group factors.
@@ -78,11 +76,10 @@
 #' factors as separate constructs.
 #' Perhaps more frequently, these problems might be solved by omitting one
 #' (or more) group factors (i.e., an S-1 model; Eid et al., 2017).
-#' This can either be done a priori
-#' (perhaps based on which one should theoretically be most 'central' to the
-#' general factor)
-#' or after examining the fully specified bifactor model and dropping the worst
-#' performing factor (see the example).
+#' This can either be done a priori (perhaps based on which one should
+#' theoretically be most 'central' to the general factor) or after examining the
+#' fully specified bi-factor model and dropping the worst performing factor (see
+#' the example).
 #' When more than one group factor is poor, I am not aware of any specific
 #' advice on which to remove, so use your judgment if previous research has not
 #' got any advice for your case.
@@ -133,19 +130,14 @@
 #' bif_fit$fit_measures[, c("cfi", "rmsea")]  # Fit measures
 
 bifactor.from.keys <- function(
-  keys_g, keys_b, keys, data, fit_save = TRUE, fit_measures = "all",
+  keys_g, keys_b, keys, data, extra = NULL,
+  fit_save = TRUE, fit_measures = "all",
   std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
   name = "bifactor", check = FALSE, save_out = FALSE
 ) {
-  if (!is.list(keys_g)) {
-    stop("'keys_g' is not a list.")
-  }
-  if (!is.list(keys_b)) {
-    stop("'keys_b' is not a list.")
-  }
-  if (!is.list(keys)) {
-    stop("'keys' is not a list.")
-  }
+  if (!is.list(keys_g)) stop("'keys_g' is not a list.")
+  if (!is.list(keys_b)) stop("'keys_b' is not a list.")
+  if (!is.list(keys)) stop("'keys' is not a list.")
   if (length(keys_g) != length(keys_b)) {
     stop(
       paste(
@@ -171,8 +163,8 @@ bifactor.from.keys <- function(
         grps <- x[!x %in% names(keys)]
         stop(
           paste0(
-            "The following group factor(s) in 'keys_b' are not in 'keys':",
-            "\n    ",
+            "The following group factor(s) in 'keys_b' are not in ",
+            "'names(keys)':\n    ",
             paste(grps, collapse = "\n    "),
             "\n\nIf these are items, not group factors, ",
             "check that keys_b only contains group factor names."
@@ -191,11 +183,8 @@ bifactor.from.keys <- function(
             if (sum(!keys[[z]] %in% x) == length(keys[[z]])) {
               stop(
                 paste0(
-                  "All the items in the '",
-                  z,
-                  "' group factor are not in the '",
-                  xn,
-                  "' general factor."
+                  "All the items in the '", z,
+                  "' group factor are not in the '", xn, "' general factor."
                 )
               )
             }
@@ -212,29 +201,105 @@ bifactor.from.keys <- function(
             )
           )
           c(x, unlist(keys[y])[!unlist(keys[y]) %in% x])
-        } else {
-          x
-        }
+        } else x
       },
       x = keys_g, xn = names(keys_g), y = keys_b, SIMPLIFY = FALSE
     )
   )
-  mods <- mapply(
-    function(x, y, z) {
-      tmp <- paste(z, "=~", paste(x, collapse = " + "))
-      paste0(
-        c(
-          tmp,
-          mapply(
-            function(i, ni) paste(ni, "=~", paste0(i, collapse = " + ")),
-            i = keys[y], ni = names(keys[y]), SIMPLIFY = FALSE
+
+  ####### Modified from cfa.from.keys #######
+  if (!is.null(extra)) {
+    # Removal all fixed values and parameter names; remove punctuation
+    extra_vars <- lapply(
+      extra,
+      function(y) {
+        tmp <- stringr::str_split(
+          gsub("((\\+|~~|~).*?(\\*))", " ", y), "\\+|~|=|\n| ", simplify = TRUE
+        )
+        tmp[tmp != ""]
+      }
+    )
+    extra_vars1 <- unique(unlist(extra_vars))
+    extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(keys)]
+    if (length(extra_vars2) > 0) {
+      if (length(extra_vars2) > 1) {
+        stop(
+          paste0(
+            "The following items were found in 'extra' but do not match ",
+            "either a variable name in 'keys' or standard lavaan code.",
+            "\n\n    ", paste(extra_vars2, collapse = ", ")
           )
-        ),
-        collapse = "\n"
-      )
-    },
-    x = keys_g, y = keys_b, z = names(keys_g), SIMPLIFY = FALSE
-  )
+        )
+      } else {
+        stop(
+          paste0(
+            "'", extra_vars2, "' was found in 'extra' but does not match ",
+            "either a variable name in 'keys' or standard lavaan code."
+          )
+        )
+      }
+    }
+    sapply(
+      extra_vars,
+      function(x) {
+        if (sum(sapply(keys, function(y) sum(!x %in% y) == 0)) == 0) {
+          warning(
+            paste0(
+              "The extra code containing '", paste(x, collapse = "' and '"),
+              "' includes items that are not both/all in any single model. ",
+              "Therefore, the code has not been included in any model. "
+            )
+          )
+        }
+      }
+    )
+    mod_extra <- sapply(
+      keys_g,
+      function(k) {
+        tmp <- mapply(
+          xv = extra_vars, x = extra,
+          FUN = function(xv, x) if (sum(!xv %in% k) == 0) x else ""
+        )
+        tmp[tmp != ""]
+      }
+    )
+    ####### Modified from cfa.from.keys #######
+
+    mods <- mapply(
+      function(g, b, gn, x) {
+        tmp <- paste(gn, "=~", paste(g, collapse = " + "))
+        paste0(
+          c(
+            tmp,
+            mapply(
+              function(i, ni) paste(ni, "=~", paste0(i, collapse = " + ")),
+              i = keys[b], ni = names(keys[b]), SIMPLIFY = FALSE
+            ),
+            x
+          ),
+          collapse = "\n"
+        )
+      },
+      g = keys_g, b = keys_b, gn = names(keys_g), x = extra, SIMPLIFY = FALSE
+    )
+  } else {
+    mods <- mapply(
+      function(g, b, gn) {
+        tmp <- paste(gn, "=~", paste(g, collapse = " + "))
+        paste0(
+          c(
+            tmp,
+            mapply(
+              function(i, ni) paste(ni, "=~", paste0(i, collapse = " + ")),
+              i = keys[b], ni = names(keys[b]), SIMPLIFY = FALSE
+            )
+          ),
+          collapse = "\n"
+        )
+      },
+      g = keys_g, b = keys_b, gn = names(keys_g), SIMPLIFY = FALSE
+    )
+  }
   sem.check(
     mods,
     data,

@@ -22,7 +22,7 @@ sem.cor(
 )
 }
 \arguments{
-\item{data}{A dataframe or object coercible to a dataframe.
+\item{data}{A data frame or object coercible to a data frame.
 Data must include all observed variables used in any of the models.}
 
 \item{fit_y}{A named list of CFA or bi-factor fitted objects.}

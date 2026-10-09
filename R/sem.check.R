@@ -16,7 +16,7 @@
 #'
 #' @param mods A named list of lavaan models to run.
 #' @param data
-#' A dataframe or object coercible to a dataframe.
+#' A data frame or object coercible to a data frame.
 #' Data must include all observed variables used in any of the models.
 #' @param keys_s A named keys list matching the names and length of mod.
 #' @param keys_e A named keys list of the factors in an ESEM to be included.

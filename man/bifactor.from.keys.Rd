@@ -9,6 +9,7 @@ bifactor.from.keys(
   keys_b,
   keys,
   data,
+  extra = NULL,
   fit_save = TRUE,
   fit_measures = "all",
   std.lv = TRUE,
@@ -24,20 +25,27 @@ bifactor.from.keys(
 \item{keys_g}{A named list of items in general factors.
 Names must be the names of the general factors.
 Each list element must be a vector of items that load on the general factors.
-Must be the same length as \code{keys_b}.}
+\code{keys_g} must be the same length as \code{keys_b}.}
 
 \item{keys_b}{A named list of group factors in general factors.
 Names must be the names of the general factors.
 Each list element must be a vector of group factors.
-Must be the same length as \code{keys_g}.}
+\code{keys_b} must be the same length as \code{keys_g}.}
 
 \item{keys}{A named list of items in group factors.
 Names must be the names of the group factors.
 Each list element must be a vector of items that load on the group factors.
-Need not be the same length as \code{keys_g} and \code{keys_b}.}
+\code{keys} will only be the same length as \code{keys_g} and \code{keys_b} when each model
+has only one group factor.}
 
-\item{data}{A dataframe or object coercible to a dataframe.
-Data must include all observed variables in any of the keys.}
+\item{data}{A data frame or object coercible to a data frame.
+Data must include all observed variables used in any of the models.}
+
+\item{extra}{A vector of strings of residuals to correlate in lavaan code (e.g.,
+\code{"item1 ~~ item2"}).
+Strings of code can be in any order.
+Whenever a model includes all items in a string, the string will be appended
+to the model code.}
 
 \item{fit_save}{Logical.
 \code{TRUE} indicates model fit measures should be included in the output;
@@ -99,7 +107,7 @@ in the meantime.}
 Returns a list of length 2 (if \code{fit_save = FALSE}) or
 3 (if \code{fit_save = TRUE}).
 The elements of the list are: a list of lavaan model output objects;
-a list of parameter estimates from the models (standardized if \code{std = TRUE});
+a list of parameter estimates from the models (standardised if \code{std = TRUE});
 and, if \code{fit_save = TRUE}, a matrix of fit measures for each model.
 }
 \description{
@@ -123,10 +131,9 @@ faster models, such that time spent rerunning them would be onerous.
 For further details on how this works, see the \link{sem.check} function
 documentation.
 
-Please be careful with bifactor models.
-In simulation studies, they can fit better than the models that generated the
-data in the presence of unspecified complexity
-(which is usually the case; Murray & Johnson, 2013).
+In simulation studies, bi-factor models can fit better than the models that
+generated the data in the presence of unspecified complexity (which is
+usually the case; Murray & Johnson, 2013).
 They can also produce negative residual variances.
 lavaan will warn you of this and you should deal with it before proceeding.
 Items can also load in atheoretical ways on the general or group factors.
@@ -140,11 +147,10 @@ the best solution might be to remove the general factor and treat the group
 factors as separate constructs.
 Perhaps more frequently, these problems might be solved by omitting one
 (or more) group factors (i.e., an S-1 model; Eid et al., 2017).
-This can either be done a priori
-(perhaps based on which one should theoretically be most 'central' to the
-general factor)
-or after examining the fully specified bifactor model and dropping the worst
-performing factor (see the example).
+This can either be done a priori (perhaps based on which one should
+theoretically be most 'central' to the general factor) or after examining the
+fully specified bi-factor model and dropping the worst performing factor (see
+the example).
 When more than one group factor is poor, I am not aware of any specific
 advice on which to remove, so use your judgment if previous research has not
 got any advice for your case.

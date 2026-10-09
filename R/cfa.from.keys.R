@@ -12,13 +12,14 @@
 #' Names should be scale names, elements should a vector of items included in
 #' each scale.
 #' @param data
-#' A dataframe or object coercible to a dataframe.
+#' A data frame or object coercible to a data frame.
 #' Data must include all observed variables in any of the keys.
 #' @param extra
-#' A vector of strings of extra lavaan code to be added.
-#' Code can be in any order and will be added to all models containing all
-#' referenced items.
-#' The argument is for allowing correlations between item residuals.
+#' A vector of strings of residuals to correlate in lavaan code (e.g.,
+#' `"item1 ~~ item2"`).
+#' Strings of code can be in any order.
+#' Whenever a model includes all items in a string, the string will be appended
+#' to the model code.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
@@ -140,18 +141,18 @@ cfa.from.keys <- function(
             paste0(
               "The extra code containing '", paste(x, collapse = "' and '"),
               "' includes items that are not both/all in any single model. ",
-              "Therefore, the code has been included in any model. "
+              "Therefore, the code has not been included in any model. "
             )
           )
         }
       }
     )
-    mod_extra <- mapply(
-      k = keys, kn = names(keys),
-      FUN = function(k, kn) {
+    mod_extra <- sapply(
+      keys,
+      function(k) {
         tmp <- mapply(
           xv = extra_vars, x = extra,
-          FUN = function(xv, x) if (sum(!(xv %in% c(k, kn))) == 0) x else ""
+          FUN = function(xv, x) if (sum(!xv %in% k) == 0) x else ""
         )
         tmp[tmp != ""]
       }
