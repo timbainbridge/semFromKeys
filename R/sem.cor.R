@@ -69,6 +69,12 @@
 #' either Burt's (1976) 2-stage procedure (`nagy = FALSE`) or Nagy and
 #' colleagues' (2017) extension procedure (`nagy = TRUE`) (see the
 #' Interpretational Confounding section below).
+#' When CFA input models include correlated residuals, these are included as
+#' fixed values when `nagy = FALSE` and as free parameters when `nagy = TRUE`.
+#' Although the effect of correlated residuals on model performance has not been
+#' tested with Nagy and colleagues' method, they have been included because it
+#' is likely the best option (i.e., better than employing Burt's method,
+#' omitting them, or ignoring interpretational confounding).
 #'
 #' If Nagy and colleagues' (2017) method is selected (with `nagy = TRUE`, the
 #' default), correlations between factors and item residuals will be included in
@@ -313,16 +319,12 @@ sem.cor <- function(
   nagy_sel <- rep(nagy, length(par_yx))
   names(nagy_sel) <- names(par_yx)
   if (nagy) {
-    ord_n <- c()
-    cor_n <- c()
-    cor_sel <- c()
     for (par_n in names(par_yx)) {
       par <- par_yx[[par_n]]
       sel <- sel_yx[[par_n]]
       nm <- unique(par$lhs[par$op == "=~"])
       if (length(nm) > 1) {
         nagy_sel[par_n] <- FALSE
-        warn_cor <- FALSE
         warning(
           paste0(
             " The '", sel, "' model including '",
@@ -334,31 +336,7 @@ sem.cor <- function(
             "method (i.e., 'nagy = FALSE')."
           )
         )
-      } else {
-        if (sum(par$op == "~~" & par$lhs != par$rhs & par$est != 0) > 0) {
-          warn_cor <- TRUE
-          cor_n <- c(cor_n, nm)
-          cor_sel <- unique(c(cor_sel, sel))
-        } else {
-          warn_cor <- FALSE
-        }
       }
-    }
-    if (warn_cor) {
-      warning(
-        paste0(
-          " The '", paste(cor_sel, collapse = " and "),
-          "' models including the latent variables listed below include ",
-          "at least one correlation between two different variables ",
-          "(such as correlated residuals).\n   ",
-          "This is not currently supported in 'sem.cor' when ",
-          "'nagy = TRUE'.\n   ",
-          "The model has been run without them.\n   ",
-          "If they are necessary, they are supported with 'nagy = FALSE'.",
-          "\n\n      ",
-          paste0(cor_n, collapse = "; ")
-        )
-      )
     }
   }
   if (nagy & sum(nagy_sel) == 0) {
@@ -493,6 +471,8 @@ sem.cor <- function(
               y1u <- y1[y1$op == "~~" & y1$lhs != yn & y1$lhs == y1$rhs, ]
               x1v <- x1[x1$lhs == x1$rhs & x1$lhs == xn, ]
               y1v <- y1[y1$lhs == y1$rhs & y1$lhs == yn, ]
+              x1e <- x1[x1$op == "~~" & x1$lhs != x1$rhs, ]
+              y1e <- y1[y1$op == "~~" & y1$lhs != y1$rhs, ]
               mod0 <- paste0(
                 # CFA1
                 paste0(
@@ -509,6 +489,11 @@ sem.cor <- function(
                 "\n",
                 paste0(x1v$lhs, x1v$op, x1v$est, "*", x1v$rhs),
                 "\n",
+                if (nrow(x1e) > 0) {
+                  paste0(
+                    x1e$lhs, x1e$op, "start(", x1e$est, ")*", x1e$rhs, "\n"
+                  )
+                },
                 # CFA2
                 paste0(
                   y1l$lhs, y1l$op, "ly", seq_along(key_y), "*start(", y1l$est,
@@ -524,6 +509,9 @@ sem.cor <- function(
                 "\n",
                 paste0(y1v$lhs, y1v$op, y1v$est, "*", y1v$rhs),
                 "\n",
+                if (nrow(y1e) > 0) {
+                  paste0(y1e$lhs, y1e$op, "start(", y1e$est, ")*", y1e$rhs, "\n")
+                },
                 # Extension parameters
                 paste0(
                   mapply(
@@ -613,6 +601,7 @@ sem.cor <- function(
           y1l <- y1[y1$op == "=~", ]
           y1u <- y1[y1$op == "~~" & y1$lhs != yn, ]
           y1v <- y1[y1$lhs == y1$rhs & y1$lhs == yn, ]
+          y1e <- y1[y1$op == "~~" & y1$lhs != y1$rhs, ]
           key_y <- unique(y1$rhs[y1$op == "=~"])
         }
         item_overlap <- items[items %in% y1$rhs]
@@ -677,6 +666,9 @@ sem.cor <- function(
                 # Correlation
                 paste0(yn, "~~", paste0(i_l, collapse = "+")),
                 "\n",
+                if (nrow(y1e) > 0) {
+                  paste0(y1e$lhs, y1e$op, "start(", y1e$est, ")*", y1e$rhs, "\n")
+                },
                 # Extension parameters
                 paste0(
                   mapply(

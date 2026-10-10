@@ -129,6 +129,12 @@ To control for interpretational confounding (Burt, 1976), the function uses
 either Burt's (1976) 2-stage procedure (\code{nagy = FALSE}) or Nagy and
 colleagues' (2017) extension procedure (\code{nagy = TRUE}) (see the
 Interpretational Confounding section below).
+When CFA input models include correlated residuals, these are included as
+fixed values when \code{nagy = FALSE} and as free parameters when \code{nagy = TRUE}.
+Although the effect of correlated residuals on model performance has not been
+tested with Nagy and colleagues' method, they have been included because it
+is likely the best option (i.e., better than employing Burt's method,
+omitting them, or ignoring interpretational confounding).
 
 If Nagy and colleagues' (2017) method is selected (with \code{nagy = TRUE}, the
 default), correlations between factors and item residuals will be included in
