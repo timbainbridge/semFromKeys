@@ -332,10 +332,24 @@ sem.cor <- function(
             "' includes more than one latent variable.\n   ",
             "Measurement models with more than one latent variable are not ",
             "currently supported in 'sem.cor' with 'nagy = TRUE'.\n   ",
-            "Models including these variables will be switched to Burt's ",
-            "method (i.e., 'nagy = FALSE')."
+            "Models including these variables have been switched to Burt's ",
+            "method."
           )
         )
+      } else {
+        if (nrow(par[par$op == "=~", ]) < 3) {
+          nagy_sel[par_n] <- FALSE
+          warning(
+            paste0(
+              " The '", sel, "' model including '",
+              paste(nm, collapse = "' and '"),
+              "' includes fewer than three items.\n   ",
+              "This is not supported with 'nagy = TRUE'.\n   ",
+              "Model including these variables have been switched to Burt's ",
+              "method."
+            )
+          )
+        }
       }
     }
   }
