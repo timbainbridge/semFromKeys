@@ -887,3 +887,14 @@ test_that(
     expect_true(cors$cor_mat["grit_c", "grit_p"] > 0)
   }
 )
+test_that(
+  "2 item CFA as input",
+  {
+    keys_short <- keys[3:4]
+    keys_short[[1]] <- keys_short[[1]][1:2]
+    cfa_fit <- cfa.from.keys(keys_short, BFIGritHope)
+    expect_warning(
+      sem.cor(BFIGritHope, cfa_fit$fit), "includes fewer than three items"
+    )
+  }
+)

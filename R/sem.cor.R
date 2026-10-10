@@ -353,17 +353,6 @@ sem.cor <- function(
       }
     }
   }
-  if (nagy & sum(nagy_sel) == 0) {
-    nagy <- FALSE
-    warning(
-      paste(
-        "All correlations include a measurement model with more than one",
-        "latent variable, which are not currently supported with ",
-        "'nagy = TRUE'.\n   ",
-        "Therefore, 'nagy' has been switch to 'FALSE'."
-      )
-    )
-  }
   if (is.null(fit_x) & is.null(items)) {
     pars <- lapply(
       stats::setNames(
@@ -729,10 +718,23 @@ sem.cor <- function(
     if (is.null(mods)) {
       mods <- mods_i
       key <- key_i
+      ns <- ns_i
     } else {
       mods <- c(mods, mods_i)
       key <- c(key, key_i)
+      ns <- c(ns, ns_i)
     }
+  }
+  if (nagy & sum(ns) == 0) {
+    nagy <- FALSE
+    warning(
+      paste(
+        "All correlations include a measurement model with more than one",
+        "latent variable or a factor with fewer than 3 items, which are not",
+        "currently supported with 'nagy = TRUE'.\n   ",
+        "Therefore, 'nagy' has been switch to 'FALSE'."
+      )
+    )
   }
   fit <- sem.check(
     mods,
