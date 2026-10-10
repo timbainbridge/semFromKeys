@@ -821,9 +821,19 @@ test_that(
     fit_y <-
       lapply(mods, function(x) lavaan::cfa(x, BFIGritHope, std.lv = TRUE))
     # nagy = TRUE
-    expect_warning(
-      sem.cor(BFIGritHope, fit_y),
-      "at least one correlation between two different variables"
+    cors <- sem.cor(BFIGritHope, fit_y)
+    pars <- parameterEstimates(cors$fit[[1]])
+    expect_equal(
+      sum(
+        pars$lhs == keys[[3]][1] & pars$op == "~~" & pars$rhs == keys[[3]][2]
+      ),
+      1
+    )
+    expect_equal(
+      sum(
+        pars$lhs == keys[[4]][1] & pars$op == "~~" & pars$rhs == keys[[4]][2]
+      ),
+      1
     )
     # nagy = FALSE
     cors <- sem.cor(BFIGritHope, fit_y, nagy = FALSE)
