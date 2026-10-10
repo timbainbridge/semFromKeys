@@ -197,3 +197,21 @@ test_that(
     )
   }
 )
+test_that(
+  "Correlated residuals in CFA input",
+  {
+    cfa_fit <- cfa.from.keys(
+      keys[3:4], BFIGritHope, extra = "hope_a_1 ~~ hope_a_2"
+    )
+    esem_fit <- esem.from.mods(BFIGritHope, efa_fit, cfa_fit$fit)
+    pars <- esem_fit$par_std$hope_a
+    expect_equal(
+      nrow(
+        pars[pars$lhs == "hope_a_1" &
+               pars$op == "~~" &
+               pars$rhs == "hope_a_2", ]
+      ),
+      1
+    )
+  }
+)
