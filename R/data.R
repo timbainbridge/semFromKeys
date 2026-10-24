@@ -1,8 +1,9 @@
 #' BFI, Grit, and Hope data from Bainbridge, Ludeke, & Smillie (2022),
 #' Study 2b.
 #'
-#' The subset of the data reported in the paper include only the BFI-2, Grit,
-#' and hope.
+#' The subset of the Sample 2b data reported in Bainbridge, Ludeke, & Smillie
+#' (2022) including only the BFI-2, Grit, and Hope.
+#' The data were collected in May 2019 from Mechanical Turk.
 #'
 #' @format ## `BFIGritHopeImp`
 #' A data frame with 388 rows and 95 columns:
