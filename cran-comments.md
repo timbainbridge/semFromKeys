@@ -1,3 +1,9 @@
+## Next submission
+
+### Notes
+
+* Various minor updates (see NEWS)
+
 ## Version 0.5.6 submission (current)
 
 ### R CMD check results
