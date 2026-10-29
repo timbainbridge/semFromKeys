@@ -836,7 +836,7 @@ sem.check <- function(
       if (max(fit_length) != min(fit_length)) {
         fit_names <- unique(unlist(sapply(fit_m1, names)))
         fit_m1 <- lapply(
-          fit_m1, function(x) setNames(x[fit_names], nm = fit_names)
+          fit_m1, function(x) stats::setNames(x[fit_names], nm = fit_names)
         )
       }
       fit_m1 <- do.call(rbind, args = fit_m1)
