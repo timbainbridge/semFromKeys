@@ -825,6 +825,20 @@ sem.check <- function(
         "All the fit measures you have specified are not recognised by lavaan."
       )
     } else {
+      # Occasionally something goes wrong with fit measures in one or more
+      # models and a warning was created here.
+      # I believe lavaan's fit outputs may just exclude indices that cannot be
+      # calculated, resulting in different lengths for different models.
+      # This created problems when putting all fit measures into a data frame.
+      # The following ensures all have the same length before merging into a
+      # single data frame.
+      fit_length <- sapply(fit_m1, length)
+      if (max(fit_length) != min(fit_length)) {
+        fit_names <- unique(unlist(sapply(fit_m1, names)))
+        fit_m1 <- lapply(
+          fit_m1, function(x) setNames(x[fit_names], nm = fit_names)
+        )
+      }
       fit_m1 <- do.call(rbind, args = fit_m1)
       if (ncol(fit_m1) != length(fit_measures) & fit_measures[1] != "all") {
         warning(
