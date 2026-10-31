@@ -4,12 +4,10 @@
 #' rotation targeted based on a keys list.
 #'
 #' @inheritParams sem.check
+#' @inheritParams cfa.from.keys data std.lv extra
 #' @param keys
 #' A named list of keys. Names must be factor names, elements must be
 #' vectors of items that should be targeted to load on the factor.
-#' @param data
-#' A dataframe or object coercible to a dataframe.
-#' Data must include all observed variables in any of the keys.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
 #' `save_out = TRUE` and checked against when `check = TRUE`.
@@ -17,20 +15,16 @@
 #' Irrelevant if both `save_out = FALSE` and `check = FALSE`.
 #' The name should be unique for each set of models, or outputs from calls with
 #' the same name will be overwritten.
-#' @param std.lv
-#' Sets the `std.lv` param, as per lavaan (see [lavaan::lavOptions]).
-#' Defaults to `TRUE`.
 #'
 #' @return
 #' Returns a list of lists.
-#' The elements are a list of lavaan bifactor model output objects;
+#' The elements are a list of lavaan bi-factor model output objects;
 #' a list of parameter estimates from the models (standardized if `std = TRUE`);
 #' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
 #' The function was designed to streamline running exploratory structural
-#' equation models (ESEM) using Burt's (1976) 2-stage procedure to prevent
-#' interpretational confounding in the context of ESEM. However, it can also be
+#' equation models (ESEM) using [esem.from.mods]. However, it can also be
 #' used to easily run a targeted EFA with only a keys list to avoid having to
 #' manually specify the target and model.
 #'
@@ -48,13 +42,7 @@
 #' documentation.
 #'
 #' @seealso
-#' [sem.check], [lavaan::sem]
-#'
-#' @references
-#' Burt, R. S. (1976).
-#' Interpretational confounding of unobserved variables in Structural Equation
-#' Models. Sociological Methods & Research, 5(1), 3-52.
-#' https://doi.org/10.1177/004912417600500101.
+#' [sem.check], [lavaan::sem], [esem.from.mods]
 #'
 #' @importFrom lavaan summary
 #' @export
@@ -83,20 +71,70 @@
 #' efa_fit$fit_measures    # Selected fit measures
 
 efa.from.keys <- function(
-    keys, data, orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
+    keys, data, extra = NULL,
+    orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
     name = "efa", check = FALSE, save_out = FALSE
 ) {
   target <- sapply(keys, function(y) ifelse(!unlist(keys) %in% y, 0, NA))
-  mod <- list(
-    paste(
-      paste0(
-        paste0('efa("', name, '")*', names(keys), collapse = " + "),
-        " =~\n",
-        paste(unlist(keys), collapse = " + ")
+
+  ####### Modified from esem.from.keys #######
+  if (!is.null(extra)) {
+    # Removal all fixed values and parameter names; remove punctuation
+    extra_vars <- lapply(
+      extra,
+      function(y) {
+        tmp <- stringr::str_split(
+          gsub("((\\+|~~|~).*?(\\*))", " ", y), "\\+|~|=|\n| ", simplify = TRUE
+        )
+        tmp[tmp != ""]
+      }
+    )
+    extra_vars1 <- unique(unlist(extra_vars))
+    extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(keys)]
+    if (length(extra_vars2) > 0) {
+      if (length(extra_vars2) > 1) {
+        stop(
+          paste0(
+            "The following items were found in 'extra' but do not match ",
+            "either a variable name in 'keys' or standard lavaan code.",
+            "\n\n    ", paste(extra_vars2, collapse = ", ")
+          )
+        )
+      } else {
+        stop(
+          paste0(
+            "'", extra_vars2, "' was found in 'extra' but does not match ",
+            "either a variable name in 'keys' or standard lavaan code."
+          )
+        )
+      }
+    }
+    mod_extra <- mapply(
+      xv = extra_vars, x = extra,
+      FUN = function(xv, x) if (sum(!xv %in% unlist(keys)) == 0) x else ""
+    )
+    ####### Modified from esem.from.keys #######
+
+    mod <- list(
+      paste(
+        paste0(
+          paste0('efa("', name, '")*', names(keys), collapse = " + "),
+          " =~\n", paste(unlist(keys), collapse = " + "),
+          "\n", paste0(mod_extra, collapse = "\n")
+        )
       )
     )
-  )
+  } else {
+    mod <- list(
+      paste(
+        paste0(
+          paste0('efa("', name, '")*', names(keys), collapse = " + "),
+          " =~\n", paste(unlist(keys), collapse = " + ")
+        )
+      )
+    )
+  }
   names(mod) <- name
   fit <- sem.check(
     mod,

@@ -58,7 +58,7 @@ test_that(
       bifactor.from.keys(
         keys_b, keys_g, keys, BFIGritHope, fit_save = FALSE
       ),
-      "group factor\\(s\\) in 'keys_b' are not in 'keys'"
+      "group factor\\(s\\) in 'keys_b' are not in 'names\\(keys\\)'"
     )
   }
 )
@@ -114,7 +114,7 @@ test_that(
       bifactor.from.keys(
         keys_g, keys_b_mistake, keys, BFIGritHope, fit_save = FALSE
       ),
-      "group factor\\(s\\) in 'keys_b' are not in 'keys'"
+      "group factor\\(s\\) in 'keys_b' are not in 'names\\(keys\\)'"
     )
   }
 )
@@ -149,7 +149,7 @@ test_that(
       bifactor.from.keys(
         keys_g, keys_b, keys_missing, BFIGritHope, fit_save = FALSE
       ),
-      "group factor\\(s\\) in 'keys_b' are not in 'keys'"
+      "group factor\\(s\\) in 'keys_b' are not in 'names\\(keys\\)'"
     )
   }
 )
@@ -205,6 +205,43 @@ test_that(
       bifactor.from.keys(
         keys_g, keys_b, keys, BFIGritHope, fit_save = FALSE
       )
+    )
+  }
+)
+test_that(
+  "Test normal behaviour with extra specified",
+  {
+    bif_fit <- bifactor.from.keys(
+      keys_g, keys_b, keys, BFIGritHope, extra = "grit_c_1 ~~ grit_p_1",
+      fit_save = FALSE
+    )
+    expect_equal(length(bif_fit), 2)
+    expect_equal(length(bif_fit$fit), length(keys_g))
+    expect_equal(length(bif_fit$par), length(keys_g))
+    expect_equal(sum(sapply(bif_fit$fit, function(x) class(x) != "lavaan")), 0)
+  }
+)
+test_that(
+  "Test warnings with invalid extra specified",
+  {
+    expect_warning(
+      bifactor.from.keys(
+        keys_g, keys_b, keys, BFIGritHope, extra = "grit_c_1 ~~ hope_p_1",
+        fit_save = FALSE
+      ),
+      "The extra code containing '.*' includes items"
+    )
+  }
+)
+test_that(
+  "Test errors with non-existant items specified in extra",
+  {
+    expect_error(
+      bifactor.from.keys(
+        keys_g, keys_b, keys, BFIGritHope, extra = "grit_c_1 ~~ helloWorld",
+        fit_save = FALSE
+      ),
+      "found in 'extra' but do.* not match either a variable name"
     )
   }
 )

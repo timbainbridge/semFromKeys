@@ -7,6 +7,7 @@
 efa.from.keys(
   keys,
   data,
+  extra = NULL,
   orthogonal = FALSE,
   fit_save = TRUE,
   fit_measures = "all",
@@ -23,8 +24,14 @@ efa.from.keys(
 \item{keys}{A named list of keys. Names must be factor names, elements must be
 vectors of items that should be targeted to load on the factor.}
 
-\item{data}{A dataframe or object coercible to a dataframe.
-Data must include all observed variables in any of the keys.}
+\item{data}{A data frame or object coercible to a data frame.
+Data must include all observed variables used in any of the models.}
+
+\item{extra}{A vector of strings of residuals to correlate in lavaan code (e.g.,
+\code{"item1 ~~ item2"}).
+Strings of code can be in any order.
+Whenever a model includes all items in a string, the string will be appended
+to the model code.}
 
 \item{orthogonal}{Logical.
 Sets the \code{orthogonal} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
@@ -47,8 +54,12 @@ as per the \code{fit.measures} parameter from lavaan's \link[lavaan:fitMeasures]
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
 
-\item{std.lv}{Sets the \code{std.lv} param, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
-Defaults to \code{TRUE}.}
+\item{std.lv}{Logical.
+Sets the \code{std.lv} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
+\code{TRUE} indicates that factor variances should be fixed to 1.
+\code{FALSE} indicates that loadings of the first items of factors should be fixed
+to 1.
+Defaults to \code{FALSE}.}
 
 \item{miss}{A string.
 Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
@@ -88,7 +99,7 @@ in the meantime.}
 }
 \value{
 Returns a list of lists.
-The elements are a list of lavaan bifactor model output objects;
+The elements are a list of lavaan bi-factor model output objects;
 a list of parameter estimates from the models (standardized if \code{std = TRUE});
 and, if \code{fit_save = TRUE}, a matrix of fit measures for each model.
 }
@@ -98,8 +109,7 @@ rotation targeted based on a keys list.
 }
 \details{
 The function was designed to streamline running exploratory structural
-equation models (ESEM) using Burt's (1976) 2-stage procedure to prevent
-interpretational confounding in the context of ESEM. However, it can also be
+equation models (ESEM) using \link{esem.from.mods}. However, it can also be
 used to easily run a targeted EFA with only a keys list to avoid having to
 manually specify the target and model.
 
@@ -139,12 +149,6 @@ efa_fit <- efa.from.keys(
 summary(efa_fit$fit)    # Standard lavaan summary
 efa_fit$fit_measures    # Selected fit measures
 }
-\references{
-Burt, R. S. (1976).
-Interpretational confounding of unobserved variables in Structural Equation
-Models. Sociological Methods & Research, 5(1), 3-52.
-https://doi.org/10.1177/004912417600500101.
-}
 \seealso{
-\link{sem.check}, \link[lavaan:sem]{lavaan::sem}
+\link{sem.check}, \link[lavaan:sem]{lavaan::sem}, \link{esem.from.mods}
 }

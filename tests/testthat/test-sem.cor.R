@@ -821,9 +821,19 @@ test_that(
     fit_y <-
       lapply(mods, function(x) lavaan::cfa(x, BFIGritHope, std.lv = TRUE))
     # nagy = TRUE
-    expect_warning(
-      sem.cor(BFIGritHope, fit_y),
-      "at least one correlation between two different variables"
+    cors <- sem.cor(BFIGritHope, fit_y)
+    pars <- parameterEstimates(cors$fit[[1]])
+    expect_equal(
+      sum(
+        pars$lhs == keys[[3]][1] & pars$op == "~~" & pars$rhs == keys[[3]][2]
+      ),
+      1
+    )
+    expect_equal(
+      sum(
+        pars$lhs == keys[[4]][1] & pars$op == "~~" & pars$rhs == keys[[4]][2]
+      ),
+      1
     )
     # nagy = FALSE
     cors <- sem.cor(BFIGritHope, fit_y, nagy = FALSE)
@@ -875,5 +885,16 @@ test_that(
     cfa_fit$grit_c <- lavaan::cfa(mod, data, std.lv = TRUE)
     cors <- sem.cor(data, cfa_fit[1:2])
     expect_true(cors$cor_mat["grit_c", "grit_p"] > 0)
+  }
+)
+test_that(
+  "2 item CFA as input",
+  {
+    keys_short <- keys[3:4]
+    keys_short[[1]] <- keys_short[[1]][1:2]
+    cfa_fit <- cfa.from.keys(keys_short, BFIGritHope)
+    expect_warning(
+      sem.cor(BFIGritHope, cfa_fit$fit), "includes fewer than three items"
+    )
   }
 )

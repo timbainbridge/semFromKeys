@@ -1,11 +1,18 @@
 # semFromKeys (development version)
 
+* Added further info to data description
+* Fixed a minor issue when some fit statistics could not be calculated
+
+# semFromKeys 0.5.6
+
 * Fixed a bug which caused `sem.cor` to fail with multi-factor measurement models and items.
 * Entering a vector of items instead of a keys list in `cfa.from.keys` or `esem.from.keys` will now work with a warning.
 * Warnings generated during fit statistic calculations are now printed immediately so the model that caused them can be easily identified.
 * Combined `esem.from.keys` and `esem.from.mods` documentation.
 * Sections added to `sem.path` and `sem.cor` to make the documentation easier to parse.
-* Added the ability to include correlated residuals in `cfa.from.keys` and `esem.from.keys`.
+* Added options to include correlated residuals in `cfa.from.keys`, `bifactor.from.keys`, `efa.from.keys`, and `esem.from.keys`.
+* Support added for correlated residuals in `sem.cor` with `nagy = TRUE`.
+* CFA inputs into `sem.cor` with 2 items will now automatically switch to Burt's method to avoid negative degrees of freedom.
 
 # semFromKeys 0.5.5
 

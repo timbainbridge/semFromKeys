@@ -27,7 +27,7 @@ sem.check(
 \arguments{
 \item{mods}{A named list of lavaan models to run.}
 
-\item{data}{A dataframe or object coercible to a dataframe.
+\item{data}{A data frame or object coercible to a data frame.
 Data must include all observed variables used in any of the models.}
 
 \item{keys_s}{A named keys list matching the names and length of mod.}

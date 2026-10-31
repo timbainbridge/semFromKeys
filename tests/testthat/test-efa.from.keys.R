@@ -138,3 +138,25 @@ test_that(
     expect_true(inherits(efa_fit$fit, "lavaan"))
   }
 )
+test_that(
+  "Test normal behaviour with extra specified",
+  {
+    efa_fit <- efa.from.keys(
+      keys_e, BFIGritHope, extra = "bfi_e1_1 ~~ bfi_c1_1", fit_save = FALSE
+    )
+    expect_equal(length(efa_fit), 2)
+    expect_true(class(efa_fit$fit) == "lavaan")
+    expect_true(class(efa_fit$par)[1] == "lavaan.data.frame")
+  }
+)
+test_that(
+  "Test errors with non-existant items specified in extra",
+  {
+    expect_error(
+      efa.from.keys(
+        keys_e, BFIGritHope, extra = "bfi_e1_1 ~~ helloWorld", fit_save = FALSE
+      ),
+      "found in 'extra' but do.* not match either a variable name"
+    )
+  }
+)

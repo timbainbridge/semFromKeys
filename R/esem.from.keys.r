@@ -17,9 +17,11 @@
 #' List element must be a vector of items that load on the factors.
 #' For bi-factor models, these should be group factor names and items.
 #' @param extra
-#' A vector of strings of extra lavaan code to be added.
-#' Code can be in any order and will be added to all models containing all
-#' referenced items.
+#' A vector of strings of residuals to correlate in lavaan code (e.g.,
+#' `"item1 ~~ item2"`).
+#' Strings of code can be in any order.
+#' Whenever a model includes all items in a string, the string will be appended
+#' to the model code.
 #' Currently the argument only supports allowing correlations between item
 #' residuals.
 
@@ -54,7 +56,7 @@
 #' a list of parameter estimates from the models (standardized if `std = TRUE`);
 #' if `fit_save = TRUE`, a matrix of fit measures for each model;
 #' a list of regression beta parameters from each model;
-#' and a dataframe of R-squared values from each model.
+#' and a data frame of R-squared values from each model.
 #'
 #' @details
 #' `esem.from.keys` and `esem.from.mods` streamline running exploratory
@@ -242,7 +244,6 @@
 #'   function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))],
 #'   simplify = FALSE
 #' )
-# keys_b <- list(grit = c("grit_c", "grit_p"), hope = c("hope_a", "hope_p"))
 #' # Create EFA keys
 #' # Using only 3 factors and fewer items to save time for a simple example
 #' # (This results in a less than ideal solution but it doesn't matter for an
@@ -257,9 +258,12 @@
 #' )
 #'
 #' # Run 'esem.from.keys' models
-#' esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
+#' esam_fit <- esem.from.keys(
+#'   BFIGritHope, keys_e, keys,
+#'   extra = c("hope_a_1 ~~ hope_a_2", "hope_p_1 ~~ hope_p_2")
+#' )
 #' # Examine results
-#' summary(esam_fit$fit$hope_a)  # Standard lavaan summary
+#' summary(esam_fit$fit$grit_c)  # Standard lavaan summary
 #' esam_fit$r2                   # R-squareds
 #' esam_fit$b                    # Betas
 #'
