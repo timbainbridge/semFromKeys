@@ -528,7 +528,7 @@ sem.check <- function(
               }
             }
           }
-          tryCatch(
+          withCallingHandlers(
             {
               if (is.null(target)) {
                 if (!use_sam) {
@@ -626,7 +626,8 @@ sem.check <- function(
                         rotation = "target",
                         rotation.args = list(
                           rstarts = 30, row.weights = "none", algorithm = "gpa",
-                          std.ov = TRUE, target = target, orthogonal = orthogonal
+                          std.ov = TRUE, target = target,
+                          orthogonal = orthogonal
                         )
                       )
                     } else {
@@ -639,7 +640,8 @@ sem.check <- function(
                         rotation = "target",
                         rotation.args = list(
                           rstarts = 30, row.weights = "none", algorithm = "gpa",
-                          std.ov = TRUE, target = target, orthogonal = orthogonal
+                          std.ov = TRUE, target = target,
+                          orthogonal = orthogonal
                         )
                       )
                     }
@@ -654,7 +656,8 @@ sem.check <- function(
                         rotation = "target",
                         rotation.args = list(
                           rstarts = 30, row.weights = "none", algorithm = "gpa",
-                          std.ov = TRUE, target = target, orthogonal = orthogonal
+                          std.ov = TRUE, target = target,
+                          orthogonal = orthogonal
                         )
                       )
                     } else {
@@ -668,7 +671,8 @@ sem.check <- function(
                         rotation = "target",
                         rotation.args = list(
                           rstarts = 30, row.weights = "none", algorithm = "gpa",
-                          std.ov = TRUE, target = target, orthogonal = orthogonal
+                          std.ov = TRUE, target = target,
+                          orthogonal = orthogonal
                         )
                       )
                     }
@@ -689,7 +693,8 @@ sem.check <- function(
                     sam(
                       model   = mods1,
                       data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                      # Local method sets factor covariances equal (lavaan v0.7-2).
+                      # Local method sets factor covariances equal
+                      # (lavaan v0.7-2).
                       # Likely a bug.
                       # Parameter estimates with the global method match Burt's
                       # method exactly for CFA models.
@@ -706,9 +711,9 @@ sem.check <- function(
                     if (ord_k[1] != "NULL") {
                       warning(
                         paste(
-                          "The SAM method, used to estimate the latent variable",
-                          "model you are attempting to run, does not support",
-                          "'ordered' variables in ESEM.",
+                          "The SAM method, used to estimate the latent",
+                          "variable model you are attempting to run, does not",
+                          "support 'ordered' variables in ESEM.",
                           "Therefore, the model will be run as though",
                           "'ordered = NULL'."
                         )
@@ -737,10 +742,8 @@ sem.check <- function(
                 }
               }
             },
-            error = function(e) message("Error in ", n_mod, ":\n", e$message),
-            warning = function(w) {
-              message("Warning in ", n_mod, ":\n", w$message)
-            }
+            error = function(e) message("Error in '", n_mod, "':\n"),
+            warning = function(w) message("Warning in '", n_mod, "':\n")
           )
         }
       },
