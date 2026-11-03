@@ -57,3 +57,15 @@ test_that(
     expect_error(sem.check(mods, BFIGritHope, keys, use_sam = "Hello"))
   }
 )
+test_that(
+  "Progress is not logical", {
+    mods <- mapply(
+      x = keys, y = names(keys), SIMPLIFY = FALSE,
+      FUN = function(x, y) paste(y, "=~", paste(x, collapse = " + "))
+    )
+    expect_warning(
+      sem.check(mods, BFIGritHope, keys, progress = "No!"),
+      "'progress' is not logical"
+    )
+  }
+)
