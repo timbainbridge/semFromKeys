@@ -1,6 +1,7 @@
 # semFromKeys (development version)
 
 * Added further info to data description
+* Fixed a minor issue when some fit statistics could not be calculated
 
 # semFromKeys 0.5.6
 
