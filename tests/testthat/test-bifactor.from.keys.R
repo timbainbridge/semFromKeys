@@ -245,3 +245,13 @@ test_that(
     )
   }
 )
+test_that(
+  "Test model fit warnings in sem.check",
+  expect_message(
+    bifactor.from.keys(
+      keys_g[2], keys_b = list(hope = c("hope_a", "hope_p")), keys[3:4],
+      BFIGritHope, fit_save = FALSE
+    ),
+    "Warning in 'hope':"
+  )
+)
