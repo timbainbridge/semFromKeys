@@ -1,5 +1,7 @@
 # semFromKeys (development version)
 
+* Added the `progress` argument that allows most progress messages to be suppressed.
+* Updated warning and error message handling to use `withCallingHandlers` so warnings and errors can still be connected to the model that caused the issue when `progress = FALSE`.
 * Added further info to data description
 * Fixed a minor issue when some fit statistics could not be calculated
 
