@@ -364,6 +364,12 @@ sem.check <- function(
       miss <- "pairwise"
     }
   }
+  if (!is.logical(progress)) {
+    progress <- TRUE
+    warning(
+      "'progress' is not logical. Models will run as though 'progress = TRUE'"
+    )
+  }
   if (save_out) {
     if (!dir.exists(file.path(cache_dir, name))) {
       dir.create(file.path(cache_dir, name))
@@ -511,221 +517,231 @@ sem.check <- function(
         if (hash_d1 & m1 & ft & param_test) {
           fit0[[n_mod]]
         } else {
-          if (length(mods) <= 1000) {
-            # Print progress for every model
-            message(paste(n, "/", length(mods), " ", n_mod))
-          } else {
-            # Print progress for every 10th model (starting from 1)
-            if (n %in% round((0:(length(mods)/10)*10) + 1, 0)) {
+          if (progress) {
+            if (length(mods) <= 1000) {
+              # Print progress for every model
               message(paste(n, "/", length(mods), " ", n_mod))
-            }
-          }
-          if (is.null(target)) {
-            if (!use_sam) {
-              if (est == "default") {
-                if (ord_k[1] == "NULL") {
-                  sem(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    std.lv  = std.lv,
-                    orthogonal = orthogonal
-                  )
-                } else {
-                  sem(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    std.lv  = std.lv,
-                    orthogonal = orthogonal,
-                    ordered = ord_k
-                  )
-                }
-              } else {
-                if (ord_k[1] == "NULL") {
-                  sem(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    estimator = est,
-                    std.lv  = std.lv,
-                    orthogonal = orthogonal
-                  )
-                } else {
-                  sem(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    estimator = est,
-                    std.lv  = std.lv,
-                    orthogonal = orthogonal,
-                    ordered = ord_k
-                  )
-                }
-              }
             } else {
-              if (est == "default") {
-                if (ord_k[1] == "NULL") {
-                  sam(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    std.lv  = std.lv
-                  )
-                } else {
-                  sam(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    std.lv  = std.lv,
-                    ordered = ord_k
-                  )
-                }
-              } else {
-                if (ord_k[1] == "NULL") {
-                  sam(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    mm_args = list(estimator = est),
-                    struc_args = list(estimator = est),
-                    missing = miss,
-                    std.lv  = std.lv
-                  )
-                } else {
-                  sam(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    mm_args = list(estimator = est),
-                    struc_args = list(estimator = est),
-                    missing = miss,
-                    std.lv  = std.lv,
-                    ordered = ord_k
-                  )
-                }
-              }
-            }
-          } else {
-            if (!use_sam) {
-              if (est == "default") {
-                if (ord_k[1] == "NULL") {
-                  sem(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    std.lv  = std.lv,
-                    rotation = "target",
-                    rotation.args = list(
-                      rstarts = 30, row.weights = "none", algorithm = "gpa",
-                      std.ov = TRUE, target = target, orthogonal = orthogonal
-                    )
-                  )
-                } else {
-                  sem(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    std.lv  = std.lv,
-                    ordered = ord_k,
-                    rotation = "target",
-                    rotation.args = list(
-                      rstarts = 30, row.weights = "none", algorithm = "gpa",
-                      std.ov = TRUE, target = target, orthogonal = orthogonal
-                    )
-                  )
-                }
-              } else {
-                if (ord_k[1] == "NULL") {
-                  sem(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    estimator = est,
-                    std.lv  = std.lv,
-                    rotation = "target",
-                    rotation.args = list(
-                      rstarts = 30, row.weights = "none", algorithm = "gpa",
-                      std.ov = TRUE, target = target, orthogonal = orthogonal
-                    )
-                  )
-                } else {
-                  sem(
-                    model   = mods1,
-                    data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                    missing = miss,
-                    estimator = est,
-                    std.lv  = std.lv,
-                    ordered = ord_k,
-                    rotation = "target",
-                    rotation.args = list(
-                      rstarts = 30, row.weights = "none", algorithm = "gpa",
-                      std.ov = TRUE, target = target, orthogonal = orthogonal
-                    )
-                  )
-                }
-              }
-            } else {
-              if (est == "default") {
-                if (ord_k[1] != "NULL") {
-                  warning(
-                    paste(
-                      "The SAM method, used to estimate the latent variable",
-                      "model you are attempting to run, does not support",
-                      "'ordered' variables in ESEM.",
-                      "Therefore, the model will be run as though",
-                      "'ordered = NULL'."
-                    )
-                  )
-                }
-                sam(
-                  model   = mods1,
-                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                  # Local method sets factor covariances equal (lavaan v0.7-2).
-                  # Likely a bug.
-                  # Parameter estimates with the global method match Burt's
-                  # method exactly for CFA models.
-                  sam_method = "global",
-                  missing = miss,
-                  std.lv  = std.lv,
-                  rotation = "target",
-                  rotation.args = list(
-                    rstarts = 30, row.weights = "none", algorithm = "gpa",
-                    std.ov = TRUE, target = target, orthogonal = orthogonal
-                  )
-                )
-              } else {
-                if (ord_k[1] != "NULL") {
-                  warning(
-                    paste(
-                      "The SAM method, used to estimate the latent variable",
-                      "model you are attempting to run, does not support",
-                      "'ordered' variables in ESEM.",
-                      "Therefore, the model will be run as though",
-                      "'ordered = NULL'."
-                    )
-                  )
-                }
-                sam(
-                  model   = mods1,
-                  data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                  mm_args = list(estimator = est),
-                  struc_args = list(estimator = est),
-                  # Local method sets factor covariances equal (lavaan v0.7-2).
-                  # Likely a bug.
-                  # Parameter estimates with the global method match Burt's
-                  # method exactly.
-                  sam_method = "global",
-                  missing = miss,
-                  estimator = est,
-                  std.lv  = std.lv,
-                  rotation = "target",
-                  rotation.args = list(
-                    rstarts = 30, row.weights = "none", algorithm = "gpa",
-                    std.ov = TRUE, target = target, orthogonal = orthogonal
-                  )
-                )
+              # Print progress for every 10th model (starting from 1)
+              if (n %in% round((0:(length(mods)/10)*10) + 1, 0)) {
+                message(paste(n, "/", length(mods), " ", n_mod))
               }
             }
           }
+          tryCatch(
+            {
+              if (is.null(target)) {
+                if (!use_sam) {
+                  if (est == "default") {
+                    if (ord_k[1] == "NULL") {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        std.lv  = std.lv,
+                        orthogonal = orthogonal
+                      )
+                    } else {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        std.lv  = std.lv,
+                        orthogonal = orthogonal,
+                        ordered = ord_k
+                      )
+                    }
+                  } else {
+                    if (ord_k[1] == "NULL") {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        estimator = est,
+                        std.lv  = std.lv,
+                        orthogonal = orthogonal
+                      )
+                    } else {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        estimator = est,
+                        std.lv  = std.lv,
+                        orthogonal = orthogonal,
+                        ordered = ord_k
+                      )
+                    }
+                  }
+                } else {
+                  if (est == "default") {
+                    if (ord_k[1] == "NULL") {
+                      sam(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        std.lv  = std.lv
+                      )
+                    } else {
+                      sam(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        std.lv  = std.lv,
+                        ordered = ord_k
+                      )
+                    }
+                  } else {
+                    if (ord_k[1] == "NULL") {
+                      sam(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        mm_args = list(estimator = est),
+                        struc_args = list(estimator = est),
+                        missing = miss,
+                        std.lv  = std.lv
+                      )
+                    } else {
+                      sam(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        mm_args = list(estimator = est),
+                        struc_args = list(estimator = est),
+                        missing = miss,
+                        std.lv  = std.lv,
+                        ordered = ord_k
+                      )
+                    }
+                  }
+                }
+              } else {
+                if (!use_sam) {
+                  if (est == "default") {
+                    if (ord_k[1] == "NULL") {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        std.lv  = std.lv,
+                        rotation = "target",
+                        rotation.args = list(
+                          rstarts = 30, row.weights = "none", algorithm = "gpa",
+                          std.ov = TRUE, target = target, orthogonal = orthogonal
+                        )
+                      )
+                    } else {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        std.lv  = std.lv,
+                        ordered = ord_k,
+                        rotation = "target",
+                        rotation.args = list(
+                          rstarts = 30, row.weights = "none", algorithm = "gpa",
+                          std.ov = TRUE, target = target, orthogonal = orthogonal
+                        )
+                      )
+                    }
+                  } else {
+                    if (ord_k[1] == "NULL") {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        estimator = est,
+                        std.lv  = std.lv,
+                        rotation = "target",
+                        rotation.args = list(
+                          rstarts = 30, row.weights = "none", algorithm = "gpa",
+                          std.ov = TRUE, target = target, orthogonal = orthogonal
+                        )
+                      )
+                    } else {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        estimator = est,
+                        std.lv  = std.lv,
+                        ordered = ord_k,
+                        rotation = "target",
+                        rotation.args = list(
+                          rstarts = 30, row.weights = "none", algorithm = "gpa",
+                          std.ov = TRUE, target = target, orthogonal = orthogonal
+                        )
+                      )
+                    }
+                  }
+                } else {
+                  if (est == "default") {
+                    if (ord_k[1] != "NULL") {
+                      warning(
+                        paste(
+                          "The SAM method, used to estimate the latent variable",
+                          "model you are attempting to run, does not support",
+                          "'ordered' variables in ESEM.",
+                          "Therefore, the model will be run as though",
+                          "'ordered = NULL'."
+                        )
+                      )
+                    }
+                    sam(
+                      model   = mods1,
+                      data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                      # Local method sets factor covariances equal (lavaan v0.7-2).
+                      # Likely a bug.
+                      # Parameter estimates with the global method match Burt's
+                      # method exactly for CFA models.
+                      sam_method = "global",
+                      missing = miss,
+                      std.lv  = std.lv,
+                      rotation = "target",
+                      rotation.args = list(
+                        rstarts = 30, row.weights = "none", algorithm = "gpa",
+                        std.ov = TRUE, target = target, orthogonal = orthogonal
+                      )
+                    )
+                  } else {
+                    if (ord_k[1] != "NULL") {
+                      warning(
+                        paste(
+                          "The SAM method, used to estimate the latent variable",
+                          "model you are attempting to run, does not support",
+                          "'ordered' variables in ESEM.",
+                          "Therefore, the model will be run as though",
+                          "'ordered = NULL'."
+                        )
+                      )
+                    }
+                    sam(
+                      model   = mods1,
+                      data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                      mm_args = list(estimator = est),
+                      struc_args = list(estimator = est),
+                      # Local method sets factor covariances equal (lavaan v0.7-2).
+                      # Likely a bug.
+                      # Parameter estimates with the global method match Burt's
+                      # method exactly.
+                      sam_method = "global",
+                      missing = miss,
+                      estimator = est,
+                      std.lv  = std.lv,
+                      rotation = "target",
+                      rotation.args = list(
+                        rstarts = 30, row.weights = "none", algorithm = "gpa",
+                        std.ov = TRUE, target = target, orthogonal = orthogonal
+                      )
+                    )
+                  }
+                }
+              }
+            },
+            error = function(e) message("Error in ", n_mod, ":\n", e$message),
+            warning = function(w) {
+              message("Warning in ", n_mod, ":\n", w$message)
+            }
+          )
         }
       },
       mods1 = mods,
