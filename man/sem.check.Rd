@@ -13,11 +13,12 @@ sem.check(
   fit_measures = "all",
   miss = "default",
   est = "default",
-  std.lv = FALSE,
+  std.lv = TRUE,
   std = TRUE,
   ordered = NULL,
   orthogonal = FALSE,
   target = NULL,
+  progress = TRUE,
   name = "sem",
   check = FALSE,
   save_out = FALSE,
@@ -35,8 +36,8 @@ Data must include all observed variables used in any of the models.}
 \item{keys_e}{A named keys list of the factors in an ESEM to be included.}
 
 \item{fit_save}{Logical.
-\code{TRUE} indicates model fit measures should be included in the output;
-\code{FALSE} indicates model fit measures should not be included in the output.
+If \code{TRUE}, model fit measures are included in the output.
+If \code{FALSE}, model fit measures are not be included in the output.
 \code{FALSE} may be desirable when fit measures are of little interest and when
 they may take a long time to estimate.
 Fit can still be examined for individual models with,
@@ -58,14 +59,13 @@ The default ('default') uses the lavaan default for the model being run.}
 
 \item{std.lv}{Logical.
 Sets the \code{std.lv} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
-\code{TRUE} indicates that factor variances should be fixed to 1.
-\code{FALSE} indicates that loadings of the first items of factors should be fixed
-to 1.
-Defaults to \code{FALSE}.}
+If \code{TRUE}, factor variances are fixed to 1.
+If \code{FALSE}, the loading of each factor's first item is fixed to 1.
+Defaults to \code{TRUE}.}
 
 \item{std}{Logical.
-\code{TRUE} indicates that standardised parameter estimates should be saved;
-\code{FALSE} indicates that unstandardised parameters estimates should be saved.}
+If \code{TRUE}, standardised parameter estimates are saved.
+If \code{FALSE}, unstandardised parameters estimates are saved.}
 
 \item{ordered}{A character vector or \code{NULL}, as per the \code{ordered} lavaan argument of the
 same name (see, e.g., \link[lavaan:sem]{lavaan::sem}).
@@ -75,17 +75,20 @@ continuous. Defaults to \code{NULL}.}
 
 \item{orthogonal}{Logical.
 Sets the \code{orthogonal} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
-\code{TRUE} indicates that unspecified latent variable correlations should be
-fixed at 0;
-\code{FALSE} indicates that unspecified latent variable correlations should be
-freely estimated.
+If \code{TRUE}, unspecified latent variable correlations should be fixed at 0.
+If \code{FALSE}, unspecified latent variable correlations should be freely
+estimated.
 Defaults to \code{FALSE}.}
 
-\item{target}{A matrix indicating a rotation target,
-as used in the \code{rotation.args} argument in lavaan (see \link[lavaan:efa]{lavaan::efa}).
-If \code{NULL} (default),
-target is not specified and lavaan uses default behaviour.
+\item{target}{A matrix indicating a rotation target, as used in the \code{rotation.args}
+argument in lavaan (see \link[lavaan:efa]{lavaan::efa}).
+If \code{NULL} (default), target is not specified and lavaan uses default
+behaviour.
 Irrelevant when the model does not include an EFA or ESEM.}
+
+\item{progress}{If \code{TRUE}, messages showing progress are printed.
+If \code{FALSE}, only messages for models with warnings or errors are printed.
+Defaults to \code{TRUE}.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.
@@ -94,24 +97,21 @@ The name should be unique for each set of models, or outputs from calls with
 the same name will be overwritten.}
 
 \item{check}{Logical.
-\code{TRUE} indicates that current inputs should be compared to previous inputs
-if they exist and that the model should not be rerun if nothing has changed;
-\code{FALSE} indicates that these checks should not be made and the model should
-be run regardless of the existence of previous inputs.}
+If \code{TRUE}, inputs are compared to previous inputs and, if they exist,
+the model will not be rerun if nothing has changed.
+If \code{FALSE}, the model will be run regardless of the existence of previous
+inputs.}
 
 \item{save_out}{Logical.
-\code{TRUE} indicates that model code, a hash of the data, important input
-parameter values, and output will be saved;
-\code{FALSE} indicates that nothing will be saved.
+If \code{TRUE}, model code, a hash of the data, input parameter values, and output
+are saved.
+If \code{FALSE}, nothing is saved.
 Selecting \code{save_out = TRUE} enables the function to not rerun models next
-time if \code{check = TRUE} the next time the code is run and nothing has changed
-in the meantime.}
+time if \code{check = TRUE} and nothing has changed in the meantime.}
 
 \item{use_sam}{Logical.
-\code{TRUE} indicates that the \link[lavaan:sam]{lavaan::sam} function should be used for model
-estimation.
-\code{FALSE} indicates that the \link[lavaan:sem]{lavaan::sem} function should be used for model
-estimation.}
+If \code{TRUE}, the \link[lavaan:sam]{lavaan::sam} function is used for model estimation.
+If \code{FALSE}, the \link[lavaan:sem]{lavaan::sem} function is not used for model estimation.}
 }
 \value{
 Returns a list of length 2 (if \code{fit_save = FALSE}) or

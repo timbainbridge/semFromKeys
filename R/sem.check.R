@@ -22,12 +22,12 @@
 #' @param keys_e A named keys list of the factors in an ESEM to be included.
 #' @param std
 #' Logical.
-#' `TRUE` indicates that standardised parameter estimates should be saved;
-#' `FALSE` indicates that unstandardised parameters estimates should be saved.
+#' If `TRUE`, standardised parameter estimates are saved.
+#' If `FALSE`, unstandardised parameters estimates are saved.
 #' @param fit_save
 #' Logical.
-#' `TRUE` indicates model fit measures should be included in the output;
-#' `FALSE` indicates model fit measures should not be included in the output.
+#' If `TRUE`, model fit measures are included in the output.
+#' If `FALSE`, model fit measures are not be included in the output.
 #' `FALSE` may be desirable when fit measures are of little interest and when
 #' they may take a long time to estimate.
 #' Fit can still be examined for individual models with,
@@ -38,10 +38,10 @@
 #' function.
 #' Defaults to 'all'. Irrelevant if `fit_save = FALSE`.
 #' @param target
-#' A matrix indicating a rotation target,
-#' as used in the `rotation.args` argument in lavaan (see [lavaan::efa]).
-#' If `NULL` (default),
-#' target is not specified and lavaan uses default behaviour.
+#' A matrix indicating a rotation target, as used in the `rotation.args`
+#' argument in lavaan (see [lavaan::efa]).
+#' If `NULL` (default), target is not specified and lavaan uses default
+#' behaviour.
 #' Irrelevant when the model does not include an EFA or ESEM.
 #' @param name
 #' A string indicating a subdirectory where model outputs will be saved when
@@ -52,10 +52,9 @@
 #' @param orthogonal
 #' Logical.
 #' Sets the `orthogonal` parameter, as per lavaan (see [lavaan::lavOptions]).
-#' `TRUE` indicates that unspecified latent variable correlations should be
-#' fixed at 0;
-#' `FALSE` indicates that unspecified latent variable correlations should be
-#' freely estimated.
+#' If `TRUE`, unspecified latent variable correlations should be fixed at 0.
+#' If `FALSE`, unspecified latent variable correlations should be freely
+#' estimated.
 #' Defaults to `FALSE`.
 #' @param miss
 #' A string.
@@ -69,36 +68,36 @@
 #' @param std.lv
 #' Logical.
 #' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions]).
-#' `TRUE` indicates that factor variances should be fixed to 1.
-#' `FALSE` indicates that loadings of the first items of factors should be fixed
-#' to 1.
-#' Defaults to `FALSE`.
+#' If `TRUE`, factor variances are fixed to 1.
+#' If `FALSE`, the loading of each factor's first item is fixed to 1.
+#' Defaults to `TRUE`.
 #' @param ordered
 #' A character vector or `NULL`, as per the `ordered` lavaan argument of the
 #' same name (see, e.g., [lavaan::sem]).
 #' `NULL` indicates that all variables should be treated as continuous.
 #' Otherwise, variables matching an element of the vector will be treated as
 #' continuous. Defaults to `NULL`.
+#' @param progress
+#' If `TRUE`, messages showing progress are printed.
+#' If `FALSE`, only messages for models with warnings or errors are printed.
+#' Defaults to `TRUE`.
 #' @param check
 #' Logical.
-#' `TRUE` indicates that current inputs should be compared to previous inputs
-#' if they exist and that the model should not be rerun if nothing has changed;
-#' `FALSE` indicates that these checks should not be made and the model should
-#' be run regardless of the existence of previous inputs.
+#' If `TRUE`, inputs are compared to previous inputs and, if they exist,
+#' the model will not be rerun if nothing has changed.
+#' If `FALSE`, the model will be run regardless of the existence of previous
+#' inputs.
 #' @param save_out
 #' Logical.
-#' `TRUE` indicates that model code, a hash of the data, important input
-#' parameter values, and output will be saved;
-#' `FALSE` indicates that nothing will be saved.
+#' If `TRUE`, model code, a hash of the data, input parameter values, and output
+#' are saved.
+#' If `FALSE`, nothing is saved.
 #' Selecting `save_out = TRUE` enables the function to not rerun models next
-#' time if `check = TRUE` the next time the code is run and nothing has changed
-#' in the meantime.
+#' time if `check = TRUE` and nothing has changed in the meantime.
 #' @param use_sam
 #' Logical.
-#' `TRUE` indicates that the [lavaan::sam] function should be used for model
-#' estimation.
-#' `FALSE` indicates that the [lavaan::sem] function should be used for model
-#' estimation.
+#' If `TRUE`, the [lavaan::sam] function is used for model estimation.
+#' If `FALSE`, the [lavaan::sem] function is not used for model estimation.
 #'
 #' @return
 #' Returns a list of length 2 (if `fit_save = FALSE`) or
@@ -194,8 +193,8 @@
 sem.check <- function(
     mods, data, keys_s = NULL, keys_e = NULL,
     fit_save = FALSE, fit_measures = "all",
-    miss = "default", est = "default", std.lv = FALSE, std = TRUE,
-    ordered = NULL, orthogonal = FALSE, target = NULL,
+    miss = "default", est = "default", std.lv = TRUE, std = TRUE,
+    ordered = NULL, orthogonal = FALSE, target = NULL, progress = TRUE,
     name = "sem", check = FALSE, save_out = FALSE, use_sam = FALSE
 ) {
   if (!is.logical(fit_save)) {

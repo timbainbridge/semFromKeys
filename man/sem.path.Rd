@@ -32,8 +32,8 @@ The argument can be used to set constraints, fix parameters to
 specific values, or allow correlations between item residuals.}
 
 \item{fit_save}{Logical.
-\code{TRUE} indicates model fit measures should be included in the output;
-\code{FALSE} indicates model fit measures should not be included in the output.
+If \code{TRUE}, model fit measures are included in the output.
+If \code{FALSE}, model fit measures are not be included in the output.
 \code{FALSE} may be desirable when fit measures are of little interest and when
 they may take a long time to estimate.
 Fit can still be examined for individual models with,
@@ -62,18 +62,17 @@ The name should be unique for each set of models, or outputs from calls with
 the same name will be overwritten.}
 
 \item{check}{Logical.
-\code{TRUE} indicates that current inputs should be compared to previous inputs
-if they exist and that the model should not be rerun if nothing has changed;
-\code{FALSE} indicates that these checks should not be made and the model should
-be run regardless of the existence of previous inputs.}
+If \code{TRUE}, inputs are compared to previous inputs and, if they exist,
+the model will not be rerun if nothing has changed.
+If \code{FALSE}, the model will be run regardless of the existence of previous
+inputs.}
 
 \item{save_out}{Logical.
-\code{TRUE} indicates that model code, a hash of the data, important input
-parameter values, and output will be saved;
-\code{FALSE} indicates that nothing will be saved.
+If \code{TRUE}, model code, a hash of the data, input parameter values, and output
+are saved.
+If \code{FALSE}, nothing is saved.
 Selecting \code{save_out = TRUE} enables the function to not rerun models next
-time if \code{check = TRUE} the next time the code is run and nothing has changed
-in the meantime.}
+time if \code{check = TRUE} and nothing has changed in the meantime.}
 }
 \value{
 Returns a list of length 5 (if \code{fit_save = FALSE}) or
