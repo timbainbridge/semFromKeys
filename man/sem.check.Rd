@@ -86,9 +86,13 @@ If \code{NULL} (default), target is not specified and lavaan uses default
 behaviour.
 Irrelevant when the model does not include an EFA or ESEM.}
 
-\item{progress}{If \code{TRUE}, messages showing progress are printed.
-If \code{FALSE}, only messages for models with warnings or errors are printed.
-Defaults to \code{TRUE}.}
+\item{progress}{If \code{TRUE}, messages showing progress on individual models are printed.
+If \code{FALSE}, general messages on progress and warning and error messages for
+individual models are printed.
+Defaults to \code{TRUE}.
+By default, lots of models will result in extensive messages being printed.
+To include only bare-bones progress (e.g., "Fitting models", "Generating
+parameter estimates"), errors, and warnings, set \code{progress = FALSE}.}
 
 \item{name}{A string indicating a subdirectory where model outputs will be saved when
 \code{save_out = TRUE} and checked against when \code{check = TRUE}.

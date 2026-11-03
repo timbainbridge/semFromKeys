@@ -78,9 +78,13 @@
 #' Otherwise, variables matching an element of the vector will be treated as
 #' continuous. Defaults to `NULL`.
 #' @param progress
-#' If `TRUE`, messages showing progress are printed.
-#' If `FALSE`, only messages for models with warnings or errors are printed.
+#' If `TRUE`, messages showing progress on individual models are printed.
+#' If `FALSE`, general messages on progress and warning and error messages for
+#' individual models are printed.
 #' Defaults to `TRUE`.
+#' By default, lots of models will result in extensive messages being printed.
+#' To include only bare-bones progress (e.g., "Fitting models", "Generating
+#' parameter estimates"), errors, and warnings, set `progress = FALSE`.
 #' @param check
 #' Logical.
 #' If `TRUE`, inputs are compared to previous inputs and, if they exist,
@@ -742,8 +746,8 @@ sem.check <- function(
                 }
               }
             },
-            error = function(e) message("Error in '", n_mod, "':\n"),
-            warning = function(w) message("Warning in '", n_mod, "':\n")
+            error = function(e) message("Error in '", n_mod, "':"),
+            warning = function(w) message("Warning in '", n_mod, "':")
           )
         }
       },
@@ -763,20 +767,31 @@ sem.check <- function(
       if (hash_d1 & m1 & pt & param_test) {
         out <- par0[[n_mod]]
       } else {
-        if (length(fit) <= 1000) {
-          # Print progress for every model
-          message(paste(n, "/", length(fit), " ", n_mod))
-        } else {
-          # Print progress for every 10th model (starting from 1)
-          if (n %in% round((0:(length(fit)/10)*10) + 1, 0)) {
-            message(paste0(n, "/", length(fit), " ", n_mod))
+        if (progress) {
+          if (length(fit) <= 1000) {
+            # Print progress for every model
+            message(paste(n, "/", length(fit), " ", n_mod))
+          } else {
+            # Print progress for every 10th model (starting from 1)
+            if (n %in% round((0:(length(fit)/10)*10) + 1, 0)) {
+              message(paste0(n, "/", length(fit), " ", n_mod))
+            }
           }
         }
-        if (std) {
-          standardizedSolution(fit1)
-        } else {
-          parameterEstimates(fit1, standardized = TRUE)
-        }
+        # Not sure whether parameter estimates throw any warnings or errors if
+        # there were problems with the model estimation, but better safe than
+        # sorry.
+        withCallingHandlers(
+          {
+            if (std) {
+              standardizedSolution(fit1)
+            } else {
+              parameterEstimates(fit1, standardized = TRUE)
+            }
+          },
+          error = function(e) message("Error in '", n_mod, "':"),
+          warning = function(w) message("Warning in '", n_mod, "':")
+        )
       }
     },
     fit1 = fit,
@@ -803,8 +818,12 @@ sem.check <- function(
                 fit_m0[n_mod, ]
               } else {
                 # Else, recalculate
-                message(paste(n, "/", length(fit), " ", n_mod))
-                fitMeasures(fit1)
+                if (progress) message(paste(n, "/", length(fit), " ", n_mod))
+                withCallingHandlers(
+                  fitMeasures(fit1),
+                  error = function(e) message("Error in '", n_mod, "':"),
+                  warning = function(w) message("Warning in '", n_mod, "':")
+                )
               }
             } else {
               # If fit_m0 includes all required fit measures
@@ -816,18 +835,28 @@ sem.check <- function(
                 fit_m0[n_mod, fit_measures]
               } else {
                 # Else, recalculate with required fit measures
-                message(paste(n, "/", length(fit), " ", n_mod))
-                fitMeasures(fit1, fit.measures = fit_measures)
+                if (progress) message(paste(n, "/", length(fit), " ", n_mod))
+                withCallingHandlers(
+                  fitMeasures(fit1, fit.measures = fit_measures),
+                  error = function(e) message("Error in '", n_mod, "':"),
+                  warning = function(w) message("Warning in '", n_mod, "':")
+                )
               }
             }
           } else {
             # If the model has changed, recalculate with required fit measures
-            message(paste(n, "/", length(fit), " ", n_mod))
-            if (fit_measures[1] == "all") {
-              fitMeasures(fit1)
-            } else {
-              fitMeasures(fit1, fit.measures = fit_measures)
-            }
+            if (progress) message(paste(n, "/", length(fit), " ", n_mod))
+            withCallingHandlers(
+              {
+                if (fit_measures[1] == "all") {
+                  fitMeasures(fit1)
+                } else {
+                  fitMeasures(fit1, fit.measures = fit_measures)
+                }
+              },
+              error = function(e) message("Error in '", n_mod, "':"),
+              warning = function(w) message("Warning in '", n_mod, "':")
+            )
           }
         },
         fit1 = fit,
