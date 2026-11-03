@@ -10,6 +10,7 @@ cfa.from.keys(
   extra = NULL,
   fit_save = TRUE,
   fit_measures = "all",
+  progress = TRUE,
   std.lv = TRUE,
   miss = "default",
   est = "default",
@@ -45,6 +46,14 @@ Fit can still be examined for individual models with,
 as per the \code{fit.measures} parameter from lavaan's \link[lavaan:fitMeasures]{lavaan::fitMeasures}
 function.
 Defaults to 'all'. Irrelevant if \code{fit_save = FALSE}.}
+
+\item{progress}{If \code{TRUE}, messages showing progress on individual models are printed.
+If \code{FALSE}, general messages on progress and warning and error messages for
+individual models are printed.
+Defaults to \code{TRUE}.
+By default, lots of models will result in extensive messages being printed.
+To include only bare-bones progress (e.g., "Fitting models", "Generating
+parameter estimates"), errors, and warnings, set \code{progress = FALSE}.}
 
 \item{std.lv}{Logical.
 Sets the \code{std.lv} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).

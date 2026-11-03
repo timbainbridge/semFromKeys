@@ -185,7 +185,8 @@
 
 sem.cor <- function(
     data, fit_y, fit_x = NULL, items = NULL, item_loadings = NULL, nagy = TRUE,
-    fit_save = FALSE, fit_measures = "all", miss = "default", est = "default",
+    fit_save = FALSE, fit_measures = "all", progress = TRUE,
+    miss = "default", est = "default",
     name = "cors", check = FALSE, save_out = FALSE
 ) {
   # Single model instead of list.
@@ -741,6 +742,7 @@ sem.cor <- function(
     data,
     name = name,
     keys_s = key,
+    progress = progress,
     fit_save = fit_save,
     fit_measures = fit_measures,
     miss = miss,
