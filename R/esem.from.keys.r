@@ -284,7 +284,8 @@
 
 esem.from.keys <- function(
     data, keys_e, keys, extra = NULL,
-    fit_save = FALSE, fit_measures = "all", miss = "default", est = "default",
+    fit_save = FALSE, fit_measures = "all", progress = TRUE,
+    miss = "default", est = "default",
     name = "esam", check = FALSE, save_out = FALSE
 ) {
   if (sum(sapply(keys, function(x) length(x) != 1)) == 0) {
@@ -394,6 +395,7 @@ esem.from.keys <- function(
     name = name,
     keys_s = keys,
     keys_e = keys_e,
+    progress = progress,
     std = TRUE,  # For r2 calcs.
     fit_save = fit_save,
     fit_measures = fit_measures,
@@ -455,7 +457,8 @@ esem.from.keys <- function(
 
 esem.from.mods <- function(
     data, efa_fit, cfa_fit = NULL, bif_fit = NULL,
-    fit_save = FALSE, fit_measures = "all", miss = "default", est = "default",
+    fit_save = FALSE, fit_measures = "all", progress = TRUE,
+    miss = "default", est = "default",
     name = "esem", check = FALSE, save_out = FALSE
 ) {
   if (is.null(cfa_fit) & is.null(bif_fit)) {
@@ -718,6 +721,7 @@ esem.from.mods <- function(
     name = name,
     keys_s = keys_s,
     keys_e = efa_keys,
+    progress = progress,
     std = TRUE,  # For r2 calcs.
     fit_save = fit_save,
     fit_measures = fit_measures,

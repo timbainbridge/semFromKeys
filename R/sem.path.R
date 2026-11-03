@@ -136,7 +136,8 @@
 
 sem.path <- function(
     path, data, cfa_fit, extra = NULL,
-    fit_save = TRUE, fit_measures = "all", miss = "default", est = "default",
+    fit_save = TRUE, fit_measures = "all", progress = TRUE,
+    miss = "default", est = "default",
     name = "sam", check = FALSE, save_out = FALSE
 ) {
 
@@ -300,7 +301,7 @@ sem.path <- function(
   names(keys_s) <- name
   fit <- sem.check(
     mod, data = data, keys_s = keys_s,
-    fit_save = fit_save, fit_measures = fit_measures,
+    fit_save = fit_save, fit_measures = fit_measures, progress = progress,
     miss = miss, est = est, std = TRUE, ordered = NULL,
     name = name, check = check, save_out = save_out, use_sam = TRUE
   )

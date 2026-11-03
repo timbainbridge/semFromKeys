@@ -125,7 +125,7 @@
 
 bifactor.from.keys <- function(
   keys_g, keys_b, keys, data, extra = NULL,
-  fit_save = TRUE, fit_measures = "all",
+  fit_save = TRUE, fit_measures = "all", progress = TRUE,
   std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
   name = "bifactor", check = FALSE, save_out = FALSE
 ) {
@@ -302,6 +302,7 @@ bifactor.from.keys <- function(
     name = name,
     keys_s = items,
     keys_e = NULL,
+    progress = progress,
     std = FALSE,  # For use in 2-stage procedure, must use non-standardised.
     fit_save = fit_save,
     fit_measures = fit_measures,

@@ -72,7 +72,7 @@
 
 efa.from.keys <- function(
     keys, data, extra = NULL,
-    orthogonal = FALSE, fit_save = TRUE, fit_measures = "all",
+    orthogonal = FALSE, fit_save = TRUE, fit_measures = "all", progress = TRUE,
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
     name = "efa", check = FALSE, save_out = FALSE
 ) {
@@ -142,6 +142,7 @@ efa.from.keys <- function(
     name = name,
     keys_s = NULL,
     keys_e = keys,
+    progress = progress,
     std = FALSE,  # For use in 2-stage procedure, must use non-standardised.
     fit_save = fit_save,
     fit_measures = fit_measures,
