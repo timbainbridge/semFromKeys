@@ -47,13 +47,18 @@
 #' Elements include the fitted lavaan objects for the full and reduced models;
 #' estimates of R-squared and R-squared change; and data frames of covariate
 #' effect sizes from both the full and reduced models.
+#'
+#' @details
+#' If using bootstrap confidence intervals, it is highly recommended that you
+#' use `save_out = TRUE` and `check = TRUE`. This will require setting up a
+#' cache directory with [cache.setup()] before running `r2.change()`
+#'
+#' @seealso
+#' [cache.setup()] [sem.check()] [cfa.from.keys()] [bifactor.from.keys()]
 
-# TODO: Change to use keys. Must re-run measurement models for each bootstrap
-#       sample so uncertainty in their estimation is included.
-# TODO: Add options (e.g., est, miss, extra etc.)
+# TODO: Add details
+# TODO: Add example
 # TODO: Add boot for bootstrap CIs for DR2.
-# TODO: Add check and save_out.
-# TODO: Add other parameter options (miss, est, etc.)
 
 r2.change <- function(
     data, X, Y, Z, keys, keys_g = NULL, keys_b = NULL, extra = NULL,
@@ -231,12 +236,20 @@ r2.change <- function(
       paste(mods_b, collapse = "\n"), "\n",
       paste(Y, "~", paste(Z, collapse = " + "), "+", X)
     )
-  }
+    fit <- sem.check(
+      mod, data, keys_s = unique(c(unlist(keys_c), unlist(keys_g))),
+      fit_save = fit_save, fit_measures = fit_measures,
+      miss = miss, est = est, std.lv = FALSE, ordered = ordered,
+      orthogonal = FALSE,
+      name = paste0(name, "_", boot_n), check = check, save_out = save_out,
+      use_sam = FALSE
+    )
 
-  # TODO: Send to sem.check.
-  # TODO: Take R2s from full model
-  # TODO: Calculate R2 of reduced model
-  # TODO: Take regression table from models
-  #       Should this be for all or just the main one?
-  # TODO: Put together into a table.
+
+    # TODO: Take R2s from full model
+    # TODO: Calculate R2 of reduced model
+    # TODO: Take regression table from models
+    #       Should this be for all or just the main one?
+    # TODO: Put together into a table.
+  }
 }
