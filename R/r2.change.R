@@ -21,9 +21,13 @@
 #' A character vector of the set of variables that X is being pitted against or
 #' `NULL` to use all variables in `cfa_fit` and `bif_fit`. Defaults to `NULL`.
 #' @param boot
-#' Numeric or `NA`.
-#' If `NA`, then bootstrap confidence intervals are not calculated.
-#' If numeric, then bootstraps equal to the number are performed.
+#' Numeric or `NULL`.
+#' If `NULL`, then bootstrap confidence intervals are not calculated.
+#' If numeric, then bootstrap confidence intervals are calculated with a number
+#' of bootstrap samples equal to the value of `boot`.
+#' @param seed
+#' A number used in [set.seed()] for bootstrap data selection.
+#' Defaults to `NA` indicating a random
 #' @param keys
 #' A named list of items in uni-dimensional factors.
 #' These can be names of single-factor latent variables or group factor latent
@@ -62,7 +66,7 @@
 
 r2.change <- function(
     data, X, Y, Z, keys, keys_g = NULL, keys_b = NULL, extra = NULL,
-    boot = NA, boot_ci = .95,
+    boot = NULL, boot_ci = .95, seed = NULL,
     fit_save = TRUE, fit_measures = "all", progress = TRUE,
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
     name = "r2d", check = FALSE, save_out = FALSE
@@ -106,7 +110,7 @@ r2.change <- function(
       )
     )
   }
-  if (!is.na(boot)) {
+  if (!is.null(boot)) {
     boot_min <- 2 / (1 - boot_ci)
     if (boot < boot_min) {
       warning(
@@ -175,19 +179,35 @@ r2.change <- function(
   keys_c <- keys[names(keys) %in% c(X, Y, Z) &
                    !names(keys) %in% c(names(keys_g), names(keys_b))]
 
+  ext.r2 <- function(par, Y) {
+    ##### Adapted from sem.path #####
+    xr <- par[par$op == "~~" & par$lhs == par$rhs & par$lhs %in% Y, ]
+    r2 <- data.frame(
+      R2 = 1 - xr$est.std,
+      se = xr$se,
+      ci.lower = 1 - xr$ci.upper,
+      ci.upper = 1 - xr$ci.lower
+    )
+    b <- par[par$op == "~", -(1:2)]
+    names(b)[1] <- "Variable"
+    r <- par[par$op == "~~" & par$lhs != par$rhs, ]
+    list(r2 = r2, b = b, r = r)
+    ##### Adapted from sem.path #####
+  }
+
   dr2 <- function(
-    data, kc = NULL, kg = NULL, kb = NULL, k = keys, extra = extra,
-    fit_save = FALSE, progress = FALSE,
-    miss = miss, est = est, ordered = ordered,
-    name = name, boot_n = 0, check = check, save_out = save_out
+    data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys, ex = extra,
+    fs = FALSE, fm = fit_measures, pro = FALSE,
+    m = miss, est0 = est, ord = ordered,
+    name = n, boot_n = 0, check0 = check, so = save_out
   ) {
     # At least one CFA measurement model
     if (length(kc) > 0) {
       cfa_fit <- suppressMessages(
         cfa.from.keys(
-          kc, data, extra = extra, fit_save = FALSE, progress = FALSE,
-          miss = miss, est = est, ordered = ordered,
-          name = paste0(name, "_c", boot_n), check = check, save_out = save_out
+          kc, data, extra = ex, fit_save = FALSE, progress = FALSE,
+          miss = m, est = est0, ordered = ord,
+          name = paste0(n, "_c", boot_n), check = check0, save_out = so
         )
       )
     }
@@ -195,9 +215,9 @@ r2.change <- function(
     if (length(kg) > 0) {
       bif_fit <- suppressMessages(
         bifactor.from.keys(
-          kg, kb, k, data, extra = extra, fit_save = FALSE,
-          progress = FALSE, miss = miss, est = est, ordered = ordered,
-          name = paste0(name, "_b", boot_n), check = check, save_out = save_out
+          kg, kb, k, data, extra = ex, fit_save = FALSE,
+          progress = FALSE, miss = m, est = est0, ordered = ord,
+          name = paste0(n, "_b", boot_n), check = check0, save_out = so
         )
       )
     }
@@ -231,25 +251,65 @@ r2.change <- function(
     } else {
       mods_bif <- NULL
     }
-    mod <- paste0(
-      paste(mods_c, collapse = "\n"), "\n",
-      paste(mods_b, collapse = "\n"), "\n",
-      paste(Y, "~", paste(Z, collapse = " + "), "+", X)
-    )
+    if (boot_n == 0) {
+      mods <- as.list(
+        paste0(
+          paste(mods_c, collapse = "\n"), "\n",
+          paste(mods_b, collapse = "\n"), "\n",
+          c(
+            paste(Y, "~", paste(Z, collapse = " + "), "+", X),
+            paste(Y, "~", paste(Z, collapse = " + "), "\n", Y, "~~", X)
+          )
+        )
+      )
+      names(mods) <- c("full", "reduced")
+    } else {
+      mods <- list(
+        full = paste0(
+          paste(mods_c, collapse = "\n"), "\n",
+          paste(mods_b, collapse = "\n"), "\n",
+          paste(Y, "~", paste(Z, collapse = " + "), "+", X)
+        )
+      )
+    }
+    if (boot_n != 0) message("Running bootstrap model ", boot_n)
     fit <- sem.check(
-      mod, data, keys_s = unique(c(unlist(keys_c), unlist(keys_g))),
-      fit_save = fit_save, fit_measures = fit_measures,
-      miss = miss, est = est, std.lv = FALSE, ordered = ordered,
+      mods, data,
+      keys_s = setNames(
+        rep(list(unique(c(unlist(kc), unlist(kg)))), length(mods)),
+        nm = names(mods)
+      ),
+      fit_save = fs, fit_measures = fm,
+      miss = m, est = est0, std.lv = FALSE, ordered = ord,
       orthogonal = FALSE,
-      name = paste0(name, "_", boot_n), check = check, save_out = save_out,
+      name = paste0(n, "_", boot_n), check = check0, save_out = so,
       use_sam = FALSE
     )
-
-
-    # TODO: Take R2s from full model
-    # TODO: Calculate R2 of reduced model
-    # TODO: Take regression table from models
-    #       Should this be for all or just the main one?
-    # TODO: Put together into a table.
+    full_out <- ext.r2(fit$par_std$full, Y)
+    cm <- lavaan::lavInspect(fit$fit$full, what = "cor.all")
+    yy <- cm[Y, Y, drop = FALSE]
+    zz <- cm[Z, Z, drop = FALSE]
+    zy <- cm[Z, Y, drop = FALSE]
+    b <- solve(zz, zy)
+    r2_reduced <- colSums(b * zy)/diag(yy)
+    dr2 <- full_out$r2$R2 - r2_reduced
+    if (boot_n != 0) return(dr2) else {
+      return(
+        c(
+          fit,
+          full = list(full_out), reduced = list(ext.r2(fit$par_std$reduced, Y)),
+          dr2 = list(c(r2 = r2_reduced[[1]], dr2 = dr2[[1]]))
+        )
+      )
+    }
   }
+  base <- dr2(data, boot_n = 0)
+  # TODO: Bootstraps. Initially just use the standard check, save_out for these.
+  # TODO: Add issue to github to change this to do the checks prior to running
+  # sem.check. The rationale is to save the time running through all the
+  # sem.check code and to save the space of saving all the sem.check inputs and
+  # outputs. This should be possible here (while not elsewhere) because all the
+  # bootstrap inputs can be checked before entering anything into sem.check.
+  # TODO: Perhaps create a function to do the checks. This could be useful for
+  # users also (to see if something will run without actually running it).
 }
