@@ -1,18 +1,14 @@
 #' Runs lavaan models after checking for code or data changes.
 #'
 #' @description
-#' sem.check takes a model list, keys lists, and data, and
+#' `sem.check` takes a model list, keys lists, and data, and
 #' produces outputs from a series of lavaan models.
 #' The function is primarily used as a function to be called by other function
 #' within the package but it can also be run independently.
 #'
-#' For each model, the code optionally checks for previously saved model code,
-#' a hash of data, and important parameter inputs.
-#' If they exist and match values for the current code and data,
-#' the model is not run, the previous output is loaded instead.
-#' If either the code has changed, the hash of the data has changed, or
-#' important parameter inputs have change, or any of these do not exist,
-#' then the models are run as normal.
+#' `check.cache` looks at previously save model input and outputs and returns
+#' tests for whether anything has changed. `check.cache` is primarily used by
+#' `sem.check` to test whether to re-run models (see details).
 #'
 #' @param mods A named list of lavaan models to run.
 #' @param data
@@ -111,60 +107,56 @@
 #' and, if `fit_save = TRUE`, a matrix of fit measures for each model.
 #'
 #' @details
-#' The function is largely intended to be used as a helper function to upstream
-#' functions, including [cfa.from.keys], [bifactor.from.keys],
-#' [efa.from.keys], and [esem.from.keys], among others.
-#' Although it is recommended to use the appropriate upstream function whenever
-#' possible, there are not (currently) options to do so when customised lavaan
-#' models are required (with the exception of the `extra` argument in
-#' [sem.path]);
-#' for example, when allowing two items' residuals to correlate in a CFA.
-#' `sem.check` can be used in these cases (see example).
+#' Both `sem.check` and `check.cache` are largely intended to be used as helper
+#' functions to upstream functions.
+#' `sem.check` is the backbone of the package and takes models and keys inputs
+#' and runs the models; `check.cache` generates tests for whether models need to
+#' be run when `check = TRUE`.
 #'
-#' Matching the philosophy of the package, the function is designed to run for
+#' Matching the philosophy of the package, `sem.check` is designed to run for
 #' multiple models with a similar design. If you are using the function for a
 #' single model, transform inputs into lists as appropriate or simply use lavaan
 #' without the assistance of semFromKeys.
 #'
-#' The function includes functionality designed to save time re-running code
-#' when lots of slow models are included.
+#' `sem.check` includes functionality designed to save time re-running code.
 #' To do this, when `save_out = TRUE` and a cache directory has been set,
-#' the model will save various inputs and outputs from the function call, and,
-#' when `check = TRUE`, the model will look for any previously saved outputs
-#' from earlier model runs in the same cache directory and
-#' only run again if nothing has changed.
-#' In cases where something has changed,
-#' then the function will re-run the models where something has changed
-#' (but it will not for those where nothing has changed).
+#' various inputs and outputs from the function call are saved, and,
+#' when `check = TRUE`, `check.cache` is used (within `sem.check`) to look for
+#' any previously saved outputs from earlier model runs in the same cache
+#' directory and only run again if nothing has changed.
+#' In cases where something has changed, then the function will re-run the
+#' models where something has changed but it will load the previous output where
+#' nothing has changed.
 #' Changes to arguments that influence all lavaan model runs (e.g., miss or est)
 #' will trigger all models to be re-run.
 #'
 #' For either `save_out = TRUE` or `check = TRUE`,
-#' the function will look for a cache directory set and created by the
+#' both functions will look for a cache directory, set and created by the
 #' [cache.setup] function.
-#' If a cache directory has not been set for the current session,
-#' then the function will exit with an error suggesting that either
-#' [cache.setup] be run or `save_out` and `check` set to `FALSE`.
+#' If a cache directory has not been set for the current session, then the
+#' function will exit with an error suggesting that either [cache.setup] be run
+#' or `save_out` and `check` set to `FALSE`.
 #'
 #' When the cache directory is found and output from previous runs are detected,
 #' the comparisons performed are for:
 #' * model code;
 #' * hashes of the data (using [openssl::md5]);
-#' * values of the `miss`, `est`, `std`, `std.lv`, and `orthogonal`parameters;
+#' * values of the `miss`, `est`, `std`, `std.lv`, `orthogonal`, `ordered`, and
+#' `seed` parameters;
 #' * the class of model objects (i.e., class lavaan); and,
 #' * the class of parameter estimates (i.e., class lavaan.data.frame).
 #'
 #' For most applications, the checking feature can be safely ignored by not
-#' saving outputs (i.e., `fit_save = FALSE`)
-#' and not checking for past saves (i.e., `check = FALSE`, both default),
-#' but may be beneficial in cases with lots of models or very slow models.
-#' However, the functionality can be safely used for faster runs too.
+#' saving outputs (i.e., `fit_save = FALSE`) and not checking for past saves
+#' (i.e., `check = FALSE`, both default).
+#' However, the functionality may be beneficial in cases with lots of models or
+#' very slow models.
 #'
 #' @seealso
-#' [cfa.from.keys], [efa.from.keys], [bifactor.from.keys], [esem.from.mods],
-#' [esem.from.keys], [sem.cor], [sem.path], [cache.setup], [lavaan::sem],
-#' [lavaan::sam], [lavaan::efa], [lavaan::parameterEstimates],
-#' [lavaan::standardizedSolution], [lavaan::fitMeasures], [openssl::md5],
+#' [cfa.from.keys] [efa.from.keys] [bifactor.from.keys] [esem.from.mods]
+#' [esem.from.keys] [sem.cor] [sem.path] [cache.setup] [lavaan::sem]
+#' [lavaan::sam] [lavaan::efa] [lavaan::parameterEstimates]
+#' [lavaan::standardizedSolution] [lavaan::fitMeasures] [openssl::md5]
 #' [lavaan::lavOptions]
 #'
 #' @importFrom stringr str_replace_all
@@ -214,23 +206,23 @@ sem.check <- function(
     stop("'save_out' is not logical. It should be 'TRUE' or 'FALSE'.")
   }
   if (save_out | check) {
-    found <- FALSE
-    for (i in 1:5) {
-      env <- parent.frame(i)
-      if (exists(".cache_env", envir = env)) {
-        found <- TRUE
-        break
-      }
-    }
-    if (!found) {
-      stop(
-        paste(
-          "A cache directory is not configured so cannot be used.",
-          "Use the 'cache.setup()' function to configure a cache directory."
-        )
-      )
-    }
-    cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
+    # found <- FALSE
+    # for (i in 1:5) {
+    #   env <- parent.frame(i)
+    #   if (exists(".cache_env", envir = env)) {
+    #     found <- TRUE
+    #     break
+    #   }
+    # }
+    # if (!found) {
+    #   stop(
+    #     paste(
+    #       "A cache directory is not configured so cannot be used.",
+    #       "Use the 'cache.setup()' function to configure a cache directory."
+    #     )
+    #   )
+    # }
+    # cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
     if (!is.character(name)) {
       stop("'name' is not a character string.")
     }
@@ -405,7 +397,6 @@ sem.check <- function(
       }
     )
     # Compare to previous hashes
-    # if includes possibility of hash_d0 <- c(FALSE, [hash]) for some reason.
     hash_d_test <- if (length(hash_d0) != 1 | hash_d0[[1]] != FALSE) {
       sapply(
         names(mods),
@@ -438,7 +429,7 @@ sem.check <- function(
     } else FALSE
     params <- c(
       miss = miss, est = est, std = std, std.lv = std.lv,
-      orthogonal = orthogonal
+      orthogonal = orthogonal, ordered = ordered
     )
     param_test <- if (length(params0) == length(params)) {
       ifelse(sum(params0 != params) > 0, FALSE, TRUE)
@@ -507,7 +498,7 @@ sem.check <- function(
     )
     params <- c(
       miss = miss, est = est, std = std, std.lv = std.lv,
-      orthogonal = orthogonal
+      orthogonal = orthogonal, ordered = ordered
     )
   }
   # Run
@@ -932,4 +923,189 @@ sem.check <- function(
       return(list(fit = fit, par = par))
     }
   }
+}
+
+#' @rdname sem.check
+#' @export check.cache
+
+check.cache <- function(
+    name, mods = NULL,
+    miss = NULL, est = NULL, std = NULL, std.lv = NULL, orthogonal = NULL,
+    ordered = NULL,
+    data = NULL, keys_s = NULL, keys_e = NULL,
+    fit = NULL, seed = NULL
+) {
+  found <- FALSE
+  for (i in 1:5) {
+    env <- parent.frame(i)
+    if (exists(".cache_env", envir = env)) {
+      found <- TRUE
+      break
+    }
+  }
+  if (!found) {
+    stop(
+      paste(
+        "A cache directory is required for 'check = TRUE' or 'save_out = TRUE'",
+        "and is not configured.",
+        "Use 'cache.setup()' to configure a cache directory."
+      )
+    )
+  }
+  cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
+  if (!dir.exists(file.path(cache_dir, name))) {
+    stop(
+      paste0(
+        "The file path '", file.path(cache_dir, name), "' does not exist.",
+        "Checks cannot be performed against non-existant objects."
+      )
+    )
+  }
+  if (!is.null(data) & !is.null(mods) & is.null(keys_s) & is.null(keys_e)) {
+    stop(
+      paste(
+        "If 'data' and 'mods' are specified, then at least one of 'keys_s' and",
+        "'keys_e' must be specified."
+      )
+    )
+  }
+  if (!is.null(data) & !is.null(mods) & !is.null(keys_s)) {
+    if (sum(names(keys_s) != names(mods)) > 0) {
+      stop(
+        paste(
+          "Names of 'keys_s' and names of 'mods' do not match.",
+          "Please ensure they match to allow the function to run."
+        )
+      )
+    }
+  }
+  if (!is.null(mods)) {
+    if (file.exists(file.path(cache_dir, name, paste0(name, "_mod.rds")))) {
+      # Remove spaces
+      m0 <- lapply(
+        readRDS(file.path(cache_dir, name, paste0(name, "_mod.rds"))),
+        function(x) gsub(" ", "", x)
+      )
+      # Remove spaces for comparison
+      mods0 <- lapply(mods, function(x) gsub(" ", "", x))
+      if (length(m0) != 1 | m0[[1]] != FALSE) {
+        m_test <- sapply(
+          names(mods0),
+          function(x) {
+            ifelse(
+              x %in% names(m0),
+              # Only check to 4-decimal places.
+              str_replace_all(
+                mods0[[x]],
+                "([0-9]+\\.[0-9]+)",
+                ~format(round(as.numeric(.x), 4), nsmall = 4)
+              ) == str_replace_all(
+                m0[[x]],
+                "([0-9]\\.[0-9]+)",
+                ~format(round(as.numeric(.x), 4), nsmall = 4)
+              ),
+              FALSE
+            )
+          }
+        )
+      } else {
+        m_test <- FALSE
+      }
+    } else {
+      m_test <- FALSE
+    }
+  } else {
+    m_test <- NULL
+  }
+  if (!is.null(miss)) {
+    if (miss == "default") {
+      if (is.null(ordered)) {
+        miss <- "ML"
+      } else {
+        miss <- "pairwise"
+      }
+    }
+  }
+  params <- c(
+    miss = miss, est = est, std = std, std.lv = std.lv,
+    orthogonal = orthogonal, ordered = ordered, seed = seed
+  )
+  if (!is.null(params)) {
+    if (file.exists(file.path(cache_dir, name, paste0(name, "_params.rds")))) {
+      params0 <- readRDS(
+        file.path(cache_dir, name, paste0(name, "_params.rds"))
+      )
+      if (length(params0) == length(params)) {
+        param_test <- ifelse(sum(params0 != params) > 0, FALSE, TRUE)
+      } else {
+        param_test <- FALSE
+      }
+    } else {
+      param_test <- FALSE
+    }
+  } else {
+    param_test <- NULL
+  }
+  if (!is.null(data)) {
+    if (file.exists(file.path(cache_dir, name, paste0(name, "_hash.rds")))) {
+      hash_d0 <- readRDS(file.path(cache_dir, name, paste0(name, "_hash.rds")))
+      # Create hashes
+      if (!is.null(mods)) {
+        hash_d <- sapply(
+          names(mods),
+          function(x) {
+            md5(paste(data[c(keys_s[[x]], unlist(keys_e))], collapse = ""))
+          }
+        )
+      } else {
+        hash_d <- md5(paste(data, collapse = ""))
+      }
+      # Compare to previous hashes
+      if (length(hash_d0) != 1 | hash_d0[[1]] != FALSE) {
+        d_test <- ifelse(
+          names(mods) %in% names(hash_d0),
+          hash_d[names(mods)] == hash_d0[names(mods)],
+          FALSE
+        )
+      } else {
+        d_test <- FALSE
+      }
+    } else {
+      d_test <- FALSE
+    }
+  } else {
+    d_test <- NULL
+  }
+  if (!is.null(mods)) {
+    # Load old objects if they exists
+    if (file.exists(file.path(cache_dir, name, paste0(name, "_fit.rds")))) {
+      fit0 <- readRDS(file.path(cache_dir, name, paste0(name, "_fit.rds")))
+    } else {
+      fit0 <- FALSE
+    }
+    if (file.exists(file.path(cache_dir, name, paste0(name, "_par.rds")))) {
+      par0 <- readRDS(file.path(cache_dir, name, paste0(name, "_par.rds")))
+    } else {
+      par0 <- FALSE
+    }
+    # If hashes are correct but the fitted object is moved or deleted, then the
+    # fit0 object will be FALSE. To ensure this doesn't break everything, check
+    # that the fit0 object is a lavaan object. If not, run again.
+    fit_type <- ifelse(
+      names(mods) %in% names(fit0),
+      sapply(fit0[names(mods)], inherits, "lavaan"),
+      FALSE
+    )
+    par_type <- ifelse(
+      names(mods) %in% names(par0),
+      sapply(par0[names(mods)], inherits, "lavaan.data.frame"),
+      FALSE
+    )
+  }
+  return(
+    list(
+      m_test = m_test, param_test = param_test, d_test = d_test,
+      fit_type = fit_type, par_type = par_type
+    )
+  )
 }
