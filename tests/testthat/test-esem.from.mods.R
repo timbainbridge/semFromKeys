@@ -154,7 +154,7 @@ test_that(
     expect_all_true(
       c(
         file.exists(file.path(cache_dir, name, paste0(name, "_fit.rds"))),
-        file.exists(file.path(cache_dir, name, paste0(name, "_par_std.rds"))),
+        file.exists(file.path(cache_dir, name, paste0(name, "_par.rds"))),
         file.exists(file.path(cache_dir, name, paste0(name, "_fit_m.rds"))),
         file.exists(file.path(cache_dir, name, paste0(name, "_mod.rds"))),
         file.exists(file.path(cache_dir, name, paste0(name, "_hash.rds")))

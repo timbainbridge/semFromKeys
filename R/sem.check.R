@@ -488,14 +488,14 @@ sem.check <- function(
     checkout <- check.cache(
       name = name, mods = mods, miss = miss, est = est, std = std,
       std.lv = std.lv, orthogonal = orthogonal, ordered = ordered,
-      data = data, keys_s = keys_s, keys_e = keys_e, fit = fit_measures
+      data = data, keys_s = keys_s, keys_e = keys_e, fit_measures = fit_measures
     )
     m_test <- checkout$m_test
     d_test <- checkout$d_test
     param_test <- checkout$param_test
     fit_type <- checkout$fit_type
     par_type <- checkout$par_type
-    if (sum(m_test) > 0 & d_test & param_test & sum(fit_type) > 0) {
+    if (sum(m_test) > 0 & sum(d_test) > 0 & param_test & sum(fit_type) > 0) {
       if (file.exists(file.path(cache_dir, name, paste0(name, "_fit.rds")))) {
         fit0 <- readRDS(file.path(cache_dir, name, paste0(name, "_fit.rds")))
       }
@@ -958,7 +958,7 @@ check.cache <- function(
     name, mods = NULL,
     miss = NULL, est = NULL, std = NULL, std.lv = NULL, orthogonal = NULL,
     ordered = NULL,
-    data = NULL, keys_s = NULL, keys_e = NULL, seed = NULL
+    data = NULL, keys_s = NULL, keys_e = NULL, fit_measures = NULL, seed = NULL
 ) {
   found <- FALSE
   for (i in 1:5) {
@@ -971,18 +971,17 @@ check.cache <- function(
   if (!found) {
     stop(
       paste(
-        "A cache directory is required to check the cache (typically with",
-        "'check = TRUE' or 'save_out = TRUE') but is not configured.",
-        "Use 'cache.setup()' to configure a cache directory."
+        "A cache directory is not configured so cannot be used.",
+        "Use the 'cache.setup()' function to configure a cache directory."
       )
     )
   }
   cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
   if (!dir.exists(file.path(cache_dir, name))) {
-    stop(
-      paste0(
-        "The file path '", file.path(cache_dir, name), "' does not exist.",
-        "Checks cannot be performed against non-existant objects."
+    return(
+      list(
+        m_test = FALSE, param_test = FALSE, d_test = FALSE,
+        fit_type = FALSE, par_type = FALSE
       )
     )
   }
