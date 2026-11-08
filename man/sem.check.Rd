@@ -38,7 +38,6 @@ check.cache(
   data = NULL,
   keys_s = NULL,
   keys_e = NULL,
-  fit = NULL,
   seed = NULL
 )
 }
@@ -133,6 +132,10 @@ time if \code{check = TRUE} and nothing has changed in the meantime.}
 \item{use_sam}{Logical.
 If \code{TRUE}, the \link[lavaan:sam]{lavaan::sam} function is used for model estimation.
 If \code{FALSE}, the \link[lavaan:sem]{lavaan::sem} function is not used for model estimation.}
+
+\item{seed}{Numeric.
+Sets a seed for bootstrap sampling (used in \link{r2.change}).
+Checked it has not changed since last model run in \code{check.cache}.}
 }
 \value{
 Returns a list of length 2 (if \code{fit_save = FALSE}) or

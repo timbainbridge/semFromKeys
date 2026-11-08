@@ -49,6 +49,9 @@
 #' A string or vector of strings of lavaan code to be appended to the model.
 #' The argument can be used to set constraints, fix parameters to
 #' specific values, or allow correlations between item residuals.
+#' @param boot_ci
+#' Numeric. The confidence interval proportion for bootstrap CIs.
+#' Irrelevant if `boot = NULL`.
 #'
 #' @return
 #' A list of length X.
@@ -123,9 +126,9 @@ r2.change <- function(
     if (boot < boot_min) {
       warning(
         paste(
-          "The number of bootstraps relative to the 'boot_ci' means that maximum",
-          "and minimum bootstrap values will be used and confidence intervals",
-          "will be unreliable.",
+          "The number of bootstraps relative to the 'boot_ci' means that",
+          "maximum and minimum bootstrap values will be used and confidence",
+          "intervals will be unreliable.",
           "Consider using", boot_min * 5, "or more for 'boot'."
         )
       )

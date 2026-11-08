@@ -57,10 +57,17 @@ Each list element must be a vector of group factors.
 \code{keys_b} must be the same length as \code{keys_g}.
 Leave \code{keys_b = NULL} when no bifactor models are required.}
 
+\item{extra}{A string or vector of strings of lavaan code to be appended to the model.
+The argument can be used to set constraints, fix parameters to
+specific values, or allow correlations between item residuals.}
+
 \item{boot}{Numeric or \code{NULL}.
 If \code{NULL}, then bootstrap confidence intervals are not calculated.
 If numeric, then bootstrap confidence intervals are calculated with a number
 of bootstrap samples equal to the value of \code{boot}.}
+
+\item{boot_ci}{Numeric. The confidence interval proportion for bootstrap CIs.
+Irrelevant if \code{boot = NULL}.}
 
 \item{seed}{A number used in \code{\link[=set.seed]{set.seed()}} for bootstrap data selection.
 Defaults to \code{NA} indicating a random}
