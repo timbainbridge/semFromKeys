@@ -189,6 +189,7 @@ r2.change <- function(
   keys_b <- keys_b[names(keys_b) %in% c(X, Y, Z)]
   keys_c <- keys[names(keys) %in% c(X, Y, Z) &
                    !names(keys) %in% c(names(keys_g), names(keys_b))]
+  keys_s <- c(unlist(keys_g), unlist(keys_c))
 
   ext.r2 <- function(par, Y) {
     ##### Adapted from sem.path #####
@@ -206,19 +207,24 @@ r2.change <- function(
     ##### Adapted from sem.path #####
   }
 
-  dr2 <- function(
-    data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys, ex = extra,
-    fs = FALSE, fm = fit_measures, pro = FALSE,
+  mm <- function(
+    data, pro = progress,
+    kc = keys_c, kg = keys_g, kb = keys_b, k = keys, ex = extra,
     m = miss, est0 = est, ord = ordered,
-    n = name, boot_n = 0, check0 = check, so = save_out
+    n = name, boot_n = 0, check0 = check, so = FALSE, boot = boot
   ) {
+    check1 <- ifelse(boot_n == 0, check0, FALSE)
+    so1 <- ifelse(boot_n == 0, so, FALSE)
+    if (pro & boot_n %in% round((0:(boot/10)*10) + 1, 0)) {
+      message(boot_n, " / ", boot)
+    }
     # At least one CFA measurement model
     if (length(kc) > 0) {
       cfa_fit <- suppressMessages(
         cfa.from.keys(
           kc, data, extra = ex, fit_save = FALSE, progress = FALSE,
           miss = m, est = est0, ordered = ord,
-          name = paste0(n, "_c", boot_n), check = check0, save_out = so
+          name = paste0(n, "_c"), check = check1, save_out = so1
         )
       )
     }
@@ -228,7 +234,7 @@ r2.change <- function(
         bifactor.from.keys(
           kg, kb, k, data, extra = ex, fit_save = FALSE,
           progress = FALSE, miss = m, est = est0, ordered = ord,
-          name = paste0(n, "_b", boot_n), check = check0, save_out = so
+          name = paste0(n, "_b"), check = check1, save_out = so1
         )
       )
     }
@@ -269,32 +275,39 @@ r2.change <- function(
           paste(mods_b, collapse = "\n"), "\n",
           c(
             paste(Y, "~", paste(Z, collapse = " + "), "+", X),
-            paste(Y, "~", paste(Z, collapse = " + "), "\n", Y, "~~", X)
+            paste0(Y, " ~ ", paste(Z, collapse = " + "), "\n", Y, " ~~ ", X)
           )
         )
       )
       names(mods) <- c("full", "reduced")
+      return(mods)
     } else {
-      mods <- list(
-        full = paste0(
-          paste(mods_c, collapse = "\n"), "\n",
-          paste(mods_b, collapse = "\n"), "\n",
-          paste(Y, "~", paste(Z, collapse = " + "), "+", X)
-        )
+      paste0(
+        paste(mods_c, collapse = "\n"), "\n",
+        paste(mods_b, collapse = "\n"), "\n",
+        paste(Y, "~", paste(Z, collapse = " + "), "+", X)
       )
     }
-    if (boot_n != 0) message("Running bootstrap model ", boot_n)
-    fit <- sem.check(
-      mods, data,
-      keys_s = stats::setNames(
-        rep(list(unique(c(unlist(kc), unlist(kg)))), length(mods)),
-        nm = names(mods)
-      ),
-      fit_save = fs, fit_measures = fm,
-      miss = m, est = est0, std.lv = FALSE, ordered = ord,
-      orthogonal = FALSE,
-      name = paste0(n, "_", boot_n), check = check0, save_out = so,
-      use_sam = FALSE
+  }
+
+  dr2 <- function(
+    mods, data, boot_n = 0, pro = progress, ks = keys_s, ex = extra,
+    fs = FALSE, fm = fit_measures, m = miss, est0 = est, ord = ordered,
+    n = name, check0 = check, so = save_out, boot = boot
+  ) {
+    check1 <- ifelse(boot_n == 0, check0, FALSE)
+    so1 <- ifelse(boot_n == 0, so, FALSE)
+    ks1 <- rep(list(ks), length(mods))
+    names(ks1) <- names(mods)
+    if (pro & boot_n %in% round((0:(boot/10)*10) + 1, 0)) {
+      message(boot_n, " / ", boot)
+    }
+    fit <- suppressMessages(
+      sem.check(
+        mods, data, keys_s = ks, fit_save = fs, fit_measures = fm,
+        miss = m, est = est0, std.lv = FALSE, ordered = ord, orthogonal = FALSE,
+        name = n, check = check1, save_out = so1
+      )
     )
     full_out <- ext.r2(fit$par_std$full, Y)
     cm <- lavaan::lavInspect(fit$fit$full, what = "cor.all")
@@ -314,13 +327,65 @@ r2.change <- function(
       )
     }
   }
-  base <- dr2(data, boot_n = 0)
-  # TODO: Bootstraps. Initially just use the standard check, save_out for these.
-  # TODO: Add issue to github to change this to do the checks prior to running
-  # sem.check. The rationale is to save the time running through all the
-  # sem.check code and to save the space of saving all the sem.check inputs and
-  # outputs. This should be possible here (while not elsewhere) because all the
-  # bootstrap inputs can be checked before entering anything into sem.check.
-  # TODO: Perhaps create a function to do the checks. This could be useful for
-  # users also (to see if something will run without actually running it).
+  if (progress) {
+    message("Running baseline models")
+  }
+  base_m <- mm(data, boot_n = 0)
+  base_dr2 <- dr2(base_m, data)
+  if (is.null(boot)) return(base_dr2)
+  if (check | save_out) {
+    found <- FALSE
+    for (i in 1:5) {
+      env <- parent.frame(i)
+      if (exists(".cache_env", envir = env)) {
+        found <- TRUE
+        break
+      }
+    }
+    if (!found) {
+      stop(
+        paste(
+          "A cache directory is not configured so cannot be used.",
+          "Use the 'cache.setup()' function to configure a cache directory."
+        )
+      )
+    }
+    cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
+    check_b <- check.cache(
+      name = name,
+      miss = miss,
+      est = est,
+      std = std,
+      std.lv = std.lv,
+      orthogonal = orthogonal,
+      ordered = ordered,
+      data = data,
+      keys_s = c(unlist(keys), unlist(keys_g), unlist(keys_b)),
+      seed = seed
+    )
+    if (check_b$param_test & check_b$d_test) {
+      if (file.exists(file.path(cache_dir, name, paste0(name, "_dr2.rds")))) {
+        return(file.path(cache_dir, name, paste0(name, "_dr2.rds")))
+      }
+    }
+  }
+  # Select bootstrap samples
+  if (!is.null(seed)) set.seed(seed)
+  boot_samples <- sapply(
+    1:boot, function(x) sample(nrow(data), nrow(data), TRUE)
+  )
+  message("Running bootstrap measurement models")
+  boot_m <- sapply(
+    1:boot, function(x) mm(data[boot_samples[, x], ], boot_n = x)
+  )
+  names(boot_m) <- paste0("M", 1:boot)
+  message("Running bootstrap structural models")
+  boot_fit <- dr2(
+
+  )
+
+  # TODO
+  # TODO: 'data' in sem.check must be able to be selected or entered as a list
+  # of datasets. Perhaps easiest to add a row selecting argument.
+  # TODO: Save result
 }
