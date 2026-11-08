@@ -488,7 +488,7 @@ sem.check <- function(
     checkout <- check.cache(
       name = name, mods = mods, miss = miss, est = est, std = std,
       std.lv = std.lv, orthogonal = orthogonal, ordered = ordered,
-      data = data, keys_s = keys_s, keys_e = keys_e, fit_measures = fit_measures
+      data = data, keys_s = keys_s, keys_e = keys_e
     )
     m_test <- checkout$m_test
     d_test <- checkout$d_test
@@ -526,7 +526,7 @@ sem.check <- function(
         md5(paste(data[c(keys_s[[x]], unlist(keys_e))], collapse = ""))
       }
     )
-    params <- c(
+    params <- list(
       miss = miss, est = est, std = std, std.lv = std.lv,
       orthogonal = orthogonal, ordered = ordered
     )
@@ -958,7 +958,7 @@ check.cache <- function(
     name, mods = NULL,
     miss = NULL, est = NULL, std = NULL, std.lv = NULL, orthogonal = NULL,
     ordered = NULL,
-    data = NULL, keys_s = NULL, keys_e = NULL, fit_measures = NULL, seed = NULL
+    data = NULL, keys_s = NULL, keys_e = NULL, seed = NULL
 ) {
   found <- FALSE
   for (i in 1:5) {
@@ -1050,7 +1050,7 @@ check.cache <- function(
       }
     }
   }
-  params <- c(
+  params <- list(
     miss = miss, est = est, std = std, std.lv = std.lv,
     orthogonal = orthogonal, ordered = ordered, seed = seed
   )
@@ -1059,8 +1059,10 @@ check.cache <- function(
       params0 <- readRDS(
         file.path(cache_dir, name, paste0(name, "_params.rds"))
       )
-      if (length(params0) == length(params)) {
-        param_test <- ifelse(sum(params0 != params) > 0, FALSE, TRUE)
+      if (length(unlist(params0)) == length(unlist(params))) {
+        param_test <- ifelse(
+          sum(unlist(params0) != unlist(params)) > 0, FALSE, TRUE
+        )
       } else {
         param_test <- FALSE
       }
@@ -1111,6 +1113,11 @@ check.cache <- function(
       par0 <- readRDS(file.path(cache_dir, name, paste0(name, "_par.rds")))
     } else {
       par0 <- FALSE
+    }
+    if (file.exists(file.path(cache_dir, name, paste0(name, "_fit_m.rds")))) {
+      fit_m0 <- readRDS(
+        file.path(cache_dir, name, paste0(name, "_fit_m.rds"))
+      )
     }
     # If hashes are correct but the fitted object is moved or deleted, then the
     # fit0 object will be FALSE. To ensure this doesn't break everything, check
