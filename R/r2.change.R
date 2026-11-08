@@ -63,6 +63,10 @@
 # TODO: Add details
 # TODO: Add example
 # TODO: Add boot for bootstrap CIs for DR2.
+# TODO: Is it possible to set up the bootstrap samples first, then run all the
+#       CFA models, all the bifactor models, and all the SEMs, rather than
+#       piecemeal. The advantage would be that all the bootstrap SEMs can be run
+#       in the same instance of sem.check.
 
 r2.change <- function(
     data, X, Y, Z, keys, keys_g = NULL, keys_b = NULL, extra = NULL,

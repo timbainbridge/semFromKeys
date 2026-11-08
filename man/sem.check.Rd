@@ -2,6 +2,7 @@
 % Please edit documentation in R/sem.check.R
 \name{sem.check}
 \alias{sem.check}
+\alias{check.cache}
 \title{Runs lavaan models after checking for code or data changes.}
 \usage{
 sem.check(
@@ -23,6 +24,22 @@ sem.check(
   check = FALSE,
   save_out = FALSE,
   use_sam = FALSE
+)
+
+check.cache(
+  name,
+  mods = NULL,
+  miss = NULL,
+  est = NULL,
+  std = NULL,
+  std.lv = NULL,
+  orthogonal = NULL,
+  ordered = NULL,
+  data = NULL,
+  keys_s = NULL,
+  keys_e = NULL,
+  fit = NULL,
+  seed = NULL
 )
 }
 \arguments{
@@ -125,70 +142,62 @@ a list of parameter estimates from the models (standardized if \code{std = TRUE}
 and, if \code{fit_save = TRUE}, a matrix of fit measures for each model.
 }
 \description{
-sem.check takes a model list, keys lists, and data, and
+\code{sem.check} takes a model list, keys lists, and data, and
 produces outputs from a series of lavaan models.
 The function is primarily used as a function to be called by other function
 within the package but it can also be run independently.
 
-For each model, the code optionally checks for previously saved model code,
-a hash of data, and important parameter inputs.
-If they exist and match values for the current code and data,
-the model is not run, the previous output is loaded instead.
-If either the code has changed, the hash of the data has changed, or
-important parameter inputs have change, or any of these do not exist,
-then the models are run as normal.
+\code{check.cache} looks at previously save model input and outputs and returns
+tests for whether anything has changed. \code{check.cache} is primarily used by
+\code{sem.check} to test whether to re-run models (see details).
 }
 \details{
-The function is largely intended to be used as a helper function to upstream
-functions, including \link{cfa.from.keys}, \link{bifactor.from.keys},
-\link{efa.from.keys}, and \link{esem.from.keys}, among others.
-Although it is recommended to use the appropriate upstream function whenever
-possible, there are not (currently) options to do so when customised lavaan
-models are required (with the exception of the \code{extra} argument in
-\link{sem.path});
-for example, when allowing two items' residuals to correlate in a CFA.
-\code{sem.check} can be used in these cases (see example).
+Both \code{sem.check} and \code{check.cache} are largely intended to be used as helper
+functions to upstream functions.
+\code{sem.check} is the backbone of the package and takes models and keys inputs
+and runs the models; \code{check.cache} generates tests for whether models need to
+be run when \code{check = TRUE}.
 
-Matching the philosophy of the package, the function is designed to run for
+Matching the philosophy of the package, \code{sem.check} is designed to run for
 multiple models with a similar design. If you are using the function for a
 single model, transform inputs into lists as appropriate or simply use lavaan
 without the assistance of semFromKeys.
 
-The function includes functionality designed to save time re-running code
-when lots of slow models are included.
+\code{sem.check} includes functionality designed to save time re-running code.
 To do this, when \code{save_out = TRUE} and a cache directory has been set,
-the model will save various inputs and outputs from the function call, and,
-when \code{check = TRUE}, the model will look for any previously saved outputs
-from earlier model runs in the same cache directory and
-only run again if nothing has changed.
-In cases where something has changed,
-then the function will re-run the models where something has changed
-(but it will not for those where nothing has changed).
+various inputs and outputs from the function call are saved, and,
+when \code{check = TRUE}, \code{check.cache} is used (within \code{sem.check}) to look for
+any previously saved outputs from earlier model runs in the same cache
+directory and only run again if nothing has changed.
+In cases where something has changed, then the function will re-run the
+models where something has changed but it will load the previous output where
+nothing has changed.
 Changes to arguments that influence all lavaan model runs (e.g., miss or est)
 will trigger all models to be re-run.
 
 For either \code{save_out = TRUE} or \code{check = TRUE},
-the function will look for a cache directory set and created by the
+both functions will look for a cache directory, set and created by the
 \link{cache.setup} function.
-If a cache directory has not been set for the current session,
-then the function will exit with an error suggesting that either
-\link{cache.setup} be run or \code{save_out} and \code{check} set to \code{FALSE}.
+If a cache directory has not been set for the current session, then the
+function will exit with an error suggesting that either \link{cache.setup} be run
+or \code{save_out} and \code{check} set to \code{FALSE}.
 
 When the cache directory is found and output from previous runs are detected,
 the comparisons performed are for:
 \itemize{
 \item model code;
 \item hashes of the data (using \link[openssl:md5]{openssl::md5});
-\item values of the \code{miss}, \code{est}, \code{std}, \code{std.lv}, and \code{orthogonal}parameters;
+\item values of the \code{miss}, \code{est}, \code{std}, \code{std.lv}, \code{orthogonal}, \code{ordered}, and
+\code{seed} parameters;
 \item the class of model objects (i.e., class lavaan); and,
 \item the class of parameter estimates (i.e., class lavaan.data.frame).
 }
 
 For most applications, the checking feature can be safely ignored by not
-saving outputs (i.e., \code{fit_save = FALSE})
-and not checking for past saves (i.e., \code{check = FALSE}, both default),
-but may be beneficial in cases with lots of models or very slow models.
-However, the functionality can be safely used for faster runs too.
+saving outputs (i.e., \code{fit_save = FALSE}) and not checking for past saves
+(i.e., \code{check = FALSE}, both default).
+However, the functionality may be beneficial in cases with lots of models or
+very slow models.
 }
 \examples{
 # Create CFA keys
@@ -207,9 +216,9 @@ mods[[1]] <- paste0(mods[[1]], "\ngrit_c_1 ~~ grit_c_2")
 cfa_fit <- sem.check(mods, BFIGritHope, keys, name = "cfa", check = FALSE)
 }
 \seealso{
-\link{cfa.from.keys}, \link{efa.from.keys}, \link{bifactor.from.keys}, \link{esem.from.mods},
-\link{esem.from.keys}, \link{sem.cor}, \link{sem.path}, \link{cache.setup}, \link[lavaan:sem]{lavaan::sem},
-\link[lavaan:sam]{lavaan::sam}, \link[lavaan:efa]{lavaan::efa}, \link[lavaan:parameterEstimates]{lavaan::parameterEstimates},
-\link[lavaan:standardizedSolution]{lavaan::standardizedSolution}, \link[lavaan:fitMeasures]{lavaan::fitMeasures}, \link[openssl:md5]{openssl::md5},
+\link{cfa.from.keys} \link{efa.from.keys} \link{bifactor.from.keys} \link{esem.from.mods}
+\link{esem.from.keys} \link{sem.cor} \link{sem.path} \link{cache.setup} \link[lavaan:sem]{lavaan::sem}
+\link[lavaan:sam]{lavaan::sam} \link[lavaan:efa]{lavaan::efa} \link[lavaan:parameterEstimates]{lavaan::parameterEstimates}
+\link[lavaan:standardizedSolution]{lavaan::standardizedSolution} \link[lavaan:fitMeasures]{lavaan::fitMeasures} \link[openssl:md5]{openssl::md5}
 \link[lavaan:lavOptions]{lavaan::lavOptions}
 }
