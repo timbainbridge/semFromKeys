@@ -98,6 +98,10 @@
 #' Logical.
 #' If `TRUE`, the [lavaan::sam] function is used for model estimation.
 #' If `FALSE`, the [lavaan::sem] function is not used for model estimation.
+#' @param seed
+#' Numeric.
+#' Sets a seed for bootstrap sampling (used in [r2.change]).
+#' Checked it has not changed since last model run in `check.cache`.
 #'
 #' @return
 #' Returns a list of length 2 (if `fit_save = FALSE`) or
@@ -826,7 +830,7 @@ sem.check <- function(
       mapply(
         function(m1, d1, n_mod, fit1, n) {
           # If the model's the same and fit measures exist...
-          if (d1 & m1 & (n_mod %in% rownames(fit_m0)) & param_test) {
+          if (d1 & m1 & param_test) {
             # If fit_measures == "all"
             if (fit_measures[1] == "all") {
               # If existing fit_m0 includes all fit stats...
@@ -954,8 +958,7 @@ check.cache <- function(
     name, mods = NULL,
     miss = NULL, est = NULL, std = NULL, std.lv = NULL, orthogonal = NULL,
     ordered = NULL,
-    data = NULL, keys_s = NULL, keys_e = NULL,
-    fit = NULL, seed = NULL
+    data = NULL, keys_s = NULL, keys_e = NULL, seed = NULL
 ) {
   found <- FALSE
   for (i in 1:5) {
