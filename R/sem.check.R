@@ -543,7 +543,7 @@ sem.check <- function(
           fit0[[n_mod]]
         } else {
           if (progress) {
-            if (length(mods) <= 1000) {
+            if (length(mods) <= 100) {
               # Print progress for every model
               message(paste(n, "/", length(mods), " ", n_mod))
             } else {
@@ -789,7 +789,7 @@ sem.check <- function(
         out <- par0[[n_mod]]
       } else {
         if (progress) {
-          if (length(fit) <= 1000) {
+          if (length(fit) <= 100) {
             # Print progress for every model
             message(paste(n, "/", length(fit), " ", n_mod))
           } else {
@@ -866,7 +866,17 @@ sem.check <- function(
             }
           } else {
             # If the model has changed, recalculate with required fit measures
-            if (progress) message(paste(n, "/", length(fit), " ", n_mod))
+            if (progress) {
+              if (length(fit) <= 100) {
+                # Print progress for every model
+                message(paste(n, "/", length(fit), " ", n_mod))
+              } else {
+                # Print progress for every 10th model (starting from 1)
+                if (n %in% round((0:(length(fit)/10)*10) + 1, 0)) {
+                  message(paste0(n, "/", length(fit), " ", n_mod))
+                }
+              }
+            }
             withCallingHandlers(
               {
                 if (fit_measures[1] == "all") {
@@ -977,11 +987,35 @@ check.cache <- function(
     )
   }
   cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
+  params <- list(
+    miss = miss, est = est, std = std, std.lv = std.lv,
+    orthogonal = orthogonal, ordered = ordered, seed = seed
+  )
+  # If the specific folder does not exist, then checks must fail to find matches
   if (!dir.exists(file.path(cache_dir, name))) {
+    if (!is.null(mods)) {
+      m_test <- FALSE
+      fit_type <- FALSE
+      par_type <- FALSE
+    } else {
+      m_test <- NULL
+      fit_type <- NULL
+      par_type <- NULL
+    }
+    if (sum(sapply(params, function(x) !is.null(x))) == 0) {
+      param_test <- NULL
+    } else {
+      param_test <- FALSE
+    }
+    if (!is.null(data)) {
+      d_test <- FALSE
+    } else {
+      d_test <- NULL
+    }
     return(
       list(
-        m_test = FALSE, param_test = FALSE, d_test = FALSE,
-        fit_type = FALSE, par_type = FALSE
+        m_test = m_test, param_test = param_test, d_test = d_test,
+        fit_type = fit_type, par_type = par_type
       )
     )
   }
@@ -1050,10 +1084,6 @@ check.cache <- function(
       }
     }
   }
-  params <- list(
-    miss = miss, est = est, std = std, std.lv = std.lv,
-    orthogonal = orthogonal, ordered = ordered, seed = seed
-  )
   if (!is.null(params)) {
     if (file.exists(file.path(cache_dir, name, paste0(name, "_params.rds")))) {
       params0 <- readRDS(

@@ -38,7 +38,6 @@ check.cache(
   data = NULL,
   keys_s = NULL,
   keys_e = NULL,
-  fit_measures = NULL,
   seed = NULL
 )
 }
