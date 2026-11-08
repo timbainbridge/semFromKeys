@@ -45,6 +45,10 @@
 #' Each list element must be a vector of group factors.
 #' `keys_b` must be the same length as `keys_g`.
 #' Leave `keys_b = NULL` when no bifactor models are required.
+#' @param extra
+#' A string or vector of strings of lavaan code to be appended to the model.
+#' The argument can be used to set constraints, fix parameters to
+#' specific values, or allow correlations between item residuals.
 #'
 #' @return
 #' A list of length X.
@@ -203,7 +207,7 @@ r2.change <- function(
     data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys, ex = extra,
     fs = FALSE, fm = fit_measures, pro = FALSE,
     m = miss, est0 = est, ord = ordered,
-    name = n, boot_n = 0, check0 = check, so = save_out
+    n = name, boot_n = 0, check0 = check, so = save_out
   ) {
     # At least one CFA measurement model
     if (length(kc) > 0) {
@@ -279,7 +283,7 @@ r2.change <- function(
     if (boot_n != 0) message("Running bootstrap model ", boot_n)
     fit <- sem.check(
       mods, data,
-      keys_s = setNames(
+      keys_s = stats::setNames(
         rep(list(unique(c(unlist(kc), unlist(kg)))), length(mods)),
         nm = names(mods)
       ),
