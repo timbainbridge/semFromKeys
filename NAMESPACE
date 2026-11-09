@@ -14,6 +14,7 @@ export(sem.path)
 importFrom(Matrix,nearPD)
 importFrom(lavaan,
   fitMeasures,
+  lavInspect,
   parameterEstimates,
   sam,
   sem,

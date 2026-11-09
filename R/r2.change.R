@@ -66,6 +66,8 @@
 #'
 #' @seealso
 #' [cache.setup()] [sem.check()] [cfa.from.keys()] [bifactor.from.keys()]
+#'
+#' @importFrom lavaan lavInspect
 
 # TODO: Add details
 # TODO: Add example
@@ -220,23 +222,39 @@ r2.change <- function(
     }
     # At least one CFA measurement model
     if (length(kc) > 0) {
-      cfa_fit <- suppressMessages(
-        cfa.from.keys(
-          kc, data, extra = ex, fit_save = FALSE, progress = FALSE,
-          miss = m, est = est0, ordered = ord,
-          name = paste0(n, "_c"), check = check1, save_out = so1
+      cfa_fit <- suppressWarnings(
+        suppressMessages(
+          cfa.from.keys(
+            kc, data, extra = ex, fit_save = FALSE, progress = FALSE,
+            miss = miss, est = est0, ordered = ord,
+            name = paste0(n, "_c"), check = check1, save_out = so1
+          )
         )
       )
+      if (boot_n > 0) {
+        pc <- sapply(
+          cfa_fit$fit, function(x) lavInspect(x, what = "post.check")
+        )
+        if (sum(!pc) > 0) return(FALSE)
+      }
     }
     # At least one bifactor model
     if (length(kg) > 0) {
-      bif_fit <- suppressMessages(
-        bifactor.from.keys(
-          kg, kb, k, data, extra = ex, fit_save = FALSE,
-          progress = FALSE, miss = m, est = est0, ordered = ord,
-          name = paste0(n, "_b"), check = check1, save_out = so1
+      bif_fit <- suppressWarnings(
+        suppressMessages(
+          bifactor.from.keys(
+            kg, kb, k, data, extra = ex, fit_save = FALSE,
+            progress = FALSE, miss = miss, est = est0, ordered = ord,
+            name = paste0(n, "_b"), check = check1, save_out = so1
+          )
         )
       )
+      if (boot_n > 0) {
+        pc <- sapply(
+          bif_fit$fit, function(x) lavInspect(x, what = "post.check")
+        )
+        if (sum(!pc) > 0) return(FALSE)
+      }
     }
     if (exists("cfa_fit")) {
       mods_c <- sapply(
@@ -292,25 +310,26 @@ r2.change <- function(
 
   dr2 <- function(
     mods, data, boot_n = 0, pro = progress, ks = keys_s, ex = extra,
-    fs = FALSE, fm = fit_measures, m = miss, est0 = est, ord = ordered,
+    fs = FALSE, fm = fit_measures, miss = miss, est0 = est, ord = ordered,
     n = name, check0 = check, so = save_out, boot = boot
   ) {
     check1 <- ifelse(boot_n == 0, check0, FALSE)
     so1 <- ifelse(boot_n == 0, so, FALSE)
-    ks1 <- rep(list(ks), length(mods))
-    names(ks1) <- names(mods)
-    if (pro & boot_n %in% round((0:(boot/10)*10) + 1, 0)) {
-      message(boot_n, " / ", boot)
-    }
-    fit <- suppressMessages(
-      sem.check(
-        mods, data, keys_s = ks, fit_save = fs, fit_measures = fm,
-        miss = m, est = est0, std.lv = FALSE, ordered = ord, orthogonal = FALSE,
-        name = n, check = check1, save_out = so1
+    fit <- suppressWarnings(
+      suppressMessages(
+        sem.check(
+          mods, data, keys_s = ks, fit_save = fs, fit_measures = fm,
+          miss = miss, est = est0, std.lv = FALSE, ordered = ord,
+          orthogonal = FALSE,
+          name = n, check = check1, save_out = so1
+        )
       )
     )
-    full_out <- ext.r2(fit$par_std$full, Y)
-    cm <- lavaan::lavInspect(fit$fit$full, what = "cor.all")
+    pc <- sapply(fit$fit, lavInspect, what = "post.check")
+    if (sum(!pc) > 0) return()
+    mod_f_n <- grep("full", names(fit$par_std))
+    full_out <- ext.r2(fit$par_std[[mod_f_n]], Y)
+    cm <- lavaan::lavInspect(fit$fit[[mod_f_n]], what = "cor.all")
     yy <- cm[Y, Y, drop = FALSE]
     zz <- cm[Z, Z, drop = FALSE]
     zy <- cm[Z, Y, drop = FALSE]
@@ -327,11 +346,16 @@ r2.change <- function(
       )
     }
   }
+
   if (progress) {
     message("Running baseline models")
   }
-  base_m <- mm(data, boot_n = 0)
-  base_dr2 <- dr2(base_m, data)
+  base_m <- mm(data, boot_n = 0, boot = boot)
+  base_dr2 <- dr2(
+    base_m, data, ks = stats::setNames(rep(list(keys_s), 2), names(base_m)),
+    miss = miss
+  )
+  if (!base_dr2) stop("Baseline model failed to converge")
   if (is.null(boot)) return(base_dr2)
   if (check | save_out) {
     found <- FALSE
@@ -375,16 +399,30 @@ r2.change <- function(
     1:boot, function(x) sample(nrow(data), nrow(data), TRUE)
   )
   message("Running bootstrap measurement models")
-  boot_m <- sapply(
+  boot_m <- lapply(
     1:boot, function(x) mm(data[boot_samples[, x], ], boot_n = x)
   )
-  names(boot_m) <- paste0("M", 1:boot)
+  names(boot_m) <- paste0("B", 1:boot, "_full")
   message("Running bootstrap structural models")
-  boot_fit <- dr2(
-
+  boot_fit <- mapply(
+    m = boot_m, s = as.data.frame(boot_samples), b = 1:boot,
+    FUN = function(m, s, b) {
+      m1 <- list(m)
+      names(m1) <- paste0("B", b, "_full")
+      ks <- list(keys_s)
+      names(ks) <- paste0("B", b, "_full")
+      if (progress & b %in% round((0:(boot/10)*10) + 1, 0)) {
+        message(boot_n, " / ", boot)
+      }
+      dr2(
+        m1, data[s, ], boot_n = b, ks = ks, ex = extra,
+        fs = FALSE, check0 = FALSE, so = FALSE, boot = boot,
+        pro = progress, miss = miss, est0 = est, ord = ordered
+      )
+    }
   )
 
-  # TODO
+  # TODO: Add postchecks in bifactor and CFA models. Exclude those that fail.
   # TODO: 'data' in sem.check must be able to be selected or entered as a list
   # of datasets. Perhaps easiest to add a row selecting argument.
   # TODO: Save result
