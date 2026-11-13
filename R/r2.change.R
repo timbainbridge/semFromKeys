@@ -68,7 +68,6 @@
 #' [cache.setup()] [sem.check()] [cfa.from.keys()] [bifactor.from.keys()]
 #'
 #' @importFrom lavaan lavInspect
-#' @importFrom boot norm.inter
 
 # TODO: Add details
 # TODO: Add example
@@ -488,7 +487,7 @@ r2.change <- function(
     )
   }
   alp <- (1 + c(-boot_ci, boot_ci))/2
-  ni <- norm.inter(boot_dr2)
+
 
   # TODO: Save DR2s (all values so boot_ci can be changed without rerunning
   #       everything)
