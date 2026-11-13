@@ -488,7 +488,43 @@ r2.change <- function(
   }
   alp <- (1 + c(-boot_ci, boot_ci))/2
 
+  ##### Copied from boot's internal function, i.e., boot:::norm.inter #####
+  norm.inter <- function (t, alpha) {
+    t <- t[is.finite(t)]
+    R <- length(t)
+    rk <- (R + 1) * alpha
+    if (!all(rk > 1 & rk < R))
+      warning("extreme order statistics used as endpoints")
+    k <- trunc(rk)
+    inds <- seq_along(k)
+    out <- inds
+    kvs <- k[k > 0 & k < R]
+    tstar <- sort(t, partial = sort(union(c(1, R), c(kvs, kvs + 1))))
+    ints <- (k == rk)
+    if (any(ints)) {
+      out[inds[ints]] <- tstar[k[inds[ints]]]
+    }
+    out[k == 0] <- tstar[1L]
+    out[k == R] <- tstar[R]
+    not <- function(v) xor(rep(TRUE, length(v)), v)
+    temp <- inds[not(ints) & k != 0 & k != R]
+    temp1 <- qnorm(alpha[temp])
+    temp2 <- qnorm(k[temp]/(R + 1))
+    temp3 <- qnorm((k[temp] + 1)/(R + 1))
+    tk <- tstar[k[temp]]
+    tk1 <- tstar[k[temp] + 1L]
+    out[temp] <- tk + (temp1 - temp2)/(temp3 - temp2) * (tk1 - tk)
+    cbind(round(rk, 2), out)
+  }
+  ##### Copied from boot's internal function, i.e., boot:::norm.inter #####
 
-  # TODO: Save DR2s (all values so boot_ci can be changed without rerunning
-  #       everything)
+  dr2_ci <- norm.inter(na.omit(boot_dr2), alp)[, 2]
+  cv <- sum(!is.na(boot_dr2))
+  base_dr2$dr2 <- data.frame(
+    c(
+      base_dr2$dr2, lower_ci = list(dr2_ci[1]), upper_ci = list(dr2_ci[2]),
+      converged = list(cv)
+    )
+  )
+  base_dr2
 }
