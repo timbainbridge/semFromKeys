@@ -1,15 +1,18 @@
-#' Runs incremental validity analysis using latent variables and fitted
-#' measurement models
+#' Run incremental validity analysis using latent variables
 #'
 #' @description
 #' Incremental validity using standard linear regressions is invalid with less
-#' than perfect reliability. Latent variable models must be used instead.
+#' than perfect (or close to perfect) reliability.
+#' Latent variable models must be used instead.
 #' However, this is difficult, especially if confidence intervals are required,
 #' which can only be created with bootstrap sampling.
 #'
 #' `r2.change` streamlines the process of running incremental validity
 #' analyses with latent variables, including generating bootstrap confidence
 #' intervals.
+#'
+#' Inspired by work from Hayes (2021).
+#' Uses a internal function copied from `boot`.
 #'
 #' @inheritParams sem.check
 # #' @param cfa_fit A named list of fitted lavaan objects of CFA models.
@@ -45,6 +48,10 @@
 #' Each list element must be a vector of group factors.
 #' `keys_b` must be the same length as `keys_g`.
 #' Leave `keys_b = NULL` when no bifactor models are required.
+#' @param items
+#' A vector of single-item variables to include as X or Y, or to include in Z.
+#' `items` must not include any items contributing to the measurement of any
+#' latent variable.
 #' @param extra
 #' A string or vector of strings of lavaan code to be appended to the model.
 #' The argument can be used to set constraints, fix parameters to
@@ -77,7 +84,8 @@
 # TODO: Add more advanced warnings to boot_m code.
 
 r2.change <- function(
-    data, X, Y, Z, keys, keys_g = NULL, keys_b = NULL, extra = NULL,
+    data, X, Y, Z, keys, keys_g = NULL, keys_b = NULL, items = NULL,
+    extra = NULL,
     boot = NULL, boot_ci = .95, seed = NULL,
     fit_save = TRUE, fit_measures = "all", progress = TRUE,
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
@@ -156,54 +164,97 @@ r2.change <- function(
       }
     }
   }
-
-
-  # TODO: Is some pre-treatment of extra required to sort CFA extra, bifactor
-  #       extra, and inter-model extra?
-
-  # #### Copied from cfa.from.keys #####
-  # if (!is.null(extra)) {
-  #   # Removal all fixed values and parameter names; remove punctuation
-  #   extra_vars <- lapply(
-  #     extra,
-  #     function(y) {
-  #       tmp <- stringr::str_split(
-  #         gsub("((\\+|~~|~).*?(\\*))", " ", y), "\\+|~|=|\n| ", simplify = TRUE
-  #       )
-  #       tmp[tmp != ""]
-  #     }
-  #   )
-  #   extra_vars1 <- unique(unlist(extra_vars))
-  #   extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(items)]
-  #   if (length(extra_vars2) > 0) {
-  #     if (length(extra_vars2) > 1) {
-  #       stop(
-  #         paste0(
-  #           "The following items were found in 'extra' but do not match ",
-  #           "either a variable name in 'keys' or standard lavaan code.",
-  #           "\n\n    ", paste(extra_vars2, collapse = ", ")
-  #         )
-  #       )
-  #     } else {
-  #       stop(
-  #         paste0(
-  #           "'", extra_vars2, "' was found in 'extra' but does not match ",
-  #           "either a variable name in 'keys', 'keys_g', or standard lavaan ",
-  #           "code."
-  #         )
-  #       )
-  #     }
-  #   }
-  # }
-  # #### Copied from cfa.from.keys #####
-
   # Only keep required models
   keys_g <- keys_g[names(keys_g) %in% c(X, Y, Z)]
   keys_b <- keys_b[names(keys_b) %in% c(X, Y, Z)]
   keys_c <- keys[names(keys) %in% c(X, Y, Z) &
                    !names(keys) %in% c(names(keys_g), names(keys_b))]
-  keys_s <- c(unlist(keys_g), unlist(keys_c))
+  items <- items[items %in% c(X, Y, Z)]
+  keys_s <- c(unlist(keys_g), unlist(keys_c), items)
+  if (sum(items %in% unlist(keys_c)) > 0) {
+    stop(
+      paste(
+        "At least one element of 'items' is in 'keys'.",
+        "Items must not be in any latent variable."
+      )
+    )
+  }
+  if (sum(items %in% unlist(keys_g)) > 0) {
+    stop(
+      paste(
+        "At least one element of 'items' is in 'keys_g'.",
+        "Items must not be in any latent variable."
+      )
+    )
+  }
 
+  # TODO: Is some pre-treatment of extra required to sort CFA extra, bifactor
+  #       extra, and inter-model extra?
+
+  if (!is.null(extra)) {
+
+    #### Adapted from cfa.from.keys #####
+    # Removal all fixed values and parameter names; remove punctuation
+    extra_vars <- lapply(
+      extra,
+      function(y) {
+        tmp <- stringr::str_split(
+          gsub("((\\+|~~|~).*?(\\*))", " ", y), "\\+|~|=|\n| ", simplify = TRUE
+        )
+        tmp[tmp != ""]
+      }
+    )
+    extra_vars1 <- unique(unlist(extra_vars))
+    extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(keys_s)]
+    if (length(extra_vars2) > 0) {
+      if (length(extra_vars2) > 1) {
+        stop(
+          paste0(
+            "The following items were found in 'extra' but do not match ",
+            "either a variable name in 'keys' or standard lavaan code.",
+            "\n\n    ", paste(extra_vars2, collapse = ", ")
+          )
+        )
+      } else {
+        stop(
+          paste0(
+            "'", extra_vars2, "' was found in 'extra' but does not match ",
+            "either a variable name in 'keys', 'keys_g', or standard lavaan ",
+            "code."
+          )
+        )
+      }
+    }
+    mod_extra_c <- unlist(
+      sapply(
+        keys_c,
+        function(k) {
+          tmp <- mapply(
+            xv = extra_vars, x = extra,
+            FUN = function(xv, x) if (sum(!xv %in% k) == 0) x else ""
+          )
+          tmp[tmp != ""]
+        }
+      )
+    )
+    #### Adapted from cfa.from.keys #####
+
+    mod_extra_b <- unlist(
+      sapply(
+        keys_g,
+        function(k) {
+          tmp <- mapply(
+            xv = extra_vars, x = extra,
+            FUN = function(xv, x) if (sum(!xv %in% k) == 0) x else ""
+          )
+          tmp[tmp != ""]
+        }
+      )
+    )
+    mod_extra_gen <- unlist(
+      sapply(extra, function(x) x[!x %in% c(mod_extra_c, mod_extra_b)])
+    )
+  }
   ext.r2 <- function(par, Y) {
     ##### Adapted from sem.path #####
     xr <- par[par$op == "~~" & par$lhs == par$rhs & par$lhs %in% Y, ]
@@ -221,7 +272,8 @@ r2.change <- function(
   }
 
   mm <- function(
-    data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys, ex = extra,
+    data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys,
+    ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen,
     pro = progress, m = miss, est0 = est, ord = ordered,
     n = name, boot_n = 0, check0 = check, so = FALSE, boot = boot
   ) {
@@ -232,7 +284,7 @@ r2.change <- function(
       cfa_fit <- suppressWarnings(
         suppressMessages(
           cfa.from.keys(
-            kc, data, extra = ex, fit_save = FALSE, progress = FALSE,
+            kc, data, extra = ex_c, fit_save = FALSE, progress = FALSE,
             miss = miss, est = est0, ordered = ord,
             name = paste0(n, "_c"), check = check1, save_out = so1
           )
@@ -250,7 +302,7 @@ r2.change <- function(
       bif_fit <- suppressWarnings(
         suppressMessages(
           bifactor.from.keys(
-            kg, kb, k, data, extra = ex, fit_save = FALSE,
+            kg, kb, k, data, extra = ex_b, fit_save = FALSE,
             progress = FALSE, miss = miss, est = est0, ordered = ord,
             name = paste0(n, "_b"), check = check1, save_out = so1
           )
@@ -298,6 +350,7 @@ r2.change <- function(
         paste0(
           paste(mods_c, collapse = "\n"), "\n",
           paste(mods_b, collapse = "\n"), "\n",
+          ex, "\n",
           c(
             paste(Y, "~", paste(Z, collapse = " + "), "+", X),
             paste0(Y, " ~ ", paste(Z, collapse = " + "), "\n", Y, " ~~ ", X)
@@ -310,6 +363,7 @@ r2.change <- function(
       paste0(
         paste(mods_c, collapse = "\n"), "\n",
         paste(mods_b, collapse = "\n"), "\n",
+        ex, "\n",
         paste(Y, "~", paste(Z, collapse = " + "), "+", X)
       )
     }
@@ -493,8 +547,9 @@ r2.change <- function(
     t <- t[is.finite(t)]
     R <- length(t)
     rk <- (R + 1) * alpha
-    if (!all(rk > 1 & rk < R))
+    if (!all(rk > 1 & rk < R)) {
       warning("extreme order statistics used as endpoints")
+    }
     k <- trunc(rk)
     inds <- seq_along(k)
     out <- inds
