@@ -1097,7 +1097,11 @@ check.cache <- function(
         param_test <- FALSE
       }
     } else {
-      param_test <- FALSE
+      if (file.exists(file.path(cache_dir, name, "params.rds"))) {
+        readRDS(file.path(cache_dir, name, "params.rds"))
+      } else {
+        param_test <- FALSE
+      }
     }
   } else {
     param_test <- NULL
@@ -1142,7 +1146,17 @@ check.cache <- function(
     if (file.exists(file.path(cache_dir, name, paste0(name, "_par.rds")))) {
       par0 <- readRDS(file.path(cache_dir, name, paste0(name, "_par.rds")))
     } else {
-      par0 <- FALSE
+      # Legacy support for files saved with std = TRUE (prior to 0.5.7)
+      if (
+        file.exists(file.path(cache_dir, name, paste0(name, "_par_std.rds"))) &
+        std == TRUE
+      ) {
+        par0 <- readRDS(
+          file.path(cache_dir, name, paste0(name, "_par_std.rds"))
+        )
+      } else {
+        par0 <- FALSE
+      }
     }
     if (file.exists(file.path(cache_dir, name, paste0(name, "_fit_m.rds")))) {
       fit_m0 <- readRDS(
