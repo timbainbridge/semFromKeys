@@ -68,14 +68,14 @@
 #' [cache.setup()] [sem.check()] [cfa.from.keys()] [bifactor.from.keys()]
 #'
 #' @importFrom lavaan lavInspect
+#' @importFrom boot norm.inter
 
 # TODO: Add details
 # TODO: Add example
 # TODO: Add boot for bootstrap CIs for DR2.
-# TODO: Is it possible to set up the bootstrap samples first, then run all the
-#       CFA models, all the bifactor models, and all the SEMs, rather than
-#       piecemeal. The advantage would be that all the bootstrap SEMs can be run
-#       in the same instance of sem.check.
+# TODO: Check 'extra' code for errors, remove irrelevant 'extra' code.
+# TODO: Add 'extra' code to end of model
+# TODO: Add more advanced warnings to boot_m code.
 
 r2.change <- function(
     data, X, Y, Z, keys, keys_g = NULL, keys_b = NULL, extra = NULL,
@@ -124,23 +124,35 @@ r2.change <- function(
     )
   }
   if (!is.null(boot)) {
-    boot_min <- 2 / (1 - boot_ci)
-    if (boot < boot_min) {
+    if (nrow(data) < 200) {
+      warning(
+        paste(
+          "'data' has < 200 rows.",
+          "Using bootstraps may results in many models that fail to converge",
+          "or other issues.",
+          "Please examine the results carefully."
+        )
+      )
+    }
+    boot_min <- max(2 / (1 - boot_ci), 12)
+    if (boot < 5 * boot_min) {
       warning(
         paste(
           "The number of bootstraps relative to the 'boot_ci' means that",
           "maximum and minimum bootstrap values will be used and confidence",
           "intervals will be unreliable.",
-          "Consider using", boot_min * 5, "or more for 'boot'."
+          "Consider using", boot_min * 12.5, "or more for 'boot'."
         )
       )
     } else {
-      if (boot < 5 * boot_min) {
+      if (boot < 12.5 * boot_min) {
         warning(
-          "The number of bootstraps relative to 'boot_ci' is small,",
-          "meaning only a few values will fall outside the confidence interval,",
-          "so interval values may not be reliable.",
-          "Consider using", boot_min * 5, "or more for 'boot'."
+          paste0(
+            "The number of bootstraps relative to 'boot_ci' is small, ",
+            "meaning only a few values will fall outside the confidence ",
+            "interval, so interval values may not be reliable.\n",
+            "Consider using at least ", boot_min * 12.5, " for 'boot'."
+          )
         )
       }
     }
@@ -210,16 +222,12 @@ r2.change <- function(
   }
 
   mm <- function(
-    data, pro = progress,
-    kc = keys_c, kg = keys_g, kb = keys_b, k = keys, ex = extra,
-    m = miss, est0 = est, ord = ordered,
+    data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys, ex = extra,
+    pro = progress, m = miss, est0 = est, ord = ordered,
     n = name, boot_n = 0, check0 = check, so = FALSE, boot = boot
   ) {
     check1 <- ifelse(boot_n == 0, check0, FALSE)
     so1 <- ifelse(boot_n == 0, so, FALSE)
-    if (pro & boot_n %in% round((0:(boot/10)*10) + 1, 0)) {
-      message(boot_n, " / ", boot)
-    }
     # At least one CFA measurement model
     if (length(kc) > 0) {
       cfa_fit <- suppressWarnings(
@@ -308,54 +316,39 @@ r2.change <- function(
     }
   }
 
-  dr2 <- function(
-    mods, data, boot_n = 0, pro = progress, ks = keys_s, ex = extra,
-    fs = FALSE, fm = fit_measures, miss = miss, est0 = est, ord = ordered,
-    n = name, check0 = check, so = save_out, boot = boot
-  ) {
-    check1 <- ifelse(boot_n == 0, check0, FALSE)
-    so1 <- ifelse(boot_n == 0, so, FALSE)
-    fit <- suppressWarnings(
-      suppressMessages(
-        sem.check(
-          mods, data, keys_s = ks, fit_save = fs, fit_measures = fm,
-          miss = miss, est = est0, std.lv = FALSE, ordered = ord,
-          orthogonal = FALSE,
-          name = n, check = check1, save_out = so1
-        )
-      )
-    )
-    pc <- sapply(fit$fit, lavInspect, what = "post.check")
-    if (sum(!pc) > 0) return()
-    mod_f_n <- grep("full", names(fit$par_std))
-    full_out <- ext.r2(fit$par_std[[mod_f_n]], Y)
-    cm <- lavaan::lavInspect(fit$fit[[mod_f_n]], what = "cor.all")
-    yy <- cm[Y, Y, drop = FALSE]
-    zz <- cm[Z, Z, drop = FALSE]
-    zy <- cm[Z, Y, drop = FALSE]
-    b <- solve(zz, zy)
-    r2_reduced <- colSums(b * zy)/diag(yy)
-    dr2 <- full_out$r2$R2 - r2_reduced
-    if (boot_n != 0) return(dr2) else {
-      return(
-        c(
-          fit,
-          full = list(full_out), reduced = list(ext.r2(fit$par_std$reduced, Y)),
-          dr2 = list(c(r2 = r2_reduced[[1]], dr2 = dr2[[1]]))
-        )
-      )
-    }
-  }
-
   if (progress) {
     message("Running baseline models")
   }
-  base_m <- mm(data, boot_n = 0, boot = boot)
-  base_dr2 <- dr2(
-    base_m, data, ks = stats::setNames(rep(list(keys_s), 2), names(base_m)),
-    miss = miss
+  base_m <- mm(data, boot_n = 0)
+  ks <- stats::setNames(rep(list(keys_s), 2), names(base_m))
+  base_f <- sem.check(
+    base_m, data, keys_s = ks, fit_save = fit_save, fit_measures = fit_measures,
+    miss = miss, est = est, ordered = ordered,
+    name = name, check = check, save_out = save_out
   )
-  if (!base_dr2) stop("Baseline model failed to converge")
+  pc <- sapply(base_f$fit, lavInspect, what = "post.check")
+  if (sum(!pc) > 0) {
+    message(
+      paste(
+        "A sensible solution to the baseline model was not found.",
+        "Please review and resolve the issues and try again."
+      )
+    )
+    return(base_f)
+  }
+  full_out <- ext.r2(base_f$par_std$full, Y)
+  cm <- lavaan::lavInspect(base_f$fit$full, what = "cor.all")
+  yy <- cm[Y, Y, drop = FALSE]
+  zz <- cm[Z, Z, drop = FALSE]
+  zy <- cm[Z, Y, drop = FALSE]
+  b <- solve(zz, zy)
+  r2_reduced <- colSums(b * zy)/diag(yy)
+  dr2 <- full_out$r2$R2 - r2_reduced
+  base_dr2 <- c(
+    base_f,
+    full = list(full_out), reduced = list(ext.r2(base_f$par_std$reduced, Y)),
+    dr2 = list(c(r2 = r2_reduced[[1]], dr2 = dr2[[1]]))
+  )
   if (is.null(boot)) return(base_dr2)
   if (check | save_out) {
     found <- FALSE
@@ -381,15 +374,14 @@ r2.change <- function(
       est = est,
       std = std,
       std.lv = std.lv,
-      orthogonal = orthogonal,
       ordered = ordered,
       data = data,
       keys_s = c(unlist(keys), unlist(keys_g), unlist(keys_b)),
       seed = seed
     )
     if (check_b$param_test & check_b$d_test) {
-      if (file.exists(file.path(cache_dir, name, paste0(name, "_dr2.rds")))) {
-        return(file.path(cache_dir, name, paste0(name, "_dr2.rds")))
+      if (file.exists(file.path(cache_dir, name, "dr2.rds"))) {
+        return(file.path(cache_dir, name, "dr2.rds"))
       }
     }
   }
@@ -400,30 +392,104 @@ r2.change <- function(
   )
   message("Running bootstrap measurement models")
   boot_m <- lapply(
-    1:boot, function(x) mm(data[boot_samples[, x], ], boot_n = x)
-  )
-  names(boot_m) <- paste0("B", 1:boot, "_full")
-  message("Running bootstrap structural models")
-  boot_fit <- mapply(
-    m = boot_m, s = as.data.frame(boot_samples), b = 1:boot,
-    FUN = function(m, s, b) {
-      m1 <- list(m)
-      names(m1) <- paste0("B", b, "_full")
-      ks <- list(keys_s)
-      names(ks) <- paste0("B", b, "_full")
+    1:boot,
+    function(b) {
       if (progress & b %in% round((0:(boot/10)*10) + 1, 0)) {
-        message(boot_n, " / ", boot)
+        message(b, " / ", boot)
       }
-      dr2(
-        m1, data[s, ], boot_n = b, ks = ks, ex = extra,
-        fs = FALSE, check0 = FALSE, so = FALSE, boot = boot,
-        pro = progress, miss = miss, est0 = est, ord = ordered
-      )
+      mm(data[boot_samples[, b], ], boot_n = b)
     }
   )
+  # names(boot_m) <- paste0("B", 1:boot, "_full")
+  message("Running bootstrap structural models")
+  data1 <- data[unlist(keys_s)]
+  if (!is.null(miss)) {
+    if (miss == "default") {
+      if (is.null(ordered)) {
+        miss <- "ML"
+      } else {
+        miss <- "pairwise"
+      }
+    }
+  }
+  # Bootstrap models run with sem rather than sem.check because I do not want to
+  # clog up people's cache with 1000s of models when save_out = TRUE and this
+  # way is quicker, given there's no need to return actual models.
+  boot_dr2 <- mapply(
+    m = boot_m, s = as.data.frame(boot_samples), b = 1:boot,
+    FUN = function(m, s, b) {
+      if (m == FALSE) {
+        return(NA)
+      } else {
+        if (progress & b %in% round((0:(boot/10)*10) + 1, 0)) {
+          message(b, " / ", boot)
+        }
 
-  # TODO: Add postchecks in bifactor and CFA models. Exclude those that fail.
-  # TODO: 'data' in sem.check must be able to be selected or entered as a list
-  # of datasets. Perhaps easiest to add a row selecting argument.
-  # TODO: Save result
+        ##### Adapted from sem.check #####
+        m1 <- if (est == "default") {
+          if (is.null(ordered)) {
+            sem(
+              model   = m,
+              data    = data1[s, ],
+              missing = miss,
+              std.lv  = TRUE
+            )
+          } else {
+            sem(
+              model   = m,
+              data    = data1[s, ],
+              missing = miss,
+              std.lv  = TRUE,
+              ordered = ordered
+            )
+          }
+        } else {
+          if (is.null(ordered)) {
+            sem(
+              model   = m,
+              data    = data1[s, ],
+              missing = miss,
+              estimator = est,
+              std.lv  = TRUE
+            )
+          } else {
+            sem(
+              model   = m,
+              data    = data1[s, ],
+              missing = miss,
+              estimator = est,
+              std.lv  = TRUE,
+              ordered = ordered
+            )
+          }
+        }
+        ##### Adapted from sem.check #####
+
+        ss <- standardizedSolution(m1)
+        out <- ext.r2(ss, Y)
+        cm <- lavaan::lavInspect(m1, what = "cor.all")
+        yy <- cm[Y, Y, drop = FALSE]
+        zz <- cm[Z, Z, drop = FALSE]
+        zy <- cm[Z, Y, drop = FALSE]
+        b <- solve(zz, zy)
+        r2_r <- colSums(b * zy)/diag(yy)
+        out$r2$R2 - r2_r[[1]]
+      }
+    }
+  )
+  if (save_out) {
+    saveRDS(boot_dr2, file.path(cache_dir, name, "dr2.rds"))
+    saveRDS(
+      list(
+        miss = miss, est = est, std = std, std.lv = std.lv,
+        ordered = ordered, seed = seed
+      ),
+      file.path(cache_dir, name, "params.rds")
+    )
+  }
+  alp <- (1 + c(-boot_ci, boot_ci))/2
+  ni <- norm.inter(boot_dr2)
+
+  # TODO: Save DR2s (all values so boot_ci can be changed without rerunning
+  #       everything)
 }

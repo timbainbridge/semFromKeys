@@ -33,7 +33,8 @@ Imports:
     matrixcalc,
     Matrix,
     stats,
-    stringr
+    stringr,
+    boot
 Suggests: 
     testthat (>= 3.0.0),
     here
