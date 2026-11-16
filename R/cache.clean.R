@@ -139,14 +139,15 @@ cache.clean <- function(older_than = NULL, name = NULL, interactive = TRUE) {
     files_time <- files[
       files0$mtime < cutoff &
         # Don't delete files that the package doesn't save.
-        grepl("_(fit(|_m)|par(|_std|ams)|mod|hash).rds$", files)
+        grepl("_(fit(|_m)|par(|_std|ams)|mod|hash|dr2).rds$", files)
     ]
   }
   if (!is.null(name)) {
     files_name <- files[
       grep(
         paste0(
-          "/", name, "/", name, "_(fit(|_m)|par(|_std|ams)|mod|hash).rds$"
+          "/", paste0(name, "(|_(b|c))"),
+          "/", name, "_(fit(|_m)|par(|_std|ams)|mod|hash|dr2).rds$"
         ),
         files
       )
