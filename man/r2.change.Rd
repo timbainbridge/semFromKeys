@@ -23,7 +23,7 @@ r2.change(
   miss = "default",
   est = "default",
   ordered = NULL,
-  name = "r2d",
+  name = "dr2",
   check = FALSE,
   save_out = FALSE
 )
@@ -166,7 +166,7 @@ keys <- list(
   grit_c = paste0("grit_c_", 1:6),
   hope_p = paste0("hope_p_", 1:4)
 )
-keys_g <- c(keys$hope_p, paste0("hope_a_", 1:4))
+keys_g <- list(hope = c(keys$hope_p, paste0("hope_a_", 1:4)))
 keys_b <- list(hope = "hope_p")
 dr2 <- r2.change(
   BFIGritHope, X = "grit_c", Y = "grit_p", Z = "hope",

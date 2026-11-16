@@ -84,7 +84,7 @@
 #'   grit_c = paste0("grit_c_", 1:6),
 #'   hope_p = paste0("hope_p_", 1:4)
 #' )
-#' keys_g <- c(keys$hope_p, paste0("hope_a_", 1:4))
+#' keys_g <- list(hope = c(keys$hope_p, paste0("hope_a_", 1:4)))
 #' keys_b <- list(hope = "hope_p")
 #' dr2 <- r2.change(
 #'   BFIGritHope, X = "grit_c", Y = "grit_p", Z = "hope",
@@ -99,7 +99,7 @@ r2.change <- function(
     boot = NULL, boot_ci = .95, seed = NULL,
     fit_save = TRUE, fit_measures = "all", progress = TRUE,
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
-    name = "r2d", check = FALSE, save_out = FALSE
+    name = "dr2", check = FALSE, save_out = FALSE
   ) {
   if (!X %in% c(names(keys), names(keys_g), names(data))) {
     stop("'X' is not included in 'keys', 'keys_g', or 'data'.")
@@ -171,6 +171,7 @@ r2.change <- function(
                    !names(keys) %in% c(names(keys_g), names(keys_b))]
   items <- c(X, Y, Z)[c(X, Y, Z) %in% names(data)]
   keys_s <- c(unlist(keys_g), unlist(keys_c), items)
+  data1 <- data[unlist(keys_s)]
   if (sum(items %in% unlist(keys_c)) > 0) {
     stop(
       paste(
@@ -273,21 +274,21 @@ r2.change <- function(
   }
 
   mm <- function(
-    data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys,
+    data, keys_c = keys_c, keys_g = keys_g, keys_b = keys_b, keys = keys,
     ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen,
-    pro = progress, m = miss, est0 = est, ord = ordered,
-    n = name, boot_n = 0, check0 = check, so = save_out, boot = boot
+    progress = progress, miss = miss, est = est, ordered = ordered,
+    name = name, boot_n = 0, check = check, save_out = save_out
   ) {
-    check1 <- ifelse(boot_n == 0, check0, FALSE)
-    so1 <- ifelse(boot_n == 0, so, FALSE)
+    check1 <- ifelse(boot_n == 0, check, FALSE)
+    save_out1 <- ifelse(boot_n == 0, save_out, FALSE)
     # At least one CFA measurement model
-    if (length(kc) > 0) {
+    if (length(keys_c) > 0) {
       cfa_fit <- suppressWarnings(
         suppressMessages(
           cfa.from.keys(
-            kc, data, extra = ex_c, fit_save = FALSE, progress = FALSE,
-            miss = miss, est = est0, ordered = ord,
-            name = paste0(n, "_c"), check = check1, save_out = so1
+            keys_c, data, extra = ex_c, fit_save = FALSE, progress = FALSE,
+            miss = miss, est = est, ordered = ordered,
+            name = paste0(name, "_c"), check = check1, save_out = save_out1
           )
         )
       )
@@ -299,13 +300,13 @@ r2.change <- function(
       }
     }
     # At least one bifactor model
-    if (length(kg) > 0) {
+    if (length(keys_g) > 0) {
       bif_fit <- suppressWarnings(
         suppressMessages(
           bifactor.from.keys(
-            kg, kb, k, data, extra = ex_b, fit_save = FALSE,
-            progress = FALSE, miss = miss, est = est0, ordered = ord,
-            name = paste0(n, "_b"), check = check1, save_out = so1
+            keys_g, keys_b, keys, data, extra = ex_b, fit_save = FALSE,
+            progress = FALSE, miss = miss, est = est, ordered = ordered,
+            name = paste0(name, "_b"), check = check1, save_out = save_out1
           )
         )
       )
@@ -318,7 +319,7 @@ r2.change <- function(
     }
     if (!is.null(keys_c)) {
       mods_c <- sapply(
-        names(kc),
+        names(keys_c),
         function(x) {
           x0 <- cfa_fit$par[[x]]
           x1 <- x0[x0$op %in% c("=~", "~~"), c("lhs", "op", "rhs", "est")]
@@ -332,7 +333,7 @@ r2.change <- function(
     }
     if (!is.null(keys_g)) {
       mods_b <- sapply(
-        names(kg),
+        names(keys_g),
         function(x) {
           x0 <- bif_fit$par[[x]]
           x1 <- x0[x0$op %in% c("=~", "~~"), c("lhs", "op", "rhs", "est")]
@@ -372,14 +373,14 @@ r2.change <- function(
 
   if (progress) message("Running baseline models")
   base_m <- mm(
-    data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys,
+    data1, keys_c = keys_c, keys_g = keys_g, keys_b = keys_b, keys = keys,
     ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen,
-    pro = progress, m = miss, est0 = est, ord = ordered,
-    n = name, boot_n = 0, check0 = check, so = save_out
+    progress = progress, miss = miss, est = est, ordered = ordered,
+    name = name, boot_n = 0, check = check, save_out = save_out
   )
   ks <- stats::setNames(rep(list(keys_s), 2), names(base_m))
   base_f <- sem.check(
-    base_m, data, keys_s = ks, fit_save = fit_save, fit_measures = fit_measures,
+    base_m, data1, keys_s = ks, fit_save = fit_save, fit_measures = fit_measures,
     miss = miss, est = est, ordered = ordered,
     name = name, check = check, save_out = save_out
   )
@@ -430,123 +431,155 @@ r2.change <- function(
       )
     }
     cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
+    params <- list(
+      miss = miss, est = est, std = NULL, std.lv = std.lv, orthogonal = NULL,
+      ordered = ordered, seed = seed
+    )
+  }
+  if (check) {
     check_b <- check.cache(
       name = paste0(name, "_ci"),
       miss = miss,
       est = est,
       std.lv = std.lv,
       ordered = ordered,
-      data = data,
+      data = data1,
       keys_s = c(unlist(keys), unlist(keys_g), unlist(keys_b)),
       seed = seed
     )
     if (check_b$param_test & check_b$d_test) {
       if (
-        file.exists(file.path(cache_dir, name, paste0(name, "_ci_dr2.rds")))
+        file.exists(
+          file.path(cache_dir, paste0(name, "_ci"), paste0(name, "_ci_dr2.rds"))
+        )
       ) {
-        return(file.path(cache_dir, name, paste0(name, "_ci_dr2.rds")))
-      }
-    }
-  }
-  # Select bootstrap samples
-  if (!is.null(seed)) set.seed(seed)
-  boot_samples <- sapply(
-    1:boot, function(x) sample(nrow(data), nrow(data), TRUE)
-  )
-  message("Running bootstrap measurement models")
-  boot_m <- lapply(
-    1:boot,
-    function(b) {
-      if (progress & b %in% round((0:(boot/10)*10) + 1, 0)) {
-        message(b, " / ", boot)
-      }
-      mm(data[boot_samples[, b], ], boot_n = b)
-    }
-  )
-  message("Running bootstrap structural models")
-  data1 <- data[unlist(keys_s)]
-  if (!is.null(miss)) {
-    if (miss == "default") {
-      if (is.null(ordered)) {
-        miss <- "ML"
+        boot_dr2 <- readRDS(
+          file.path(cache_dir, paste0(name, "_ci"), paste0(name, "_ci_dr2.rds"))
+        )
+        run <- FALSE
       } else {
-        miss <- "pairwise"
+        run <- TRUE
       }
+    } else {
+      run <- TRUE
     }
+  } else {
+    run <- TRUE
   }
-  # Bootstrap models run with sem rather than sem.check because I do not want to
-  # clog up people's cache with 1000s of models when save_out = TRUE and this
-  # way is quicker, given there's no need to return actual models.
-  boot_dr2 <- mapply(
-    m = boot_m, s = as.data.frame(boot_samples), b = 1:boot,
-    FUN = function(m, s, b) {
-      if (m == FALSE) {
-        return(NA)
-      } else {
+  if (run) {
+    # Select bootstrap samples
+    if (!is.null(seed)) set.seed(seed)
+    boot_samples <- sapply(
+      1:boot, function(x) sample(nrow(data1), nrow(data1), TRUE)
+    )
+    message("Running bootstrap measurement models")
+    boot_m <- lapply(
+      1:boot,
+      function(b) {
         if (progress & b %in% round((0:(boot/10)*10) + 1, 0)) {
           message(b, " / ", boot)
         }
-
-        ##### Adapted from sem.check #####
-        m1 <- if (est == "default") {
-          if (is.null(ordered)) {
-            sem(
-              model   = m,
-              data    = data1[s, ],
-              missing = miss,
-              std.lv  = TRUE
-            )
-          } else {
-            sem(
-              model   = m,
-              data    = data1[s, ],
-              missing = miss,
-              std.lv  = TRUE,
-              ordered = ordered
-            )
-          }
+        mm(
+          data1[boot_samples[, b], ],
+          keys_c = keys_c, keys_g = keys_g, keys_b = keys_b, keys = keys,
+          ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen,
+          progress = progress, miss = miss, est = est, ordered = ordered,
+          name = name, boot_n = b, check = check, save_out = save_out
+        )
+      }
+    )
+    message("Running bootstrap structural models")
+    if (!is.null(miss)) {
+      if (miss == "default") {
+        if (is.null(ordered)) {
+          miss <- "ML"
         } else {
-          if (is.null(ordered)) {
-            sem(
-              model   = m,
-              data    = data1[s, ],
-              missing = miss,
-              estimator = est,
-              std.lv  = TRUE
-            )
-          } else {
-            sem(
-              model   = m,
-              data    = data1[s, ],
-              missing = miss,
-              estimator = est,
-              std.lv  = TRUE,
-              ordered = ordered
-            )
-          }
+          miss <- "pairwise"
         }
-        ##### Adapted from sem.check #####
-
-        ss <- standardizedSolution(m1)
-        out <- ext.r2(ss, Y)
-        cm <- lavaan::lavInspect(m1, what = "cor.all")
-        yy <- cm[Y, Y, drop = FALSE]
-        zz <- cm[Z, Z, drop = FALSE]
-        zy <- cm[Z, Y, drop = FALSE]
-        b <- solve(zz, zy)
-        r2_r <- colSums(b * zy)/diag(yy)
-        out$r2$R2 - r2_r[[1]]
       }
     }
-  )
+    # Bootstrap models run with sem rather than sem.check because I do not want to
+    # clog up people's cache with 1000s of models when save_out = TRUE and this
+    # way is quicker, given there's no need to return actual models.
+    boot_dr2 <- mapply(
+      m = boot_m, s = as.data.frame(boot_samples), b = 1:boot,
+      FUN = function(m, s, b) {
+        if (m == FALSE) {
+          return(NA)
+        } else {
+          if (progress & b %in% round((0:(boot/10)*10) + 1, 0)) {
+            message(b, " / ", boot)
+          }
+
+          ##### Adapted from sem.check #####
+          m1 <- if (est == "default") {
+            if (is.null(ordered)) {
+              sem(
+                model   = m,
+                data    = data1[s, ],
+                missing = miss,
+                std.lv  = TRUE
+              )
+            } else {
+              sem(
+                model   = m,
+                data    = data1[s, ],
+                missing = miss,
+                std.lv  = TRUE,
+                ordered = ordered
+              )
+            }
+          } else {
+            if (is.null(ordered)) {
+              sem(
+                model   = m,
+                data    = data1[s, ],
+                missing = miss,
+                estimator = est,
+                std.lv  = TRUE
+              )
+            } else {
+              sem(
+                model   = m,
+                data    = data1[s, ],
+                missing = miss,
+                estimator = est,
+                std.lv  = TRUE,
+                ordered = ordered
+              )
+            }
+          }
+          ##### Adapted from sem.check #####
+
+          ss <- standardizedSolution(m1)
+          out <- ext.r2(ss, Y)
+          cm <- lavaan::lavInspect(m1, what = "cor.all")
+          yy <- cm[Y, Y, drop = FALSE]
+          zz <- cm[Z, Z, drop = FALSE]
+          zy <- cm[Z, Y, drop = FALSE]
+          b <- solve(zz, zy)
+          r2_r <- colSums(b * zy)/diag(yy)
+          out$r2$R2 - r2_r[[1]]
+        }
+      }
+    )
+  }
   if (save_out) {
-    saveRDS(boot_dr2, file.path(cache_dir, name, paste0(name, "_dr2.rds")))
+    if (!dir.exists(file.path(cache_dir, paste0(name, "_ci")))) {
+      dir.create(file.path(cache_dir, paste0(name, "_ci")))
+    }
+    hash_d <- md5(paste(data1, collapse = ""))
     saveRDS(
-      list(
-        miss = miss, est = est, std.lv = std.lv,
-        ordered = ordered, seed = seed
-      ),
-      file.path(cache_dir, name, paste0(name, "_b_params.rds"))
+      boot_dr2,
+      file.path(cache_dir, paste0(name, "_ci"), paste0(name, "_ci_dr2.rds"))
+    )
+    saveRDS(
+      params,
+      file.path(cache_dir, paste0(name, "_ci"), paste0(name, "_ci_params.rds"))
+    )
+    saveRDS(
+      hash_d,
+      file.path(cache_dir, paste0(name, "_ci"), paste0(name, "_ci_hash.rds"))
     )
   }
   alp <- (1 + c(-boot_ci, boot_ci))/2
