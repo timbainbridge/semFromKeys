@@ -376,115 +376,6 @@ sem.check <- function(
     }
   }
   if (check) {
-    # # Load hashes, prior models, and critical parameters
-    # m0 <-
-    #   if (file.exists(file.path(cache_dir, name, paste0(name, "_mod.rds")))) {
-    #     tmp <- readRDS(file.path(cache_dir, name, paste0(name, "_mod.rds")))
-    #     # Remove spaces
-    #     lapply(tmp, function(x) gsub(" ", "", x))
-    #   } else FALSE
-    # params0 <-
-    #   if (
-    #     file.exists(file.path(cache_dir, name, paste0(name, "_params.rds")))
-    #   ) {
-    #     readRDS(file.path(cache_dir, name, paste0(name, "_params.rds")))
-    #   } else FALSE
-    # hash_d0 <-
-    #   if (file.exists(file.path(cache_dir, name, paste0(name, "_hash.rds")))) {
-    #     readRDS(file.path(cache_dir, name, paste0(name, "_hash.rds")))
-    #   } else FALSE
-    # # Create hashes
-    # hash_d <- sapply(
-    #   names(mods),
-    #   function(x) {
-    #     md5(paste(data[c(keys_s[[x]], unlist(keys_e))], collapse = ""))
-    #   }
-    # )
-    # # Compare to previous hashes
-    # d_test <- if (length(hash_d0) != 1 | hash_d0[[1]] != FALSE) {
-    #   sapply(
-    #     names(mods),
-    #     function(x) {
-    #       if (x %in% names(hash_d0)) hash_d[[x]] == hash_d0[[x]] else FALSE
-    #     }
-    #   )
-    # } else FALSE
-    # # Remove spaces for comparison
-    # mods0 <- lapply(mods, function(x) gsub(" ", "", x))
-    # m_test <- if (length(m0) != 1 | m0[[1]] != FALSE) {
-    #   sapply(
-    #     names(mods0),
-    #     function(x) {
-    #       if (x %in% names(m0)) {
-    #         # Only check to 4-decimal places.
-    #         str_replace_all(
-    #           mods0[[x]],
-    #           "([0-9]+\\.[0-9]+)",
-    #           ~format(round(as.numeric(.x), 4), nsmall = 4)
-    #         ) ==
-    #           str_replace_all(
-    #             m0[[x]],
-    #             "([0-9]\\.[0-9]+)",
-    #             ~format(round(as.numeric(.x), 4), nsmall = 4)
-    #           )
-    #       } else FALSE
-    #     }
-    #   )
-    # } else FALSE
-    # params <- c(
-    #   miss = miss, est = est, std = std, std.lv = std.lv,
-    #   orthogonal = orthogonal, ordered = ordered
-    # )
-    # param_test <- if (length(params0) == length(params)) {
-    #   ifelse(sum(params0 != params) > 0, FALSE, TRUE)
-    # } else FALSE
-    # # Load old object if it exists
-    # if (file.exists(file.path(cache_dir, name, paste0(name, "_fit.rds")))) {
-    #   fit0 <- readRDS(file.path(cache_dir, name, paste0(name, "_fit.rds")))
-    # } else {
-    #   fit0 <- FALSE
-    # }
-    # if (std == TRUE) {
-    #   if (
-    #     file.exists(file.path(cache_dir, name, paste0(name, "_par_std.rds")))
-    #   ) {
-    #     par0 <- readRDS(
-    #       file.path(cache_dir, name, paste0(name, "_par_std.rds"))
-    #     )
-    #   } else {
-    #     par0 <- FALSE
-    #   }
-    # } else {
-    # if (file.exists(file.path(cache_dir, name, paste0(name, "_par.rds")))) {
-    #   par0 <- readRDS(file.path(cache_dir, name, paste0(name, "_par.rds")))
-    # } else {
-    #   par0 <- FALSE
-    # }
-    # }
-    # if (file.exists(file.path(cache_dir, name, paste0(name, "_fit_m.rds")))) {
-    #   fit_m0 <- readRDS(file.path(cache_dir, name, paste0(name, "_fit_m.rds")))
-    # } else {
-    #   fit_m0 <- FALSE
-    # }
-    # # If hashes are correct but the fitted object is moved or deleted, then the
-    # # fit0 object will be FALSE. To ensure this doesn't break everything, check
-    # # that the fit0 object is a lavaan object. If not, run again.
-    # fit_type <- sapply(
-    #   names(mods),
-    #   function(x) {
-    #     ifelse(x %in% names(fit0), inherits(fit0[[x]], "lavaan"), FALSE)
-    #   }
-    # )
-    # par_type <- sapply(
-    #   names(mods),
-    #   function(x) {
-    #     ifelse(
-    #       x %in% names(par0),
-    #       inherits(par0[[x]], "lavaan.data.frame")[1],
-    #       FALSE
-    #     )
-    #   }
-    # )
     checkout <- check.cache(
       name = name, mods = mods, miss = miss, est = est, std = std,
       std.lv = std.lv, orthogonal = orthogonal, ordered = ordered,
@@ -970,6 +861,7 @@ check.cache <- function(
     ordered = NULL,
     data = NULL, keys_s = NULL, keys_e = NULL, seed = NULL
 ) {
+  # Find the cache directory if set
   found <- FALSE
   for (i in 1:5) {
     env <- parent.frame(i)
@@ -993,6 +885,8 @@ check.cache <- function(
   )
   # If the specific folder does not exist, then checks must fail to find matches
   if (!dir.exists(file.path(cache_dir, name))) {
+    # If mods is specified then they fail. If mods is not specified, then they
+    # don't need to be checked (so <- NULL)
     if (!is.null(mods)) {
       m_test <- FALSE
       fit_type <- FALSE
@@ -1097,11 +991,7 @@ check.cache <- function(
         param_test <- FALSE
       }
     } else {
-      if (file.exists(file.path(cache_dir, name, "params.rds"))) {
-        readRDS(file.path(cache_dir, name, "params.rds"))
-      } else {
-        param_test <- FALSE
-      }
+      param_test <- FALSE
     }
   } else {
     param_test <- NULL
@@ -1117,18 +1007,18 @@ check.cache <- function(
             md5(paste(data[c(keys_s[[x]], unlist(keys_e))], collapse = ""))
           }
         )
-      } else {
-        hash_d <- md5(paste(data, collapse = ""))
-      }
-      # Compare to previous hashes
-      if (length(hash_d0) != 1 | hash_d0[[1]] != FALSE) {
         d_test <- ifelse(
           names(mods) %in% names(hash_d0),
           hash_d[names(mods)] == hash_d0[names(mods)],
           FALSE
         )
       } else {
-        d_test <- FALSE
+        hash_d <- md5(paste(data, collapse = ""))
+        if (length(hash_d) == 1 & length(hash_d0) == 1) {
+          d_test <- hash_d == hash_d0
+        } else {
+          d_test <- FALSE
+        }
       }
     } else {
       d_test <- FALSE
@@ -1176,6 +1066,9 @@ check.cache <- function(
       sapply(par0[names(mods)], inherits, "lavaan.data.frame"),
       FALSE
     )
+  } else {
+    fit_type <- NULL
+    par_type <- NULL
   }
   return(
     list(
