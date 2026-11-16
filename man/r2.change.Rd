@@ -2,8 +2,7 @@
 % Please edit documentation in R/r2.change.R
 \name{r2.change}
 \alias{r2.change}
-\title{Runs incremental validity analysis using latent variables and fitted
-measurement models}
+\title{Run incremental validity analysis using latent variables}
 \usage{
 r2.change(
   data,
@@ -67,6 +66,7 @@ If numeric, then bootstrap confidence intervals are calculated with a number
 of bootstrap samples equal to the value of \code{boot}.}
 
 \item{boot_ci}{Numeric. The confidence interval proportion for bootstrap CIs.
+\code{boot_ci} must be greater than 0 and less than 1.
 Irrelevant if \code{boot = NULL}.}
 
 \item{seed}{A number used in \code{\link[=set.seed]{set.seed()}} for bootstrap data selection.
@@ -141,18 +141,38 @@ effect sizes from both the full and reduced models.
 }
 \description{
 Incremental validity using standard linear regressions is invalid with less
-than perfect reliability. Latent variable models must be used instead.
+than perfect (or close to perfect) reliability.
+Latent variable models must be used instead.
 However, this is difficult, especially if confidence intervals are required,
 which can only be created with bootstrap sampling.
 
 \code{r2.change} streamlines the process of running incremental validity
 analyses with latent variables, including generating bootstrap confidence
 intervals.
+
+Inspired by work from Hayes (2021).
+Uses a internal function copied from \code{boot}.
 }
 \details{
 If using bootstrap confidence intervals, it is highly recommended that you
 use \code{save_out = TRUE} and \code{check = TRUE}. This will require setting up a
 cache directory with \code{\link[=cache.setup]{cache.setup()}} before running \code{r2.change()}
+}
+\examples{
+# Test incremental validity of grit_c over hope predicting grit_p
+# Create keys
+keys <- list(
+  grit_p = paste0("grit_p_", 1:6),
+  grit_c = paste0("grit_c_", 1:6),
+  hope_p = paste0("hope_p_", 1:4)
+)
+keys_g <- c(keys$hope_p, paste0("hope_a_", 1:4))
+keys_b <- list(hope = "hope_p")
+dr2 <- r2.change(
+  BFIGritHope, X = "grit_c", Y = "grit_p", Z = "hope",
+  keys = keys, keys_g = keys_g, keys_b = keys_b, fit_save = FALSE
+)
+dr2$dr2
 }
 \seealso{
 \code{\link[=cache.setup]{cache.setup()}} \code{\link[=sem.check]{sem.check()}} \code{\link[=cfa.from.keys]{cfa.from.keys()}} \code{\link[=bifactor.from.keys]{bifactor.from.keys()}}

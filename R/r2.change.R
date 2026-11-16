@@ -48,16 +48,13 @@
 #' Each list element must be a vector of group factors.
 #' `keys_b` must be the same length as `keys_g`.
 #' Leave `keys_b = NULL` when no bifactor models are required.
-#' @param items
-#' A vector of single-item variables to include as X or Y, or to include in Z.
-#' `items` must not include any items contributing to the measurement of any
-#' latent variable.
 #' @param extra
 #' A string or vector of strings of lavaan code to be appended to the model.
 #' The argument can be used to set constraints, fix parameters to
 #' specific values, or allow correlations between item residuals.
 #' @param boot_ci
 #' Numeric. The confidence interval proportion for bootstrap CIs.
+#' `boot_ci` must be greater than 0 and less than 1.
 #' Irrelevant if `boot = NULL`.
 #'
 #' @return
@@ -75,17 +72,30 @@
 #' [cache.setup()] [sem.check()] [cfa.from.keys()] [bifactor.from.keys()]
 #'
 #' @importFrom lavaan lavInspect
+#' @importFrom stats qnorm
+#' @importFrom stats na.omit
+#' @export
+#'
+#' @examples
+#' # Test incremental validity of grit_c over hope predicting grit_p
+#' # Create keys
+#' keys <- list(
+#'   grit_p = paste0("grit_p_", 1:6),
+#'   grit_c = paste0("grit_c_", 1:6),
+#'   hope_p = paste0("hope_p_", 1:4)
+#' )
+#' keys_g <- c(keys$hope_p, paste0("hope_a_", 1:4))
+#' keys_b <- list(hope = "hope_p")
+#' dr2 <- r2.change(
+#'   BFIGritHope, X = "grit_c", Y = "grit_p", Z = "hope",
+#'   keys = keys, keys_g = keys_g, keys_b = keys_b, fit_save = FALSE
+#' )
+#' dr2$dr2
 
 # TODO: Add details
-# TODO: Add example
-# TODO: Add boot for bootstrap CIs for DR2.
-# TODO: Check 'extra' code for errors, remove irrelevant 'extra' code.
-# TODO: Add 'extra' code to end of model
-# TODO: Add more advanced warnings to boot_m code.
 
 r2.change <- function(
-    data, X, Y, Z, keys, keys_g = NULL, keys_b = NULL, items = NULL,
-    extra = NULL,
+    data, X, Y, Z, keys, keys_g = NULL, keys_b = NULL, extra = NULL,
     boot = NULL, boot_ci = .95, seed = NULL,
     fit_save = TRUE, fit_measures = "all", progress = TRUE,
     std.lv = TRUE, miss = "default", est = "default", ordered = NULL,
@@ -131,37 +141,27 @@ r2.change <- function(
     )
   }
   if (!is.null(boot)) {
+    if (boot_ci <= 0 | boot_ci >= 1) {
+      stop("'boot_ci' must be greater than 0 and less than 1.")
+    }
     if (nrow(data) < 200) {
       warning(
         paste(
           "'data' has < 200 rows.",
           "Using bootstraps may results in many models that fail to converge",
-          "or other issues.",
-          "Please examine the results carefully."
+          "or other issues. Please examine the results carefully."
         )
       )
     }
-    boot_min <- max(2 / (1 - boot_ci), 12)
-    if (boot < 5 * boot_min) {
-      warning(
+    if (boot < 20) {
+      stop(
         paste(
-          "The number of bootstraps relative to the 'boot_ci' means that",
-          "maximum and minimum bootstrap values will be used and confidence",
-          "intervals will be unreliable.",
-          "Consider using", boot_min * 12.5, "or more for 'boot'."
+          "The number of bootstraps is extremely small. The function will not",
+          "work with boot < 20 to insure bootstrap CIs are not too unreliable.",
+          "\nHowever, consider setting boot = 200, 500, or 1000 to get",
+          "reliable results."
         )
       )
-    } else {
-      if (boot < 12.5 * boot_min) {
-        warning(
-          paste0(
-            "The number of bootstraps relative to 'boot_ci' is small, ",
-            "meaning only a few values will fall outside the confidence ",
-            "interval, so interval values may not be reliable.\n",
-            "Consider using at least ", boot_min * 12.5, " for 'boot'."
-          )
-        )
-      }
     }
   }
   # Only keep required models
@@ -169,7 +169,7 @@ r2.change <- function(
   keys_b <- keys_b[names(keys_b) %in% c(X, Y, Z)]
   keys_c <- keys[names(keys) %in% c(X, Y, Z) &
                    !names(keys) %in% c(names(keys_g), names(keys_b))]
-  items <- items[items %in% c(X, Y, Z)]
+  items <- c(X, Y, Z)[c(X, Y, Z) %in% names(data)]
   keys_s <- c(unlist(keys_g), unlist(keys_c), items)
   if (sum(items %in% unlist(keys_c)) > 0) {
     stop(
@@ -187,10 +187,6 @@ r2.change <- function(
       )
     )
   }
-
-  # TODO: Is some pre-treatment of extra required to sort CFA extra, bifactor
-  #       extra, and inter-model extra?
-
   if (!is.null(extra)) {
 
     #### Adapted from cfa.from.keys #####
@@ -254,7 +250,12 @@ r2.change <- function(
     mod_extra_gen <- unlist(
       sapply(extra, function(x) x[!x %in% c(mod_extra_c, mod_extra_b)])
     )
+  } else {
+    mod_extra_c <- NULL
+    mod_extra_b <- NULL
+    mod_extra_gen <- NULL
   }
+
   ext.r2 <- function(par, Y) {
     ##### Adapted from sem.path #####
     xr <- par[par$op == "~~" & par$lhs == par$rhs & par$lhs %in% Y, ]
@@ -275,7 +276,7 @@ r2.change <- function(
     data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys,
     ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen,
     pro = progress, m = miss, est0 = est, ord = ordered,
-    n = name, boot_n = 0, check0 = check, so = FALSE, boot = boot
+    n = name, boot_n = 0, check0 = check, so = save_out, boot = boot
   ) {
     check1 <- ifelse(boot_n == 0, check0, FALSE)
     so1 <- ifelse(boot_n == 0, so, FALSE)
@@ -315,7 +316,7 @@ r2.change <- function(
         if (sum(!pc) > 0) return(FALSE)
       }
     }
-    if (exists("cfa_fit")) {
+    if (!is.null(keys_c)) {
       mods_c <- sapply(
         names(kc),
         function(x) {
@@ -327,9 +328,9 @@ r2.change <- function(
         simplify = FALSE
       )
     } else {
-      mods_cfa <- NULL
+      mods_c <- NULL
     }
-    if (exists("bif_fit")) {
+    if (!is.null(keys_g)) {
       mods_b <- sapply(
         names(kg),
         function(x) {
@@ -343,7 +344,7 @@ r2.change <- function(
         simplify = FALSE
       )
     } else {
-      mods_bif <- NULL
+      mods_b <- NULL
     }
     if (boot_n == 0) {
       mods <- as.list(
@@ -369,10 +370,13 @@ r2.change <- function(
     }
   }
 
-  if (progress) {
-    message("Running baseline models")
-  }
-  base_m <- mm(data, boot_n = 0)
+  if (progress) message("Running baseline models")
+  base_m <- mm(
+    data, kc = keys_c, kg = keys_g, kb = keys_b, k = keys,
+    ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen,
+    pro = progress, m = miss, est0 = est, ord = ordered,
+    n = name, boot_n = 0, check0 = check, so = save_out
+  )
   ks <- stats::setNames(rep(list(keys_s), 2), names(base_m))
   base_f <- sem.check(
     base_m, data, keys_s = ks, fit_save = fit_save, fit_measures = fit_measures,
@@ -381,7 +385,7 @@ r2.change <- function(
   )
   pc <- sapply(base_f$fit, lavInspect, what = "post.check")
   if (sum(!pc) > 0) {
-    message(
+    warning(
       paste(
         "A sensible solution to the baseline model was not found.",
         "Please review and resolve the issues and try again."
@@ -397,9 +401,14 @@ r2.change <- function(
   b <- solve(zz, zy)
   r2_reduced <- colSums(b * zy)/diag(yy)
   dr2 <- full_out$r2$R2 - r2_reduced
+  reduced <- ext.r2(base_f$par_std$reduced, Y)
+  structural <- full_out
+  structural$r2 <- rbind(full = full_out$r2, reduced = reduced$r2)
+  structural$b <- list(full = full_out$b, reduced = reduced$b)
+  structural$r <- list(full = full_out$r, reduced = reduced$r)
   base_dr2 <- c(
     base_f,
-    full = list(full_out), reduced = list(ext.r2(base_f$par_std$reduced, Y)),
+    structural = list(structural),
     dr2 = list(c(r2 = r2_reduced[[1]], dr2 = dr2[[1]]))
   )
   if (is.null(boot)) return(base_dr2)
@@ -422,10 +431,9 @@ r2.change <- function(
     }
     cache_dir <- get("cache_dir", envir = get(".cache_env", envir = env))
     check_b <- check.cache(
-      name = name,
+      name = paste0(name, "_ci"),
       miss = miss,
       est = est,
-      std = std,
       std.lv = std.lv,
       ordered = ordered,
       data = data,
@@ -433,8 +441,10 @@ r2.change <- function(
       seed = seed
     )
     if (check_b$param_test & check_b$d_test) {
-      if (file.exists(file.path(cache_dir, name, "dr2.rds"))) {
-        return(file.path(cache_dir, name, "dr2.rds"))
+      if (
+        file.exists(file.path(cache_dir, name, paste0(name, "_ci_dr2.rds")))
+      ) {
+        return(file.path(cache_dir, name, paste0(name, "_ci_dr2.rds")))
       }
     }
   }
@@ -453,7 +463,6 @@ r2.change <- function(
       mm(data[boot_samples[, b], ], boot_n = b)
     }
   )
-  # names(boot_m) <- paste0("B", 1:boot, "_full")
   message("Running bootstrap structural models")
   data1 <- data[unlist(keys_s)]
   if (!is.null(miss)) {
@@ -531,13 +540,13 @@ r2.change <- function(
     }
   )
   if (save_out) {
-    saveRDS(boot_dr2, file.path(cache_dir, name, "dr2.rds"))
+    saveRDS(boot_dr2, file.path(cache_dir, name, paste0(name, "_dr2.rds")))
     saveRDS(
       list(
-        miss = miss, est = est, std = std, std.lv = std.lv,
+        miss = miss, est = est, std.lv = std.lv,
         ordered = ordered, seed = seed
       ),
-      file.path(cache_dir, name, "params.rds")
+      file.path(cache_dir, name, paste0(name, "_b_params.rds"))
     )
   }
   alp <- (1 + c(-boot_ci, boot_ci))/2
