@@ -357,13 +357,6 @@ sem.check <- function(
       )
     }
   }
-  if (miss == "default") {
-    if (is.null(ordered)) {
-      miss <- "ML"
-    } else {
-      miss <- "pairwise"
-    }
-  }
   if (!is.logical(progress)) {
     progress <- TRUE
     warning(
@@ -421,6 +414,13 @@ sem.check <- function(
       miss = miss, est = est, std = std, std.lv = std.lv,
       orthogonal = orthogonal, ordered = ordered
     )
+  }
+  if (miss == "default") {
+    if (is.null(ordered)) {
+      miss <- "ML"
+    } else {
+      miss <- "pairwise"
+    }
   }
   # Run
   # Warnings required to be printed immediately so people know which model
@@ -968,15 +968,6 @@ check.cache <- function(
     }
   } else {
     m_test <- NULL
-  }
-  if (!is.null(miss)) {
-    if (miss == "default") {
-      if (is.null(ordered)) {
-        miss <- "ML"
-      } else {
-        miss <- "pairwise"
-      }
-    }
   }
   if (!is.null(params)) {
     if (file.exists(file.path(cache_dir, name, paste0(name, "_params.rds")))) {
