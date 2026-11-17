@@ -235,26 +235,28 @@
 #' https://doi.org/10.1037/pspp0000096.
 #'
 #' @importFrom lavaan summary
+#' @export
 #'
 #' @examples
 #' # Create CFA keys
-#' keys0 <- c("hope_a", "hope_p")
-#' keys <- sapply(
-#'   keys0,
-#'   function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))],
-#'   simplify = FALSE
+#' keys <- list(
+#'   hope_a = paste0("hope_a_", 1:4),
+#'   hope_p = paste0("hope_p_", 1:4)
 #' )
 #' # Create EFA keys
 #' # Using only 3 factors and fewer items to save time for a simple example
 #' # (This results in a less than ideal solution but it doesn't matter for an
 #' # example)
-#' keys_e0 <- paste0("bfi_", c("e", "a", "c"))
-#' keys_e <- sapply(
-#'   keys_e0,
-#'   function(x) {
-#'     names(BFIGritHope)[grep(paste0(x, "[1-2]_[1-2]"), names(BFIGritHope))]
-#'   },
-#'   simplify = FALSE
+#' keys_e <- list(
+#'   bfi_e = c(
+#'     paste0("bfi_e", c("1_1", "1_2", "2_1", "2_2", "3_1", "3_2"))
+#'   ),
+#'   bfi_a = c(
+#'     paste0("bfi_a", c("1_1", "1_2", "2_1", "2_2", "3_1", "3_2"))
+#'   ),
+#'   bfi_c = c(
+#'     paste0("bfi_c", c("1_1", "1_2", "2_1", "2_2", "3_1", "3_2"))
+#'   )
 #' )
 #'
 #' # Run 'esem.from.keys' models
@@ -279,8 +281,6 @@
 #' summary(esem_fit$fit$grit_c)  # Standard lavaan summary
 #' esem_fit$r2                   # R-squareds
 #' esem_fit$b                    # Betas
-#'
-#' @export
 
 esem.from.keys <- function(
     data, keys_e, keys, extra = NULL,

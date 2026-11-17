@@ -176,9 +176,11 @@
 #'
 #' @examples
 #' # Create CFA keys
-#' keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
-#' keys <- sapply(
-#'   keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+#' keys <- list(
+#'   grit_p = paste0("grit_p_", 1:6),
+#'   grit_c = paste0("grit_c_", 1:6),
+#'   hope_a = paste0("hope_a_", 1:4),
+#'   hope_p = paste0("hope_p_", 1:4)
 #' )
 #' # Create model code
 #' mods <- mapply(
@@ -186,7 +188,7 @@
 #'   FUN = function(x, y) paste(y, "=~", paste(x, collapse = " + "))
 #' )
 #' # Edit model code to add correlated residuals
-#' mods[[1]] <- paste0(mods[[1]], "\ngrit_c_1 ~~ grit_c_2")
+#' mods[[2]] <- paste0(mods[[2]], "\ngrit_c_1 ~~ grit_c_2")
 #' # Estimate the models with sem.check()
 #' cfa_fit <- sem.check(mods, BFIGritHope, keys, name = "cfa", check = FALSE)
 
@@ -598,9 +600,9 @@ sem.check <- function(
                     if (ord_k[1] != "NULL") {
                       warning(
                         paste(
-                          "The SAM method, used to estimate the latent variable",
-                          "model you are attempting to run, does not support",
-                          "'ordered' variables in ESEM.",
+                          "The SAM method, used to estimate the latent",
+                          "variable model you are attempting to run, does not",
+                          "support 'ordered' variables in ESEM.",
                           "Therefore, the model will be run as though",
                           "'ordered = NULL'."
                         )
@@ -640,7 +642,8 @@ sem.check <- function(
                       data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                       mm_args = list(estimator = est),
                       struc_args = list(estimator = est),
-                      # Local method sets factor covariances equal (lavaan v0.7-2).
+                      # Local method sets factor covariances equal
+                      # (lavaan v0.7-2).
                       # Likely a bug.
                       # Parameter estimates with the global method match Burt's
                       # method exactly.

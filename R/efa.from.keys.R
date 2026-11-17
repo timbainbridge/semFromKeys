@@ -49,17 +49,19 @@
 #'
 #' @examples
 #' # Create EFA keys
-#' # Using only 3 factors to save time
-#' keys_e0 <- paste0("bfi_", c("e", "a", "c"))
-#' # Using less than all items to save time
+#' # Using only 3 factors and less than all items to save time
 #' # (This results in a less than ideal solution but it shouldn't matter for an
 #' # example)
-#' keys_e <- sapply(
-#'   keys_e0,
-#'   function(x) {
-#'     names(BFIGritHope)[grep(paste0(x, "\\d_[1-2]"), names(BFIGritHope))]
-#'   },
-#'   simplify = FALSE
+#' keys_e <- list(
+#'   bfi_e = c(
+#'     paste0("bfi_e", c("1_1", "1_2", "2_1", "2_2", "3_1", "3_2"))
+#'   ),
+#'   bfi_a = c(
+#'     paste0("bfi_a", c("1_1", "1_2", "2_1", "2_2", "3_1", "3_2"))
+#'   ),
+#'   bfi_c = c(
+#'     paste0("bfi_c", c("1_1", "1_2", "2_1", "2_2", "3_1", "3_2"))
+#'   )
 #' )
 #' # Run model with selected fit measures.
 #' efa_fit <- efa.from.keys(

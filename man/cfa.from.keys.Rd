@@ -137,9 +137,11 @@ which could help with manually updating models.)
 }
 \examples{
 # Create CFA keys
-keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
-keys <- sapply(
-  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+keys <- list(
+  grit_p = paste0("grit_p_", 1:6),
+  grit_c = paste0("grit_c_", 1:6),
+  hope_a = paste0("hope_a_", 1:4),
+  hope_p = paste0("hope_p_", 1:4)
 )
 # Run models
 cfa_fit <- cfa.from.keys(

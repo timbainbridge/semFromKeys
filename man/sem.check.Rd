@@ -204,9 +204,11 @@ very slow models.
 }
 \examples{
 # Create CFA keys
-keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
-keys <- sapply(
-  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+keys <- list(
+  grit_p = paste0("grit_p_", 1:6),
+  grit_c = paste0("grit_c_", 1:6),
+  hope_a = paste0("hope_a_", 1:4),
+  hope_p = paste0("hope_p_", 1:4)
 )
 # Create model code
 mods <- mapply(
@@ -214,7 +216,7 @@ mods <- mapply(
   FUN = function(x, y) paste(y, "=~", paste(x, collapse = " + "))
 )
 # Edit model code to add correlated residuals
-mods[[1]] <- paste0(mods[[1]], "\ngrit_c_1 ~~ grit_c_2")
+mods[[2]] <- paste0(mods[[2]], "\ngrit_c_1 ~~ grit_c_2")
 # Estimate the models with sem.check()
 cfa_fit <- sem.check(mods, BFIGritHope, keys, name = "cfa", check = FALSE)
 }
