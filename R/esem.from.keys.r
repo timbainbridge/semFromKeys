@@ -70,7 +70,7 @@
 #' `esem.from.keys` takes keys lists as inputs and `esem.from.mods` takes fitted
 #' measurement models as inputs.
 #' To prevent interpretational confounding (Burt, 1976), `esem.from.keys` uses
-#' Rosseel and Loh's (2022) Structural After Measurement (SAM) method and
+#' Rosseel and Loh's (2022) "Structural-After-Measurement" (SAM) method and
 #' `esem.from.mods` uses Burt's (1976) 2-stage procedure.
 #' In general, `esem.from.keys` should be used for CFA measurement models and
 #' `esem.from.mods` should be used for bi-factor measurement models, which are
@@ -132,7 +132,7 @@
 #' affect other measurement models and that the interpretation of measured
 #' constructs cannot change based on unrelated factors.
 #' However, it is not a perfect solution---by fixing measurement parameters,
-#' uncertainty in their estimation is neglected (e.g., Nagy et al., 2017), which
+#' uncertainty in their estimation is neglected (Nagy et al., 2017), which
 #' results in biased standard errors and fit statistics.
 #'
 #' A third option was proposed by Nagy and colleagues (2017), who introduced an
@@ -154,7 +154,7 @@
 #' method.
 #'
 #' A final solution to interpretation confounding was proposed by Rosseel and
-#' Loh (2022) with their SAM approach.
+#' Loh (2022) with their "Structural-After-Measurement" (SAM) approach.
 #' This method essentially follows Burt's (1976) method but adjust the procedure
 #' to overcome its issues.
 #' They distinguish two SAM varieties--"local SAM" and "global SAM".
