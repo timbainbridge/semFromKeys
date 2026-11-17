@@ -2,6 +2,7 @@
 
 ### Notes
 
+* Added the `r2.change` function.
 * Fixed a minor issue when some fit statistics could not be calculated
 * Various minor updates (see NEWS)
 
