@@ -1,4 +1,4 @@
-# semFromKeys (development version)
+# semFromKeys 0.6.0
 
 * Added the `r2.change` function.
 * Added the `progress` argument that allows most progress messages to be suppressed.
