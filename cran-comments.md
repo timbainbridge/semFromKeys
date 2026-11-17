@@ -1,4 +1,4 @@
-## Next submission
+## Version 0.6.0 submission
 
 ### Notes
 
@@ -6,7 +6,7 @@
 * Fixed a minor issue when some fit statistics could not be calculated
 * Various minor updates (see NEWS)
 
-## Version 0.5.6 submission (current)
+## Version 0.5.6 submission
 
 ### R CMD check results
 
