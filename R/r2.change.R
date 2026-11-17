@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Incremental validity using standard linear regressions is invalid with less
-#' than perfect (or close to perfect) reliability.
+#' than perfect (or close to perfect) reliability (Westfall & Yarkoni, 2016).
 #' Latent variable models must be used instead.
 #' However, this is difficult, especially if confidence intervals are required,
 #' which can only be created with bootstrap sampling.
@@ -11,12 +11,10 @@
 #' analyses with latent variables, including generating bootstrap confidence
 #' intervals.
 #'
-#' Inspired by work from Hayes (2021).
-#' Uses a internal function copied from `boot`.
+#' The function was inspired by work from Hayes (2021) and uses
+#' `boot:::norm.inter` copied from `boot`.
 #'
 #' @inheritParams sem.check
-# #' @param cfa_fit A named list of fitted lavaan objects of CFA models.
-# #' @param bif_fit A named list of fitted lavaan objects of bi-factor models.
 #' @param X
 #' A length 1 character vector of the name of the the variable being tested.
 #' @param Y A string of the name of the outcome variable.
@@ -64,9 +62,83 @@
 #' effect sizes from both the full and reduced models.
 #'
 #' @details
+#' Incremental validity analyses and 2-stage regressions are invalid when using
+#' mean or sum scores (Westfall & Yarkoni, 2016). To illustrate, take two
+#' separate scales that measure the same construct. Neither scale should have
+#' incremental validity over the other. However, unique item variance means that
+#' they will not correlate at 1 and any uncertainty in the measurement due to
+#' unique items variance (and indicated by reliability) is obscured from the
+#' model. Thus, the standard errors of the overlap in the scales' variance is
+#' incorrectly too narrow and the likelihood of false positives increases.
+#' The chance of a false positive increases with sample size and lower
+#' reliabilities (down to .5), and rises towards 1 as N increases (Westfall &
+#' Yarkoni, 2016).
+#'
+#' To solve this issue, latent variables must be used (Westfall & Yarkoni,
+#' 2016). Latent variable models have two advantages over aggregate scores in
+#' this context. First, they measure relationships between the shared variance
+#' of their respective items, preserving the possibility of correlations of 1
+#' and drastically reducing the impact of idiosyncratic item variance.
+#' Second, poorer reliability increases the uncertainty in the measurement, such
+#' that, as the correlation between two different scales of the same constructs
+#' becomes smaller, uncertainty increases. Together these factors mean that
+#' separate scales measuring the same constructs should fail to demonstrate
+#' incremental validity at an appropriate rate.
+#'
+#' `r2.change` makes the process of running incremental validity analyses with
+#' latent variables much easier. It takes data, keys, and names for the focal
+#' variable (X), the outcome variable (Y), and variables to test against (Z) as
+#' inputs, and produces an r-squared change figure, optionally with bootstrap
+#' confidence intervals. Various other outputs of the process are also returned
+#' (see `Value`).
+#'
+#' Traditionally incremental validity analyses rely on two models.
+#' A reduced model regresses Y on Z and a full model adds X as a predictor.
+#' R-squared change between the models is used to assess the incremental
+#' validity of X predicting Y.
+#' Such a method cannot be used naively with latent variables because excluding
+#' X from the reduced model can change the structural model such that the
+#' r-squared values cannot be compared.
+#' Hayes (2021) discussed the different approaches to the issue.
+#' One appropriate method leaves the X variable in the reduced model but allows
+#' it to correlate with Y's residual.
+#' Another method calculates r-squared for the reduced model using correlations
+#' from the full model.
+#' `r2.change` uses the first of these approaches to produce a regression
+#' table for the reduced model (so it can be included in a table, for example)
+#' and it uses the second approach to calculate r-squared changes both in the
+#' base models and bootstrap samples. The latter method means that minor changes
+#' in the models' convergence do not affect the r-squared estimates, even though
+#' the models are merely different versions of the same model (i.e., same fit
+#' statistics, degrees of freedom etc. just with a different structural path).
+#'
+#' The problem of models being incomparable when variables are added or removed
+#' is known as "interpretational confounding" (Burt, 1976) and occurs because
+#' the model fitting method does not distinguish between measurement and
+#' structural parameters. Thus, measurement parameters will shift depending on
+#' what other variables are in the model, thereby changing the interpretation
+#' of the latent variables.
+#' `r2.change` uses Burt's 2-stage approach to account for interpretational
+#' confounding. The method produces accurate point estimates but somewhat biases
+#' standard errors and fit statistics (Nagy et al., 2017).
+#' This means standard errors for regression coefficients and other model
+#' parameters will be slightly biased, but the r-squared change or bootstrap CIs
+#' will no be affected because these are entirely calculated with point
+#' estimates. For further details, see the "Interpretational Confounding"
+#' section.
+#'
 #' If using bootstrap confidence intervals, it is highly recommended that you
-#' use `save_out = TRUE` and `check = TRUE`. This will require setting up a
-#' cache directory with [cache.setup()] before running `r2.change()`
+#' use `save_out = TRUE` and `check = TRUE`, especially for more complex models.
+#' The method requires setting up a cache directory with [cache.setup()] before
+#' running but it then means that the bootstrap models will not have to be run
+#' again if they have already been run and nothing has changed (including number
+#' of bootstraps, argument inputs, or relevant data).
+#' The functionality can be helpful if something has been changed in earlier
+#' code and you are not sure if it affects the bootstrap models. If it did not,
+#' then running the code will be quick and you will know that it is still
+#' accurate.
+#'
+#' @inheritSection esem.from.keys Interpretational Confounding
 #'
 #' @seealso
 #' [cache.setup()] [sem.check()] [cfa.from.keys()] [bifactor.from.keys()]
@@ -75,6 +147,22 @@
 #' @importFrom stats qnorm
 #' @importFrom stats na.omit
 #' @export
+#'
+#' @references
+#' Burt, R. S. (1976).
+#' Interpretational confounding of unobserved variables in Structural Equation
+#' Models. Sociological Methods & Research, 5(1), 3-52.
+#' https://doi.org/10.1177/004912417600500101.
+#'
+#' Hayes, T. (2021).
+#' R-squared change in structural equation models with latent variables and
+#' missing data. Behavior Research Methods, 53(5), 2127-2157.
+#' https://doi.org/10.3758/s13428-020-01532-y.
+#'
+#' Westfall, J, and Yarkoni, T (2016).
+#' Statistically controlling for confounding constructs is harder than you
+#' think. PLoS ONE, 11(3), 1-23.
+#' https://doi.org/10.1371/journal.pone.0152719.
 #'
 #' @examples
 #' # Test incremental validity of grit_c over hope predicting grit_p
@@ -91,8 +179,6 @@
 #'   keys = keys, keys_g = keys_g, keys_b = keys_b, fit_save = FALSE
 #' )
 #' dr2$dr2
-
-# TODO: Add details
 
 r2.change <- function(
     data, X, Y, Z, keys, keys_g = NULL, keys_b = NULL, extra = NULL,
