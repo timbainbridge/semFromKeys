@@ -19,11 +19,13 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/timbainbridge/semFromKeys/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The 'semFromKeys' package was designed to streamline running 'lavaan' models with similar structures using keys lists to generate model code instead of writing out the code for models manually. For confirmatory factor analyses (CFAs) and bi-factor models, the code creates and runs a series of models based on keys indicating each of the factors in the models. For exploratory factor analyses (EFAs) keys list are used to create a target rotation for a single EFA. For latent variable correlations, the model takes fitted CFA models and runs a series of models computing correlations between latent variables and, optionally, single items. For exploratory structural equation models (ESEM), there are two options. In each case, EFA factors predict scale factors. The first option (`esem.from.keys`) takes EFA and CFA keys as inputs and uses Rosseel and Loh's (2022) SAM method to prevent interpretational confounding (Burt, 1976), and the second (`esem.from.mods`) takes a fitted EFA model and fitted CFA and/or bi-factor models and uses Burt's (1976) 2-stage procedure to prevent interpretational confounding. The ESEM models were designed to run analyses analogous to those of Bainbridge, Ludeke, and Smillie (2022). Additionally, the `sem.path` function runs traditional latent variable structural equation models (SEM) using fitted CFA objects and path code as input.
+The 'semFromKeys' package was designed to streamline running 'lavaan' models with similar structures using keys lists to generate model code instead of writing out the code for models manually. Functions run confirmatory factor analyses (CFAs; `cfa.from.keys()`), bi-factor models (`bifactor.from.keys()`), exploratory factor analysis (EFA; `efa.from.keys()`), latent variable correlations (`sem.cor()`), incremental validity analysis (`r2.change()`), regular structural equation path models (`sem.path()`), and exploratory structural equation models (ESEM; `esem.from.keys()` and `esem.from.mods()`), where ESEM factors predict CFA or bi-factor latent variables.
 
-Although the package might be of most use to those running ESEM similar to those of Bainbridge and colleagues (2022), it could also be very helpful to anyone wanting to create a correlation matrix based on latent variables rather than sum scores or to estimate a CFA measurement model for each scale in a sample to either check measurement characteristics before proceeding with further analyses or to simply compute measurement model based reliability statistics. It may also be useful to those wanting to preclude interpretational confounding in a standard latent variable SEM.
+Functions take either keys lists or prior model outputs as inputs. A keys list is simply a list of scales where each list element is a named vector of scale items with the name being the name of the scale. With the keys list (or lists), the function creates the relevant code for the models and runs the models, avoiding the necessity of writing out each model's code manually.
 
-For sets of models that take a long time to run, code has been included to allow the first run to save outputs that can be checked against in subsequent runs. If nothing has changed, then the previous outputs are returned, saving the time (and energy) of running them again. To get this feature to work, the R version has to be 4.0 or later and a cache directory will have to be set with the `cache.setup()` function, which, by default, configures a cache directory in the users' cache as determined by the operating system. It can alternatively be set as a subdirectory within the current project or, if not using a project, the current working directory. Once the cache is set, `save_out = TRUE` can be included in function calls to save the relevant outputs, and `check = TRUE` can be included to look for previous outputs and only run models where something has changed. The feature means that small changes in data cleaning or model code need not necessitate re-running time-consuming models if only a small number have changed.
+Functions that compute measurement models include `cfa.from.keys()` and `bifactor.from.keys()`, which create and run a series of models based on keys indicating each of the factors in the models, and `efa.from.keys()`, which uses a keys list to create a target rotation for a single EFA. Structural models include `sem.cor()`, `sem.path()`, `r2.change()`, `esem.from.keys()`, and `esem.from.mods()`. `sem.cor()` takes fitted CFA models and runs an SEM for each combination of scales computing a latent variable correlation for each. These are then collected into a correlation table similar to the `stats::cor()` function. `sem.path()` takes fitted CFA or bi-factor models and a path equation, and produces a single SEM model. `r2.change()` takes keys lists, and names for the focal variable (X), the outcome variable (Y), and a vector of variables to test incremental validity against (Z). The function produces an r-squared change figure and optionally bootstrap confidence intervals. Finally, for exploratory structural equation models (ESEM), there are two options. In each case, EFA factors predict scale factors. The first option (`esem.from.keys()`) takes EFA and CFA keys as inputs and uses Rosseel and Loh's (2022) Structural-After-Measurement (SAM) method to prevent interpretational confounding (Burt, 1976), and the second (`esem.from.mods()`) takes a fitted EFA model and fitted CFA or bi-factor models and uses Burt's (1976) 2-stage procedure to prevent interpretational confounding. The ESEM models were designed to run analyses analogous to those of Bainbridge, Ludeke, and Smillie (2022).
+
+For sets of models that take a long time to run, code has been included to allow the first run to save outputs that can be checked against in subsequent runs. If nothing has changed, then the previous outputs are returned, saving the time (and energy) of running them again. To get this feature to work, the R version has to be 4.0 or later and a cache directory will have to be set with the `cache.setup()` function, which, by default, configures a cache directory in the users' cache as determined by the operating system. It can alternatively be set as a subdirectory within the current project or, if not using a project, the current working directory. Once the cache is set, `save_out = TRUE` can be included in function calls to save the relevant outputs, and `check = TRUE` can be included to look for previous outputs and only run models where something has changed. The feature means that small changes in data cleaning or an error in one model's key need not necessitate re-running every model, only those where something has changed. These functions are facilitated by the `sem.check()` and `check.cache()` functions, which are largely used as derivative functions by other functions rather than for use by regular users.
 
 Given that the package enables creating files in a cache directory, the `cache.clean()` function has also been included to help clean up files. To comply with CRAN policies, the cache directory is set as a temporary environment variable, so it has to be set each time the global environment is cleared.
 
@@ -44,17 +46,19 @@ install.packages("semFromKeys")
 
 ## Example
 
-The following example generates keys, runs CFAs and an EFA using these keys, computes correlations between CFA latent variables, and uses outputs from these to run ESEMs. The alternative `esem.from.keys` function is also demonstrated.  
+The following examples generate keys, run CFAs and an EFA using these keys, compute correlations between CFA latent variables, check a scale's incremental validity, and run ESEMs.
 
 ### CFAs
 
-In this case, keys can be created from names in the dataset but they can also be created with simple code to generate a list.
+Keys are simply a list of scales and their items.
 
 ```{r cfa-keys}
 library(semFromKeys)
-keys0 <- c("grit_c", "grit_p", "hope_a", "hope_p")
-keys <- sapply(
-  keys0, function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))]
+keys <- list(
+  grit_p = paste0("grit_p_", 1:6),
+  grit_c = paste0("grit_c_", 1:6),
+  hope_a = paste0("hope_a_", 1:4),
+  hope_p = paste0("hope_p_", 1:4)
 )
 ```
 
@@ -64,7 +68,7 @@ The lists should look something like this:
 keys
 ```
 
-Once keys are created, the CFAs can be run. The function produces messages of progress. These can help identify which models produced errors or warnings or to keep track of progress for collections of models with long run times.
+Once keys are created, the CFAs can be run. By default, the function produces messages of progress. These can help identify which models produced errors or warnings or to keep track of progress for collections of models with long run times.
 
 ```{r cfa-fit}
 cfa_fit <- cfa.from.keys(keys, BFIGritHope, fit_save = TRUE)
@@ -82,7 +86,7 @@ And selected fit measures:
 cfa_fit$fit_measures[, c("cfi", "rmsea")]
 ```
 
-These models can be used to examine the measurement characteristics of the scales or to calculate latent variable model-based reliability scores (e.g., with `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for composite reliability, Jöreskog, 1971).
+These models can be used to examine the measurement characteristics of the scales or to calculate latent variable model-based reliability scores (e.g., with `sapply(cfa_fit$fit, function(x) semTools::compRelSEM(x)[[1]])` for composite reliability, Jöreskog, 1971). They are also used as input into other functions (below).
 
 Bifactor models can be run with a similar, albeit more complex, method. See `?bifactor.from.keys` for details.
 
@@ -91,12 +95,14 @@ Bifactor models can be run with a similar, albeit more complex, method. See `?bi
 As for CFAs, an EFA can be run from a keys list. In this case, the keys list indicates factor that items are expected to load on rather than separate models. These are used to generate a target rotation to help ensure the EFA matches expectations.
 
 ```{r ex}
-keys_e0 <- paste0("bfi_", c("e", "a", "c", "n", "o"))
 keys_e <- sapply(
-  keys_e0,
-  function(x) names(BFIGritHope)[grep(x, names(BFIGritHope))],
+  paste0("bfi_", c("e", "a", "c", "n", "o")),
+  function(x) {
+    as.vector(sapply(1:3, function(y) paste0(x, paste0(y, "_", 1:4))))
+  },
   simplify = FALSE
 )
+keys_e
 ```
 
 After the keys list has been created, the model can be run similarly to the CFAs. When running the model, fit measures can be restricted to speed up estimation if not all are required (as for 'lavaan's' `lavaan::fitMeasures()` function).
@@ -104,7 +110,7 @@ After the keys list has been created, the model can be run similarly to the CFAs
 ```{r example-efa}
 efa_fit <- efa.from.keys(
   keys_e, BFIGritHope, check = FALSE, fit_save = TRUE,
-  fit_measures = c("chisq", "df", "pvalue", "bic")
+  fit_measures = c("chisq", "df", "pvalue", "cfi")
 )
 ```
 
@@ -113,12 +119,12 @@ EFA results can be examined in a similar way to the CFAs.
 ```{r example-efa2}
 # Not run due to length
 # lavaan::summary(efa_fit$fit)  # Standard lavaan summary
-efa_fit$fit_measures                # Fit measures
+efa_fit$fit_measures          # Fit measures
 ```
 
 ### Correlations
 
-The fitted CFA models can also be used to calculate latent variable correlations. In this example, Burt's 2-stage procedure is used by setting `nagy = FALSE` to save time, but in many cases Nagy and colleagues' (2017) method will be superior and is the default. See `?sem.cor()` for further details.
+The fitted CFA models can be used to calculate latent variable correlations with the `sem.cor()` function. In this example, Burt's 2-stage procedure is used by setting `nagy = FALSE` to save time, but in many cases Nagy and colleagues' (2017) method will be superior and is the default. See `?sem.cor()` for further details.
 
 ```{r example-lavaco}
 latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit, nagy = FALSE)
@@ -128,9 +134,25 @@ latent_cors <- sem.cor(BFIGritHope, cfa_fit$fit, nagy = FALSE)
 round(latent_cors$cor_mat, 3)
 ```
 
+### Incremental Validity
+
+Incremental validity using aggregate scores is invalid (Westfall & Yarkoni, 2016). The solution is to use latent variables. This can be done with the `r2.change()` function. Inputs include keys lists, the focal variable (X), the outcome variable (Y), and a list of variables to test incremental validity against (Z). In the following example, the incremental validity of the consistency facet of grit ("grit_c") to incrementally predict the perseverance facet of grit ("grit_p") over hope is tested. Hope is measured as a bi-factor model with one of its pathways facet ("hope_p") having a group factor.
+
+```{r example-r2-change}
+keys_g <- list(hope = c(keys$hope_p, paste0("hope_a_", 1:4)))
+keys_b <- list(hope = "hope_p")
+dr2 <- r2.change(
+  BFIGritHope, X = "grit_c", Y = "grit_p", Z = "hope",
+  keys = keys, keys_g = keys_g, keys_b = keys_b, fit_save = FALSE
+)
+dr2$dr2
+```
+
+The primary output includes the r-squared value without `grit_c` and the incremental change in r-squared by adding `grit_c`. A bootstrap confidence interval could have been calculated by specifying a value of `boot` in the `r2.change()` function call.
+
 ### ESEM
 
-Two function run ESEM with EFA factors predicting measurement model latent variables. The first of these---`esem.from.keys`---uses keys lists to run the models using Rosseel and Loh's (2022) "Structure After Measurement" (SAM) method, and the second---`esem.from.mods`---uses fitted CFA, bi-factor, and EFA models to run the models using Burt's (1976) 2-stage procedure. In general, the SAM method is superior, so `esem.from.keys` should be used whenever possible. However, `esem.from.keys` currently only supports single-factor measurement models and `esem.from.mods` should be used for bi-factor models. See `?esem.from.keys` for details.
+Two function run ESEM with EFA factors predicting measurement model latent variables. The first of these---`esem.from.keys()`---uses keys lists to run the models using Rosseel and Loh's (2022) "Structure After Measurement" (SAM) method, and the second---`esem.from.mods()`---uses fitted CFA, bi-factor, and EFA models to run the models using Burt's (1976) 2-stage procedure. In general, the SAM method is superior, so `esem.from.keys()` should be used whenever possible. However, `esem.from.keys()` currently only supports single-factor measurement models and `esem.from.mods` should be used for bi-factor measurement models. See `?esem.from.keys` for details.
 
 ```{r example-esam}
 esam_fit <- esem.from.keys(BFIGritHope, keys_e, keys, fit_save = FALSE)
@@ -150,7 +172,7 @@ round(esam_fit$r2, 3)
 esam_fit$b$grit_c
 ```
 
-The `esem.from.mods` function provides the same outputs as `esem.from.keys`, only with somewhat biased standard error estimates.
+The `esem.from.mods()` function provides the same outputs as `esem.from.keys()`, only with somewhat biased standard error and fit statistic estimates.
 
 ```{r example-esem}
 esem_fit <- esem.from.mods(
@@ -170,7 +192,7 @@ esem_fit$b$grit_c
 
 ### SEM
 
-Finally, `semFromkeys` includes a function to help run standard structural equation models (SEM). The function takes fitted CFA models for the measurement models and lavaan code for the structural path(s) and uses Rosseel and Loh's (2022) method to run the model.
+Finally, the `sem.path()` function runs standard structural equation models (SEM). The function takes fitted CFA models for the measurement models and lavaan code for the structural path(s) and uses Rosseel and Loh's (2022) method to run the model.
 
 ```{r example-sem}
 path <- "grit_p ~ grit_c + hope_p\nhope_p ~ hope_a"
@@ -211,5 +233,7 @@ Jöreskog, K. G. (1971). Statistical Analysis of Sets of Congeneric Tests. Psych
 Nagy, G., Brunner, M., Lüdtke, O., and Greiff, S. (2017). Extension Procedures for Confirmatory Factor Analysis. Journal of Experimental Education, 85(4), 574-596. https://doi.org/10.1080/00220973.2016.1260524.
 
 Rosseel, Y. & Loh, W. W. (2022). A structural after measurement approach to structural equation modeling. Psychological Methods, 29(3), 561-588. https://doi.org/10.1037/met0000503.
+
+Westfall, J., and Yarkoni, T. (2016). Statistically controlling for confounding constructs is harder than you think. PLoS ONE, 11(3), 1-23. https://doi.org/10.1371/journal.pone.0152719.
 
 <!-- You'll need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
