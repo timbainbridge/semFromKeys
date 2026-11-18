@@ -3,6 +3,7 @@
 * Added the `r2.change` function.
 * Added the `progress` argument that allows most progress messages to be suppressed.
 * Updated warning and error message handling to use `withCallingHandlers` so warnings and errors can still be connected to the model that caused the issue when `progress = FALSE`.
+* Updated README.
 * Updated examples to make them a little easier to follow.
 * Added further info to data description.
 * Fixed a minor issue when some fit statistics could not be calculated.
