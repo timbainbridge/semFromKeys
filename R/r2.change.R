@@ -159,7 +159,7 @@
 #' missing data. Behavior Research Methods, 53(5), 2127-2157.
 #' https://doi.org/10.3758/s13428-020-01532-y.
 #'
-#' Westfall, J, and Yarkoni, T (2016).
+#' Westfall, J., and Yarkoni, T. (2016).
 #' Statistically controlling for confounding constructs is harder than you
 #' think. PLoS ONE, 11(3), 1-23.
 #' https://doi.org/10.1371/journal.pone.0152719.

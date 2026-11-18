@@ -326,16 +326,18 @@ esem.from.keys <- function(
       if (length(extra_vars2) > 1) {
         stop(
           paste0(
-            "The following items were found in 'extra' but do not match either ",
-            "a variable name in 'keys' or 'keys_e', or standard lavaan code.\n\n",
-            "     ", paste(extra_vars2, collapse = ", ")
+            "The following items were found in 'extra' but do not match ",
+            "either a variable name in 'keys' or 'keys_e', or standard lavaan ",
+            "code.\n\n     ",
+            paste(extra_vars2, collapse = ", ")
           )
         )
       } else {
         stop(
           paste0(
-            "'", extra_vars2, "' was found in 'extra' but does not match either ",
-            "a variable name in 'keys' or 'keys_e', or standard lavaan code."
+            "'", extra_vars2, "' was found in 'extra' but does not match ",
+            "either a variable name in 'keys' or 'keys_e', or standard lavaan ",
+            "code."
           )
         )
       }
