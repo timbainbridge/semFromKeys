@@ -10,7 +10,7 @@
 
 The ‘semFromKeys’ package was designed to streamline running ‘lavaan’
 models with similar structures using keys lists to generate model code
-instead of writing out the code for models manually. Functions run
+instead of writing the code for models manually. Functions run
 confirmatory factor analyses (CFAs; `cfa.from.keys()`), bi-factor models
 (`bifactor.from.keys()`), exploratory factor analysis (EFA;
 `efa.from.keys()`), latent variable correlations (`sem.cor()`),
@@ -21,20 +21,20 @@ factors predict CFA or bi-factor latent variables.
 
 Functions take either keys lists or prior model outputs as inputs. A
 keys list is simply a list of scales where each list element is a named
-vector of scale items with the name being the name of the scale. With
-the keys list (or lists), the function creates the relevant code for the
-models and runs the models, avoiding the necessity of writing out each
-model’s code manually.
+vector of scale items. With the keys list (or lists), the function
+creates the relevant code for the models and runs the models, avoiding
+the necessity of writing out each model’s code manually.
 
 Functions that compute measurement models include `cfa.from.keys()` and
 `bifactor.from.keys()`, which create and run a series of models based on
 keys indicating each of the factors in the models, and
 `efa.from.keys()`, which uses a keys list to create a target rotation
 for a single EFA. Structural models include `sem.cor()`, `sem.path()`,
-`r2.change()`, `esem.from.keys()`, and `esem.from.mods()`. `sem.cor()`
-takes fitted CFA models and runs an SEM for each combination of scales
-computing a latent variable correlation for each. These are then
-collected into a correlation table similar to the `stats::cor()`
+`r2.change()`, `esem.from.keys()`, and `esem.from.mods()`.
+
+`sem.cor()` takes fitted CFA models and runs an SEM for each combination
+of scales computing a latent variable correlation for each. These are
+then collected into a correlation table similar to the `stats::cor()`
 function. `sem.path()` takes fitted CFA or bi-factor models and a path
 equation, and produces a single SEM model. `r2.change()` takes keys
 lists, and names for the focal variable (X), the outcome variable (Y),
@@ -54,8 +54,8 @@ Bainbridge, Ludeke, and Smillie (2022).
 For sets of models that take a long time to run, code has been included
 to allow the first run to save outputs that can be checked against in
 subsequent runs. If nothing has changed, then the previous outputs are
-returned, saving the time (and energy) of running them again. To get
-this feature to work, the R version has to be 4.0 or later and a cache
+returned, saving the time (and energy) of running them again. For this
+feature to work, the R version has to be 4.0 or later and a cache
 directory will have to be set with the `cache.setup()` function, which,
 by default, configures a cache directory in the users’ cache as
 determined by the operating system. It can alternatively be set as a
@@ -92,7 +92,7 @@ You can install the stable CRAN version with:
 install.packages("semFromKeys")
 ```
 
-## Example
+## Examples
 
 The following examples generate keys, run CFAs and an EFA using these
 keys, compute correlations between CFA latent variables, check a scale’s
