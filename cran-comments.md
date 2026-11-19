@@ -1,3 +1,9 @@
+## Version 0.6.1 submission
+
+### Notes
+
+* Fixed a minor issue where legacy saved parameter estimate objects would be found by `check.cache()` but not by `sem.check()`.
+
 ## Version 0.6.0 submission
 
 ### R CMD check results
