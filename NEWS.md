@@ -1,3 +1,5 @@
+# semFromKeys (development version)
+
 * Fixed a minor issue where legacy saved parameter estimate objects would be found by `check.cache()` but not by `sem.check()`.
 
 # semFromKeys 0.6.0

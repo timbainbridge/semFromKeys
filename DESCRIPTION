@@ -1,7 +1,7 @@
 Package: semFromKeys
 Type: Package
 Title: Run 'lavaan' Models from Keys Lists
-Version: 0.6.0
+Version: 0.6.0.9000
 Authors@R: c(
     person(
       "Timothy F.", "Bainbridge",
