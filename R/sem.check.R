@@ -388,6 +388,11 @@ sem.check <- function(
       if (sum(par_type) > 0) {
         if (file.exists(file.path(cache_dir, name, paste0(name, "_par.rds")))) {
           par0 <- readRDS(file.path(cache_dir, name, paste0(name, "_par.rds")))
+        } else {
+          # Legacy support for old file names
+          par0 <- readRDS(
+            file.path(cache_dir, name, paste0(name, "_par_std.rds"))
+          )
         }
       }
       if (file.exists(file.path(cache_dir, name, paste0(name, "_fit_m.rds")))) {
