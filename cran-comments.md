@@ -1,5 +1,9 @@
 ## Version 0.6.0 submission
 
+### R CMD check results
+
+0 errors | 0 warnings | 0 notes
+
 ### Notes
 
 * Added the `r2.change` function.

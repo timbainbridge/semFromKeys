@@ -32,8 +32,7 @@ Imports:
     tools,
     matrixcalc,
     Matrix,
-    stats,
-    stringr
+    stats
 Suggests: 
     testthat (>= 3.0.0),
     here
