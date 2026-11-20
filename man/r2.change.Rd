@@ -32,12 +32,11 @@ r2.change(
 \item{data}{A data frame or object coercible to a data frame.
 Data must include all observed variables used in any of the models.}
 
-\item{X}{A length 1 character vector of the name of the the variable being tested.}
+\item{X}{A string of the name of the the variable being tested.}
 
 \item{Y}{A string of the name of the outcome variable.}
 
-\item{Z}{A character vector of the set of variables that X is being pitted against or
-\code{NULL} to use all variables in \code{cfa_fit} and \code{bif_fit}. Defaults to \code{NULL}.}
+\item{Z}{A character vector of the set of variables that X is being pitted against.}
 
 \item{keys}{A named list of items in uni-dimensional factors.
 These can be names of single-factor latent variables or group factor latent

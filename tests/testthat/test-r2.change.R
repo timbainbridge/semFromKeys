@@ -100,7 +100,9 @@ test_that(
   {
     r2d <- r2.change(
       BFIGritHope, X = "grit_c", Y = "grit_p", Z = "hope",
-      extra = c("grit_c_1 ~~ grit_p_1", ""),
+      extra = c(
+        "grit_c_1 ~~ grit_p_1\ngrit_c_2 ~~ grit_c_3", "grit_p_2 ~~ grit_p_3"
+      ),
       keys = keys, keys_g = keys_g, keys_b = keys_b, fit_save = TRUE
     )
     expect_equal(length(r2d), 5)

@@ -15,12 +15,10 @@
 #' `boot:::norm.inter` copied from `boot`.
 #'
 #' @inheritParams sem.check
-#' @param X
-#' A length 1 character vector of the name of the the variable being tested.
+#' @param X A string of the name of the the variable being tested.
 #' @param Y A string of the name of the outcome variable.
 #' @param Z
-#' A character vector of the set of variables that X is being pitted against or
-#' `NULL` to use all variables in `cfa_fit` and `bif_fit`. Defaults to `NULL`.
+#' A character vector of the set of variables that X is being pitted against.
 #' @param boot
 #' Numeric or `NULL`.
 #' If `NULL`, then bootstrap confidence intervals are not calculated.
@@ -282,6 +280,7 @@ r2.change <- function(
     )
   }
   if (!is.null(extra)) {
+    extra <- unlist(lapply(extra, function(y) stringr::str_split(y, "\n")))
 
     #### Adapted from cfa.from.keys #####
     # Removal all fixed values and parameter names; remove punctuation
@@ -294,6 +293,26 @@ r2.change <- function(
         tmp[tmp != ""]
       }
     )
+    if (sum(unlist(extra_vars) %in% items) > 0) {
+      ex_i <- extra_vars[extra_vars %in% items]
+      if (length(ex_i) == 1) {
+        warning(
+          paste0(
+            "Single item variables cannot be correlated with any other ",
+            "variables, yet '", ex_i, "' is included in 'extra'. ",
+            "The offending element of 'extra' has been excluded."
+          )
+        )
+      } else {
+        warning(
+          paste(
+            "Single item variables cannot be correlated with any other ",
+            "variables, yet multiple such items are included in 'extra'. ",
+            "The offending elements of 'extra' have been excluded."
+          )
+        )
+      }
+    }
     extra_vars1 <- unique(unlist(extra_vars))
     extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(keys_s)]
     if (length(extra_vars2) > 0) {
