@@ -2,7 +2,7 @@
 
 ### Notes
 
-* Fixed an major issue in `r2.change()` whereby items were included as single items and were uncorrelated with everything. The model would work fine but produce inaccurate results.
+* Version 0.6.0 was the first version that included the `r2.change()` function. There were a couple of bugs on release, including a moderately serious issue where including items would result in invalid models with no errors or warnings and reasonable looking numbers. The only reason the bug is only "moderately serious" is because individual item inclusion will likely be rare. This has been fixed in 0.6.1.
 * Fixed a couple of other comparatively minor issues (see NEWS).
 
 ## Version 0.6.0 submission
