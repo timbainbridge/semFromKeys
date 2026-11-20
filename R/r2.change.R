@@ -408,7 +408,8 @@ r2.change <- function(
     )
     b <- par[par$op == "~", -(1:2)]
     names(b)[1] <- "Variable"
-    r <- par[par$op == "~~" & par$lhs != par$rhs, ]
+    r <- par[par$op == "~~" & par$lhs != par$rhs &
+               (par$lhs %in% c(X, Y, Z) & (par$rhs %in% c(X, Y, Z))), ]
     list(r2 = r2, b = b, r = r)
     ##### Adapted from sem.path #####
   }
