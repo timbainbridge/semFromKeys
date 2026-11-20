@@ -53,11 +53,11 @@ Leave \code{keys_g = NULL} when no bifactor models are required.}
 Names must be the names of the general factors.
 Each list element must be a vector of group factors.
 \code{keys_b} must be the same length as \code{keys_g}.
-Leave \code{keys_b = NULL} when no bifactor models are required.}
+Leave \code{keys_b = NULL} when no bi-factor models are required.}
 
 \item{extra}{A string or vector of strings of lavaan code to be appended to the model.
-The argument can be used to set constraints, fix parameters to
-specific values, or allow correlations between item residuals.}
+The argument can be used to set constraints, fix parameters to specific
+values, or allow correlations between item residuals.}
 
 \item{boot}{Numeric or \code{NULL}.
 If \code{NULL}, then bootstrap confidence intervals are not calculated.
@@ -153,17 +153,56 @@ The function was inspired by work from Hayes (2021) and uses
 \code{boot:::norm.inter} copied from \code{boot}.
 }
 \details{
+\code{r2.change} runs incremental validity analyses with latent variables.
+The function takes data, keys, and names for the focal variable (X), the
+outcome variable (Y), and variables to test against (Z) as inputs, and
+produces an r-squared change figure, optionally with bootstrap confidence
+intervals.
+Various other outputs of the process are also returned (see \code{Value}).
+
+The function supports single-item indicates, which can be included in X, Y,
+or Z.
+These are treated as single-item latent variables in the structural models
+used by \code{r2.change()}.
+Currently, lavaan's default treatment of such latent variables is used; that
+is, their variance is set at 0 and the loading estimated freely.
+Because their variance is set to 0, correlated residuals with them cannot be
+included in 'extra' (and no other types of relationships with single-item
+indicators are supported).
+The latent variable of single-item indicator are labelled as item_l where
+item indicates the item name.
+
+If using bootstrap confidence intervals, the function can take a very long
+time to run (e.g., 8 latent variables N ~ 350 and \code{boot = 1000} has taken 8
+hours to run in testing).
+As a result, it is highly recommended that you use \code{save_out = TRUE} and
+\code{check = TRUE}, especially for more complex models.
+\code{save_out = TRUE} causes the function to save model inputs and outputs, and
+\code{check = TRUE} checks to see if anything has changed from the last run when
+\code{save_out = TRUE}.
+If nothing has changed, then the bootstrap models will not have to run again.
+The method requires setting up a cache directory with \code{\link[=cache.setup]{cache.setup()}} to tell
+the function where to save inputs and outputs.
+The functionality can be helpful if code needs to occasionally be re-run to
+check results or if something has been changed in earlier code and it is
+unclear whether it affects the bootstrap models.
+If it did not, then running the code will be quick and you will know that it
+is still accurate.
+}
+\section{Latent Variable Incremental Validity Analysis}{
+
+
 Incremental validity analyses and 2-stage regressions are invalid when using
 mean or sum scores (Westfall & Yarkoni, 2016). To illustrate, take two
 separate scales that measure the same construct. Neither scale should have
 incremental validity over the other. However, unique item variance means that
 they will not correlate at 1 and any uncertainty in the measurement due to
 unique items variance (and indicated by reliability) is obscured from the
-model. Thus, the standard errors of the overlap in the scales' variance is
-incorrectly too narrow and the likelihood of false positives increases.
+model. Thus, the standard errors of scales' covariance is incorrectly too
+narrow and the likelihood of false positives increases.
 The chance of a false positive increases with sample size and lower
-reliabilities (down to .5), and rises towards 1 as N increases (Westfall &
-Yarkoni, 2016).
+reliabilities (down to .5), such that with \alpha = .7 and a modest N = 300,
+the Type I error rate is already over 70\% (Westfall & Yarkoni, 2016).
 
 To solve this issue, latent variables must be used (Westfall & Yarkoni,
 2016). Latent variable models have two advantages over aggregate scores in
@@ -174,14 +213,7 @@ Second, poorer reliability increases the uncertainty in the measurement, such
 that, as the correlation between two different scales of the same constructs
 becomes smaller, uncertainty increases. Together these factors mean that
 separate scales measuring the same constructs should fail to demonstrate
-incremental validity at an appropriate rate.
-
-\code{r2.change} makes the process of running incremental validity analyses with
-latent variables much easier. It takes data, keys, and names for the focal
-variable (X), the outcome variable (Y), and variables to test against (Z) as
-inputs, and produces an r-squared change figure, optionally with bootstrap
-confidence intervals. Various other outputs of the process are also returned
-(see \code{Value}).
+incremental validity at an appropriate rate, even for large N.
 
 Traditionally incremental validity analyses rely on two models.
 A reduced model regresses Y on Z and a full model adds X as a predictor.
@@ -195,13 +227,13 @@ One appropriate method leaves the X variable in the reduced model but allows
 it to correlate with Y's residual.
 Another method calculates r-squared for the reduced model using correlations
 from the full model.
+
 \code{r2.change} uses the first of these approaches to produce a regression
-table for the reduced model (so it can be included in a table, for example)
+table for the reduced model (so it can be included in a table, for example),
 and it uses the second approach to calculate r-squared changes both in the
 base models and bootstrap samples. The latter method means that minor changes
-in the models' convergence do not affect the r-squared estimates, even though
-the models are merely different versions of the same model (i.e., same fit
-statistics, degrees of freedom etc. just with a different structural path).
+in the models' convergence (despite being equivalent) do not affect the
+r-squared estimates.
 
 The problem of models being incomparable when variables are added or removed
 is known as "interpretational confounding" (Burt, 1976) and occurs because
@@ -209,26 +241,17 @@ the model fitting method does not distinguish between measurement and
 structural parameters. Thus, measurement parameters will shift depending on
 what other variables are in the model, thereby changing the interpretation
 of the latent variables.
+
 \code{r2.change} uses Burt's 2-stage approach to account for interpretational
 confounding. The method produces accurate point estimates but somewhat biases
 standard errors and fit statistics (Nagy et al., 2017).
 This means standard errors for regression coefficients and other model
 parameters will be slightly biased, but the r-squared change or bootstrap CIs
-will no be affected because these are entirely calculated with point
+will not be affected because these are entirely calculated with point
 estimates. For further details, see the "Interpretational Confounding"
 section.
-
-If using bootstrap confidence intervals, it is highly recommended that you
-use \code{save_out = TRUE} and \code{check = TRUE}, especially for more complex models.
-The method requires setting up a cache directory with \code{\link[=cache.setup]{cache.setup()}} before
-running but it then means that the bootstrap models will not have to be run
-again if they have already been run and nothing has changed (including number
-of bootstraps, argument inputs, or relevant data).
-The functionality can be helpful if something has been changed in earlier
-code and you are not sure if it affects the bootstrap models. If it did not,
-then running the code will be quick and you will know that it is still
-accurate.
 }
+
 \section{Interpretational Confounding}{
 
 In Structural Equation Models (SEM), standard methods do not distinguish
