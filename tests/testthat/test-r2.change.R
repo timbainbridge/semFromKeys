@@ -96,12 +96,14 @@ test_that(
   }
 )
 test_that(
-  "Works with extra",
+  "Works with extra (of length 3)",
   {
     r2d <- r2.change(
       BFIGritHope, X = "grit_c", Y = "grit_p", Z = "hope",
       extra = c(
-        "grit_c_1 ~~ grit_p_1\ngrit_c_2 ~~ grit_c_3", "grit_p_2 ~~ grit_p_3"
+        "grit_c_1 ~~ grit_p_1\ngrit_c_2 ~~ grit_c_3",
+        "grit_p_2 ~~ grit_p_3",
+        "hope_a_1 ~~ hope_p_1"
       ),
       keys = keys, keys_g = keys_g, keys_b = keys_b, fit_save = TRUE
     )
