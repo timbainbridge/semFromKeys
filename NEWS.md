@@ -1,6 +1,8 @@
 # semFromKeys (development version)
 
-* Fixed a minor issue where legacy saved parameter estimate objects would be found by `check.cache()` but not by `sem.check()`.
+* Fixed an major issue in `r2.change()` whereby items were included as single items and were uncorrelated with everything. The model would work fine but produce inaccurate results.
+* Fixed an issue in `cfa.from.keys()` whereby named 'extra' code could cause the function to fail with an obtuse error.
+* Fixed a minor issue where legacy saved parameter estimate objects would be found by `check.cache()` but not by `sem.check()`, causing an error.
 
 # semFromKeys 0.6.0
 

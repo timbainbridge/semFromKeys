@@ -2,7 +2,8 @@
 
 ### Notes
 
-* Fixed a minor issue where legacy saved parameter estimate objects would be found by `check.cache()` but not by `sem.check()`.
+* Fixed an major issue in `r2.change()` whereby items were included as single items and were uncorrelated with everything. The model would work fine but produce inaccurate results.
+* Fixed a couple of other comparatively minor issues (see NEWS).
 
 ## Version 0.6.0 submission
 
