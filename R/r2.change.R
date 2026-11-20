@@ -361,12 +361,10 @@ r2.change <- function(
 
   mm <- function(
     data, keys_c = keys_c, keys_g = keys_g, keys_b = keys_b, keys = keys,
-    ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen,
+    ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen, items = items,
     progress = progress, miss = miss, est = est, ordered = ordered,
     name = name, boot_n = 0, check = check, save_out = save_out
   ) {
-    check1 <- ifelse(boot_n == 0, check, FALSE)
-    save_out1 <- ifelse(boot_n == 0, save_out, FALSE)
     # At least one CFA measurement model
     if (length(keys_c) > 0) {
       cfa_fit <- suppressWarnings(
@@ -374,7 +372,7 @@ r2.change <- function(
           cfa.from.keys(
             keys_c, data, extra = ex_c, fit_save = FALSE, progress = FALSE,
             miss = miss, est = est, ordered = ordered,
-            name = paste0(name, "_c"), check = check1, save_out = save_out1
+            name = paste0(name, "_c"), check = check, save_out = save_out
           )
         )
       )
@@ -392,7 +390,7 @@ r2.change <- function(
           bifactor.from.keys(
             keys_g, keys_b, keys, data, extra = ex_b, fit_save = FALSE,
             progress = FALSE, miss = miss, est = est, ordered = ordered,
-            name = paste0(name, "_b"), check = check1, save_out = save_out1
+            name = paste0(name, "_b"), check = check, save_out = save_out
           )
         )
       )
@@ -433,11 +431,17 @@ r2.change <- function(
     } else {
       mods_b <- NULL
     }
+    if (length(items) >= 1) {
+      mods_i <- sapply(items, function(i) paste(i, "_l =~", i))
+    } else {
+      mods_i <- NULL
+    }
     if (boot_n == 0) {
       mods <- as.list(
         paste0(
           paste(mods_c, collapse = "\n"), "\n",
           paste(mods_b, collapse = "\n"), "\n",
+          paste(mods_i, collapse = "\n"), "\n",
           ex, "\n",
           c(
             paste(Y, "~", paste(Z, collapse = " + "), "+", X),
@@ -451,6 +455,7 @@ r2.change <- function(
       paste0(
         paste(mods_c, collapse = "\n"), "\n",
         paste(mods_b, collapse = "\n"), "\n",
+        paste(mods_i, collapse = "\n"), "\n",
         ex, "\n",
         paste(Y, "~", paste(Z, collapse = " + "), "+", X)
       )
@@ -460,13 +465,14 @@ r2.change <- function(
   if (progress) message("Running baseline models")
   base_m <- mm(
     data1, keys_c = keys_c, keys_g = keys_g, keys_b = keys_b, keys = keys,
-    ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen,
+    ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen, items = items,
     progress = progress, miss = miss, est = est, ordered = ordered,
     name = name, boot_n = 0, check = check, save_out = save_out
   )
   ks <- stats::setNames(rep(list(keys_s), 2), names(base_m))
   base_f <- sem.check(
-    base_m, data1, keys_s = ks, fit_save = fit_save, fit_measures = fit_measures,
+    base_m, data1, keys_s = ks,
+    fit_save = fit_save, fit_measures = fit_measures,
     miss = miss, est = est, ordered = ordered,
     name = name, check = check, save_out = save_out
   )
@@ -569,8 +575,9 @@ r2.change <- function(
           data1[boot_samples[, b], ],
           keys_c = keys_c, keys_g = keys_g, keys_b = keys_b, keys = keys,
           ex_c = mod_extra_c, ex_b = mod_extra_b, ex = mod_extra_gen,
-          progress = progress, miss = miss, est = est, ordered = ordered,
-          name = name, boot_n = b, check = check, save_out = save_out
+          items = items, progress = progress,
+          miss = miss, est = est, ordered = ordered,
+          name = name, boot_n = b, check = FALSE, save_out = FALSE
         )
       }
     )
