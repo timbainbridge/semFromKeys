@@ -158,7 +158,8 @@ cfa.from.keys <- function(
       function(k) {
         tmp <- mapply(
           xv = extra_vars, x = extra,
-          FUN = function(xv, x) if (sum(!xv %in% k) == 0) x else ""
+          FUN = function(xv, x) if (sum(!xv %in% k) == 0) x else "",
+          USE.NAMES = FALSE
         )
         tmp[tmp != ""]
       }
