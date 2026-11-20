@@ -521,7 +521,7 @@ r2.change <- function(
         paste(mods_c, collapse = "\n"), "\n",
         paste(mods_b, collapse = "\n"), "\n",
         paste(mods_i, collapse = "\n"), "\n",
-        ex, "\n",
+        paste(ex, collapse = "\n"), "\n",
         paste(Y, "~", paste(Z, collapse = " + "), "+", X)
       )
     }
