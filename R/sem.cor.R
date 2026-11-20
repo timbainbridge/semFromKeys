@@ -230,7 +230,7 @@ sem.cor <- function(
         stop(
           paste(
             "'item_loadings' must be either 'NULL', length 1, or length equal",
-            "to the lenght or items."
+            "to the length or items."
           )
         )
       }
