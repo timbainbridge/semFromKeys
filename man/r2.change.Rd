@@ -201,7 +201,7 @@ unique items variance (and indicated by reliability) is obscured from the
 model. Thus, the standard errors of scales' covariance is incorrectly too
 narrow and the likelihood of false positives increases.
 The chance of a false positive increases with sample size and lower
-reliabilities (down to .5), such that with \alpha = .7 and a modest N = 300,
+reliabilities (down to .5), such that with alpha = .7 and a modest N = 300,
 the Type I error rate is already over 70\% (Westfall & Yarkoni, 2016).
 
 To solve this issue, latent variables must be used (Westfall & Yarkoni,
