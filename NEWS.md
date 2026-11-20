@@ -2,6 +2,7 @@
 
 * Fixed an major issue in `r2.change()` whereby items were included as single items and were uncorrelated with everything. The model would work but produce inaccurate results.
 * Fixed an issue in `cfa.from.keys()` whereby named 'extra' code could cause the function to fail with an obtuse error.
+* Fixed an issue in `r2.change()` that caused extra code longer than one line to be incorrectly added to model code or cause an obtuse error.
 * Unknown code in 'extra' in `r2.change` is now excluded with a warning instead of causing an error.
 * Correlated residuals are now not included in structural output for `r2.change()`.
 * Fixed a minor issue where legacy saved parameter estimate objects would be found by `check.cache()` but not by `sem.check()`, causing an error.
