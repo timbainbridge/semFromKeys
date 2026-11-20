@@ -263,3 +263,16 @@ test_that(
     )
   }
 )
+test_that(
+  "Extra includes single item variables",
+  {
+    expect_warning(
+      r2.change(
+        BFIGritHope, X = "grit_c", Y = "grit_p", Z = "bfi_c2_2",
+        extra = "grit_c_1 ~~ bfi_c2_2",
+        keys = keys, keys_g = keys_g, keys_b = keys_b, fit_save = TRUE
+      ),
+      "Single item variables cannot be correlated with any other variables"
+    )
+  }
+)
