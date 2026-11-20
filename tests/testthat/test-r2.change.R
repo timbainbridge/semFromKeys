@@ -235,14 +235,14 @@ test_that(
 test_that(
   "Items in extra but not keys",
   {
-    expect_error(
+    expect_warning(
       r2.change(
         BFIGritHope, X = "grit_c", Y = "grit_p", Z = "bfi_c2_2",
         keys = keys, fit_save = FALSE, extra = "grit_p_1 ~~ bfi_c2_1"
       ),
       "was found in 'extra' but does not match"
     )
-    expect_error(
+    expect_warning(
       r2.change(
         BFIGritHope, X = "grit_c", Y = "grit_p", Z = "bfi_c2_2",
         keys = keys, fit_save = FALSE, extra = "bfi_c2_3 ~~ bfi_c2_1"

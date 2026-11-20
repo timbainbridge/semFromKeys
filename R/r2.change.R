@@ -345,22 +345,32 @@ r2.change <- function(
     extra_vars2 <- extra_vars1[!extra_vars1 %in% unlist(keys_s)]
     if (length(extra_vars2) > 0) {
       if (length(extra_vars2) > 1) {
-        stop(
+        warning(
           paste0(
             "The following items were found in 'extra' but do not match ",
-            "either a variable name in 'keys' or standard lavaan code.",
+            "either a variable name in 'keys' or standard lavaan code. ",
+            "Code with the variables has not been included in the models."
             "\n\n    ", paste(extra_vars2, collapse = ", ")
           )
         )
       } else {
-        stop(
+        warning(
           paste0(
             "'", extra_vars2, "' was found in 'extra' but does not match ",
             "either a variable name in 'keys', 'keys_g', or standard lavaan ",
-            "code."
+            "code. Code with the variable has not been included in the models."
           )
         )
       }
+      extra_vars <- lapply(
+        extra_vars, function(x) if (sum(x %in% extra_vars2)) NULL else x
+      )
+      extra <- sapply(
+        extra,
+        function(x) {
+          if (grep(paste0(extra_vars2, collapse = "|"), x)) NULL else x
+        }
+      )
     }
     mod_extra_c <- unlist(
       sapply(
