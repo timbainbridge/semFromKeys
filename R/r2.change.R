@@ -257,6 +257,13 @@ r2.change <- function(
                    !names(keys) %in% c(names(keys_g), names(keys_b))]
   items <- c(X, Y, Z)[c(X, Y, Z) %in% names(data)]
   keys_s <- c(unlist(keys_g), unlist(keys_c), items)
+  if (X %in% items) {
+    X <- paste0(X, "_l")
+  }
+  if (Y %in% items) {
+    Y <- paste0(Y, "_l")
+  }
+  Z[Z %in% items] <- paste0(Z[Z %in% items], "_l")
   data1 <- data[unlist(keys_s)]
   if (sum(items %in% unlist(keys_c)) > 0) {
     stop(
@@ -432,7 +439,7 @@ r2.change <- function(
       mods_b <- NULL
     }
     if (length(items) >= 1) {
-      mods_i <- sapply(items, function(i) paste(i, "_l =~", i))
+      mods_i <- sapply(items, function(i) paste0(i, "_l =~ ", i))
     } else {
       mods_i <- NULL
     }
