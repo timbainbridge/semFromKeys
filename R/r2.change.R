@@ -349,7 +349,7 @@ r2.change <- function(
           paste0(
             "The following items were found in 'extra' but do not match ",
             "either a variable name in 'keys' or standard lavaan code. ",
-            "Code with the variables has not been included in the models."
+            "Code with the variables has not been included in the models.",
             "\n\n    ", paste(extra_vars2, collapse = ", ")
           )
         )
