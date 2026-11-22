@@ -93,6 +93,8 @@
 #' vector (or list) with a `continuous` value and an `ordered` value specifying
 #' the estimators for each case
 #' (e.g., `est = c(continuous = "MLR", ordered = "WLSMV")`).
+#' Ordinal single-item indicator variables are currently only supported for Y
+#' variables.
 #'
 #' The function supports single-item indicators, which can be included in X, Y,
 #' or Z.
@@ -306,7 +308,17 @@ r2.change <- function(
   keys_c <- keys[names(keys) %in% c(X, Y, Z) &
                    !names(keys) %in% c(names(keys_g), names(keys_b))]
   items <- c(X, Y, Z)[c(X, Y, Z) %in% names(data)]
-  keys_s <- c(unlist(keys_g), unlist(keys_c), items)
+  items_o <- items[items %in% ordered]
+  if (items_o %in% c(X, Z)) {
+    stop(
+      paste(
+        "Ordinal single-item indicator variables are currently only supported",
+        "for Y variables."
+      )
+    )
+  }
+  items <- items[!items %in% items_o]
+  keys_s <- c(unlist(keys_g), unlist(keys_c), items, items_o)
   if (X %in% items) {
     X <- paste0(X, "_l")
   }
