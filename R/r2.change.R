@@ -92,7 +92,7 @@
 #' models without ordinal variables, then `est` must be specified as a length 2
 #' vector (or list) with a `continuous` value and an `ordered` value specifying
 #' the estimators for each case
-#' (e.g., `est = c(continuous = "MLR", ordered = "WLSMV")`.
+#' (e.g., `est = c(continuous = "MLR", ordered = "WLSMV")`).
 #'
 #' The function supports single-item indicators, which can be included in X, Y,
 #' or Z.
@@ -463,13 +463,11 @@ r2.change <- function(
   ) {
     # At least one CFA measurement model
     if (length(keys_c) > 0) {
-      cfa_fit <- suppressWarnings(
-        suppressMessages(
-          cfa.from.keys(
-            keys_c, data, extra = ex_c, fit_save = FALSE, progress = FALSE,
-            miss = miss, est = est, ordered = ord_c,
-            name = paste0(name, "_c"), check = check, save_out = save_out
-          )
+      cfa_fit <- suppressMessages(
+        cfa.from.keys(
+          keys_c, data, extra = ex_c, fit_save = FALSE, progress = FALSE,
+          miss = miss, est = est, ordered = ordered,
+          name = paste0(name, "_c"), check = check, save_out = save_out
         )
       )
       if (boot_n > 0) {
@@ -481,13 +479,11 @@ r2.change <- function(
     }
     # At least one bifactor model
     if (length(keys_g) > 0) {
-      bif_fit <- suppressWarnings(
-        suppressMessages(
-          bifactor.from.keys(
-            keys_g, keys_b, keys, data, extra = ex_b, fit_save = FALSE,
-            progress = FALSE, miss = miss, est = est, ordered = ord_b,
-            name = paste0(name, "_b"), check = check, save_out = save_out
-          )
+      bif_fit <- suppressMessages(
+        bifactor.from.keys(
+          keys_g, keys_b, keys, data, extra = ex_b, fit_save = FALSE,
+          progress = FALSE, miss = miss, est = est, ordered = ord_b,
+          name = paste0(name, "_b"), check = check, save_out = save_out
         )
       )
       if (boot_n > 0) {

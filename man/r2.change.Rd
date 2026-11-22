@@ -192,7 +192,7 @@ variables, and the estimator for the structural model does not work for
 models without ordinal variables, then \code{est} must be specified as a length 2
 vector (or list) with a \code{continuous} value and an \code{ordered} value specifying
 the estimators for each case
-(e.g., \code{est = c(continuous = "MLR", ordered = "WLSMV")}.
+(e.g., \code{est = c(continuous = "MLR", ordered = "WLSMV")}).
 
 The function supports single-item indicators, which can be included in X, Y,
 or Z.
