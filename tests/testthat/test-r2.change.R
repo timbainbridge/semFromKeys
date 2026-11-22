@@ -112,6 +112,56 @@ test_that(
   }
 )
 test_that(
+  "Works with ordered and non-default est",
+  {
+    # Does not find a solution if just using bfi_c2_2 as is
+    data <- BFIGritHope
+    data$bfi_c2_21 <- ifelse(data$bfi_c2_2 >= 4, 1, 0)
+    r2d <- r2.change(
+      data, X = "grit_c", Z = "grit_p", Y = "bfi_c2_21",
+      keys = keys, fit_save = FALSE, ordered = "bfi_c2_21",
+      est = c(ordered = "WLSMV", contin = "ML")
+    )
+    expect_equal(length(r2d), 4)
+    expect_equal(length(r2d$dr2), 2)
+  }
+)
+test_that(
+  "Ordered with non-ordered measurement gives the correct warning",
+  {
+    data <- BFIGritHope
+    data$bfi_c2_21 <- ifelse(data$bfi_c2_2 >= 4, 1, 0)
+    expect_warning(
+      r2.change(
+        data, X = "grit_c", Z = "grit_p", Y = "bfi_c2_21",
+        keys = keys, fit_save = FALSE, ordered = "bfi_c2_21", est = "PML"
+      ),
+      "Ordered variables were specified with a non-default, length 1 option"
+    )
+  }
+)
+test_that(
+  "Errors for ordinal single-item indicators for X and Z",
+  {
+    data <- BFIGritHope
+    data$bfi_c2_21 <- ifelse(data$bfi_c2_2 >= 4, 1, 0)
+    expect_error(
+      r2.change(
+        data, Z = "grit_c", Y = "grit_p", X = "bfi_c2_21",
+        keys = keys, fit_save = FALSE, ordered = "bfi_c2_21"
+      ),
+      "Ordinal single-item indicator variables are currently only supported"
+    )
+    expect_error(
+      r2.change(
+        data, X = "grit_c", Y = "grit_p", Z = "bfi_c2_21",
+        keys = keys, fit_save = FALSE, ordered = "bfi_c2_21"
+      ),
+      "Ordinal single-item indicator variables are currently only supported"
+    )
+  }
+)
+test_that(
   "X, Y, Z not in keys, data",
   {
     expect_error(
