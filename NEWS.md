@@ -1,11 +1,11 @@
 # semFromKeys (development version)
 
 * Fixed an major issue in `r2.change()` whereby items were included as single items and were uncorrelated with everything. The model would work but produce inaccurate results.
-* Added optional length 2 `est`, principally for `r2.change()`, for when some models include ordinal variables and some models do not.
+* Added optional specification of `est`, principally for `r2.change()`, that allows different estimators for models with and without ordinal variables.
 * Fixed an issue in `cfa.from.keys()` whereby named 'extra' code could cause the function to fail with an obtuse error.
 * Fixed an issue in `r2.change()` that caused extra code longer than one line to be incorrectly added to model code or cause an obtuse error.
-* Unknown code in 'extra' in `r2.change` is now excluded with a warning instead of causing an error.
-* Correlated residuals are now not included in structural output for `r2.change()`.
+* Code in 'extra' in `r2.change` including variables that are not in the model is now excluded with a warning instead of issuing an error.
+* Correlated residuals are now excluded from structural output for `r2.change()`.
 * Fixed a minor issue where legacy saved parameter estimate objects would be found by `check.cache()` but not by `sem.check()`, causing an error.
 
 # semFromKeys 0.6.0
