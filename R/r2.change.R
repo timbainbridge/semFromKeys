@@ -496,7 +496,7 @@ r2.change <- function(
       bif_fit <- suppressMessages(
         bifactor.from.keys(
           keys_g, keys_b, keys, data, extra = ex_b, fit_save = FALSE,
-          progress = FALSE, miss = miss, est = est, ordered = ord_b,
+          progress = FALSE, miss = miss, est = est, ordered = ordered,
           name = paste0(name, "_b"), check = check, save_out = save_out
         )
       )
