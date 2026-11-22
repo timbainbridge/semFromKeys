@@ -123,7 +123,7 @@ test_that(
       est = c(ordered = "WLSMV", contin = "ML"), boot = 20
     )
     expect_equal(length(r2d), 4)
-    expect_equal(length(r2d$dr2), 2)
+    expect_equal(length(r2d$dr2), 5)
   }
 )
 test_that(
