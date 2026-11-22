@@ -58,9 +58,16 @@
 #' Defaults to 'default', which uses 'ML' for `ordered = NULL` and 'pairwise'
 #' for any other value of `ordered`.
 #' @param est
-#' A string.
+#' A string or a length 2 named vector of strings with names continuous and
+#' ordered.
 #' Sets the `estimator` parameter, as per lavaan (see [lavaan::lavOptions]).
 #' The default ('default') uses the lavaan default for the model being run.
+#' If a single string, the method will be applied to all models.
+#' If length 2, the names should be `continuous` and `ordered`.
+#' `continuous` sets the estimator for models with no ordinal variables, and
+#' `ordered` sets the estimator for models with at least one ordinal variable.
+#' The length 2 option is only relevant if at least one ordinal variable is
+#' specified in `ordered`.
 #' @param std.lv
 #' Logical.
 #' Sets the `std.lv` parameter, as per lavaan (see [lavaan::lavOptions]).
@@ -154,11 +161,11 @@
 #' saving outputs (i.e., `fit_save = FALSE`) and not checking for past saves
 #' (i.e., `check = FALSE`, both default).
 #' However, the functionality may be beneficial in cases with lots of models or
-#' very slow models.
+#' very slow models, especially in [r2.change] and [sem.cor].
 #'
 #' @seealso
 #' [cfa.from.keys] [efa.from.keys] [bifactor.from.keys] [esem.from.mods]
-#' [esem.from.keys] [sem.cor] [sem.path] [cache.setup] [lavaan::sem]
+#' [esem.from.keys] [sem.cor] [sem.path] [r2.change] [cache.setup] [lavaan::sem]
 #' [lavaan::sam] [lavaan::efa] [lavaan::parameterEstimates]
 #' [lavaan::standardizedSolution] [lavaan::fitMeasures] [openssl::md5]
 #' [lavaan::lavOptions]
@@ -210,6 +217,22 @@ sem.check <- function(
   }
   if (!is.logical(save_out)) {
     stop("'save_out' is not logical. It should be 'TRUE' or 'FALSE'.")
+  }
+  if (length(est) > 2) {
+    stop("'est' can only be length 1 or 2.")
+  }
+  if (length(est) == 2) {
+    if (
+      (sum(!grepl("con", names(est))) != 1) |
+      (sum(!grepl("ord", names(est))) != 1)
+    ) {
+      stop(
+        paste(
+          "When 'est' is specified as a length 2 vector, it must be named with",
+          "'continuous' (or at least 'con') and 'ordered' (or at least 'ord')."
+        )
+      )
+    }
   }
   if (save_out | check) {
     found <- FALSE
@@ -347,14 +370,17 @@ sem.check <- function(
     stop("The above items are in a key but they are not in 'data'.")
   }
   if (is.null(ordered)) {
-    ordered_key <- "NULL"
+    ordered_key <- NA
   } else {
     if (is.null(keys_s)) {
       ordered_key <- list(ordered[ordered %in% unlist(keys_e)])
     } else {
       ordered_key <- sapply(
         keys_s,
-        function(x) ordered[ordered %in% c(x, unlist(keys_e))],
+        function(x) {
+          x1 <- ordered[ordered %in% c(x, unlist(keys_e))]
+          if (length(x1) == 0) NA else x1
+        },
         simplify = FALSE
       )
     }
@@ -433,6 +459,13 @@ sem.check <- function(
   # Warnings required to be printed immediately so people know which model
   # caused the issue -> use with_options.
   message("Fitting models")
+  if (length(est) == 1) {
+    est_c <- est
+    est_o <- est
+  } else {
+    est_c <- est[grep("con", names(est))]
+    est_o <- est[grep("ord", names(est))]
+  }
   fit <- with_options(
     list(warn = 1),
     mapply(
@@ -455,8 +488,8 @@ sem.check <- function(
             {
               if (is.null(target)) {
                 if (!use_sam) {
-                  if (est == "default") {
-                    if (ord_k[1] == "NULL") {
+                  if (is.na(ord_k[1])) {
+                    if (est_c == "default") {
                       sem(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -465,6 +498,17 @@ sem.check <- function(
                         orthogonal = orthogonal
                       )
                     } else {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        estimator = est_c,
+                        std.lv  = std.lv,
+                        orthogonal = orthogonal
+                      )
+                    }
+                  } else {
+                    if (est_o == "default") {
                       sem(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -473,23 +517,12 @@ sem.check <- function(
                         orthogonal = orthogonal,
                         ordered = ord_k
                       )
-                    }
-                  } else {
-                    if (ord_k[1] == "NULL") {
-                      sem(
-                        model   = mods1,
-                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                        missing = miss,
-                        estimator = est,
-                        std.lv  = std.lv,
-                        orthogonal = orthogonal
-                      )
                     } else {
                       sem(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                         missing = miss,
-                        estimator = est,
+                        estimator = est_o,
                         std.lv  = std.lv,
                         orthogonal = orthogonal,
                         ordered = ord_k
@@ -497,8 +530,8 @@ sem.check <- function(
                     }
                   }
                 } else {
-                  if (est == "default") {
-                    if (ord_k[1] == "NULL") {
+                  if (is.na(ord_k[1])) {
+                    if (est_c == "default") {
                       sam(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -506,6 +539,17 @@ sem.check <- function(
                         std.lv  = std.lv
                       )
                     } else {
+                      sam(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        mm_args = list(estimator = est_c),
+                        struc_args = list(estimator = est_c),
+                        missing = miss,
+                        std.lv  = std.lv
+                      )
+                    }
+                  } else {
+                    if (est_o == "default") {
                       sam(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -513,23 +557,12 @@ sem.check <- function(
                         std.lv  = std.lv,
                         ordered = ord_k
                       )
-                    }
-                  } else {
-                    if (ord_k[1] == "NULL") {
-                      sam(
-                        model   = mods1,
-                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                        mm_args = list(estimator = est),
-                        struc_args = list(estimator = est),
-                        missing = miss,
-                        std.lv  = std.lv
-                      )
                     } else {
                       sam(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                        mm_args = list(estimator = est),
-                        struc_args = list(estimator = est),
+                        mm_args = list(estimator = est_o),
+                        struc_args = list(estimator = est_o),
                         missing = miss,
                         std.lv  = std.lv,
                         ordered = ord_k
@@ -539,8 +572,8 @@ sem.check <- function(
                 }
               } else {
                 if (!use_sam) {
-                  if (est == "default") {
-                    if (ord_k[1] == "NULL") {
+                  if (is.na(ord_k[1])) {
+                    if (est_c == "default") {
                       sem(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -554,6 +587,22 @@ sem.check <- function(
                         )
                       )
                     } else {
+                      sem(
+                        model   = mods1,
+                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
+                        missing = miss,
+                        estimator = est_c,
+                        std.lv  = std.lv,
+                        rotation = "target",
+                        rotation.args = list(
+                          rstarts = 30, row.weights = "none", algorithm = "gpa",
+                          std.ov = TRUE, target = target,
+                          orthogonal = orthogonal
+                        )
+                      )
+                    }
+                  } else {
+                    if (est_o == "default") {
                       sem(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -567,28 +616,12 @@ sem.check <- function(
                           orthogonal = orthogonal
                         )
                       )
-                    }
-                  } else {
-                    if (ord_k[1] == "NULL") {
-                      sem(
-                        model   = mods1,
-                        data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
-                        missing = miss,
-                        estimator = est,
-                        std.lv  = std.lv,
-                        rotation = "target",
-                        rotation.args = list(
-                          rstarts = 30, row.weights = "none", algorithm = "gpa",
-                          std.ov = TRUE, target = target,
-                          orthogonal = orthogonal
-                        )
-                      )
                     } else {
                       sem(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
                         missing = miss,
-                        estimator = est,
+                        estimator = est_o,
                         std.lv  = std.lv,
                         ordered = ord_k,
                         rotation = "target",
@@ -601,18 +634,18 @@ sem.check <- function(
                     }
                   }
                 } else {
-                  if (est == "default") {
-                    if (ord_k[1] != "NULL") {
-                      warning(
-                        paste(
-                          "The SAM method, used to estimate the latent",
-                          "variable model you are attempting to run, does not",
-                          "support 'ordered' variables in ESEM.",
-                          "Therefore, the model will be run as though",
-                          "'ordered = NULL'."
-                        )
+                  if (!is.na(ord_k[1])) {
+                    warning(
+                      paste(
+                        "The SAM method, used to estimate the latent variable",
+                        "model you are attempting to run, does not support",
+                        "'ordered' variables in ESEM.",
+                        "Therefore, the model will be run as though",
+                        "'ordered = NULL'."
                       )
-                    }
+                    )
+                  }
+                  if (est_c == "default") {
                     sam(
                       model   = mods1,
                       data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -631,17 +664,6 @@ sem.check <- function(
                       )
                     )
                   } else {
-                    if (ord_k[1] != "NULL") {
-                      warning(
-                        paste(
-                          "The SAM method, used to estimate the latent",
-                          "variable model you are attempting to run, does not",
-                          "support 'ordered' variables in ESEM.",
-                          "Therefore, the model will be run as though",
-                          "'ordered = NULL'."
-                        )
-                      )
-                    }
                     sam(
                       model   = mods1,
                       data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -654,7 +676,7 @@ sem.check <- function(
                       # method exactly.
                       sam_method = "global",
                       missing = miss,
-                      estimator = est,
+                      estimator = est_c,
                       std.lv  = std.lv,
                       rotation = "target",
                       rotation.args = list(

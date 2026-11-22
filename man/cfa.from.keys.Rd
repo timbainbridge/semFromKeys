@@ -67,9 +67,16 @@ Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{l
 Defaults to 'default', which uses 'ML' for \code{ordered = NULL} and 'pairwise'
 for any other value of \code{ordered}.}
 
-\item{est}{A string.
+\item{est}{A string or a length 2 named vector of strings with names continuous and
+ordered.
 Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
-The default ('default') uses the lavaan default for the model being run.}
+The default ('default') uses the lavaan default for the model being run.
+If a single string, the method will be applied to all models.
+If length 2, the names should be \code{continuous} and \code{ordered}.
+\code{continuous} sets the estimator for models with no ordinal variables, and
+\code{ordered} sets the estimator for models with at least one ordinal variable.
+The length 2 option is only relevant if at least one ordinal variable is
+specified in \code{ordered}.}
 
 \item{ordered}{A character vector or \code{NULL}, as per the \code{ordered} lavaan argument of the
 same name (see, e.g., \link[lavaan:sem]{lavaan::sem}).

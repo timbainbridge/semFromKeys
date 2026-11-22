@@ -4,8 +4,8 @@
 #' Incremental validity using standard linear regressions is invalid with less
 #' than perfect (or close to perfect) reliability (Westfall & Yarkoni, 2016).
 #' Latent variable models must be used instead.
-#' However, this is difficult, especially if confidence intervals are required,
-#' which can only be created with bootstrap sampling.
+#' However, this is difficult, especially if confidence intervals (CIs) are
+#' required, which can only be created with bootstrap sampling.
 #'
 #' `r2.change` streamlines the process of running incremental validity
 #' analyses with latent variables, including generating bootstrap confidence
@@ -60,14 +60,41 @@
 #' effect sizes from both the full and reduced models.
 #'
 #' @details
-#' `r2.change` runs incremental validity analyses with latent variables.
+#' `r2.change()` runs incremental validity analyses with latent variables.
 #' The function takes data, keys, and names for the focal variable (X), the
 #' outcome variable (Y), and variables to test against (Z) as inputs, and
 #' produces an r-squared change figure, optionally with bootstrap confidence
 #' intervals.
 #' Various other outputs of the process are also returned (see `Value`).
 #'
-#' The function supports single-item indicates, which can be included in X, Y,
+#' `r2.change()` uses Burt's (1976) 2-stage approach to account for
+#' interpretational confounding.
+#' This requires first estimating measurement models, then fixing measurement
+#' model parameters to their measurement model values in the structural model.
+#' The method produces accurate point estimates but somewhat biases standard
+#' errors and fit statistics (Nagy et al., 2017).
+#' This means standard errors for regression coefficients and other model
+#' parameters will be slightly biased, but the r-squared change or bootstrap CIs
+#' will not be affected because these are entirely calculated with point
+#' estimates.
+#' For further details, see the "Bootstrap Confidence Intervals" and
+#' "Interpretational Confounding" sections.
+#'
+#' Ordinal variables are supported with the `ordered` argument, which works
+#' identically to the `ordered` argument in [lavaan::sem()].
+#' However, estimators that work with ordered variables often do not work in
+#' models without ordered variables and vice versa.
+#' If `est = 'default'` is used, then the estimator will be automatically
+#' selected based on lavaan's default for each model.
+#' However, if a particular estimator is required for a structural model
+#' including ordinal variables, there is a measurement model without any ordinal
+#' variables, and the estimator for the structural model does not work for
+#' models without ordinal variables, then `est` must be specified as a length 2
+#' vector (or list) with a `continuous` value and an `ordered` value specifying
+#' the estimators for each case
+#' (e.g., `est = c(continuous = "MLR", ordered = "WLSMV")`.
+#'
+#' The function supports single-item indicators, which can be included in X, Y,
 #' or Z.
 #' These are treated as single-item latent variables in the structural models
 #' used by `r2.change()`.
@@ -79,9 +106,29 @@
 #' The latent variable of single-item indicator are labelled as item_l where
 #' item indicates the item name.
 #'
+#' @section Bootstrap Confidence Intervals:
+#'
+#' Bootstrap confidence intervals can be specified by setting `boot` equal to
+#' the number of bootstraps you would like to use.
+#' Fewer than 20 bootstraps will cause an error but far more than 20 should be
+#' used applications beyond testing (e.g., 200-1000).
+#'
+#' The bootstrap procedure first fits measurement models and uses Burt's (1976)
+#' 2-stage method of fixing measurement model parameter estimates in the
+#' structural model to avoid interpretational confounding.
+#' See the "Latent Variable Incremental Validity Analysis" and "Interpretational
+#' Confounding" sections for further details.
+#'
+#' For the bootstrap samples, only the full model is fit and the r-squared of
+#' the reduced model is calculated from the model-implied correlation matrix
+#' between structural variables.
+#' The r-squared change is the difference between these values.
+#' Given that the measurement parameters are re-calculated for every bootstrap
+#' sample, the method is not biased by using Burt's 2-stage method.
+#'
 #' If using bootstrap confidence intervals, the function can take a very long
-#' time to run (e.g., 8 latent variables N ~ 350 and `boot = 1000` has taken 8
-#' hours to run in testing).
+#' time to run (e.g., 8 latent variables N ~ 350 and `boot = 1000` has taken
+#' 4:30 hours to run in testing).
 #' As a result, it is highly recommended that you use `save_out = TRUE` and
 #' `check = TRUE`, especially for more complex models.
 #' `save_out = TRUE` causes the function to save model inputs and outputs, and
@@ -134,28 +181,12 @@
 #' Another method calculates r-squared for the reduced model using correlations
 #' from the full model.
 #'
-#' `r2.change` uses the first of these approaches to produce a regression
+#' `r2.change()` uses the first of these approaches to produce a regression
 #' table for the reduced model (so it can be included in a table, for example),
 #' and it uses the second approach to calculate r-squared changes both in the
 #' base models and bootstrap samples. The latter method means that minor changes
 #' in the models' convergence (despite being equivalent) do not affect the
 #' r-squared estimates.
-#'
-#' The problem of models being incomparable when variables are added or removed
-#' is known as "interpretational confounding" (Burt, 1976) and occurs because
-#' the model fitting method does not distinguish between measurement and
-#' structural parameters. Thus, measurement parameters will shift depending on
-#' what other variables are in the model, thereby changing the interpretation
-#' of the latent variables.
-#'
-#' `r2.change` uses Burt's 2-stage approach to account for interpretational
-#' confounding. The method produces accurate point estimates but somewhat biases
-#' standard errors and fit statistics (Nagy et al., 2017).
-#' This means standard errors for regression coefficients and other model
-#' parameters will be slightly biased, but the r-squared change or bootstrap CIs
-#' will not be affected because these are entirely calculated with point
-#' estimates. For further details, see the "Interpretational Confounding"
-#' section.
 #'
 #' @inheritSection esem.from.keys Interpretational Confounding
 #'
@@ -436,7 +467,7 @@ r2.change <- function(
         suppressMessages(
           cfa.from.keys(
             keys_c, data, extra = ex_c, fit_save = FALSE, progress = FALSE,
-            miss = miss, est = est, ordered = ordered,
+            miss = miss, est = est, ordered = ord_c,
             name = paste0(name, "_c"), check = check, save_out = save_out
           )
         )
@@ -454,7 +485,7 @@ r2.change <- function(
         suppressMessages(
           bifactor.from.keys(
             keys_g, keys_b, keys, data, extra = ex_b, fit_save = FALSE,
-            progress = FALSE, miss = miss, est = est, ordered = ordered,
+            progress = FALSE, miss = miss, est = est, ordered = ord_b,
             name = paste0(name, "_b"), check = check, save_out = save_out
           )
         )

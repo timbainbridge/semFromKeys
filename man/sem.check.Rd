@@ -69,9 +69,16 @@ Sets the \code{missing} parameter, as per lavaan (see \link[lavaan:lavOptions]{l
 Defaults to 'default', which uses 'ML' for \code{ordered = NULL} and 'pairwise'
 for any other value of \code{ordered}.}
 
-\item{est}{A string.
+\item{est}{A string or a length 2 named vector of strings with names continuous and
+ordered.
 Sets the \code{estimator} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
-The default ('default') uses the lavaan default for the model being run.}
+The default ('default') uses the lavaan default for the model being run.
+If a single string, the method will be applied to all models.
+If length 2, the names should be \code{continuous} and \code{ordered}.
+\code{continuous} sets the estimator for models with no ordinal variables, and
+\code{ordered} sets the estimator for models with at least one ordinal variable.
+The length 2 option is only relevant if at least one ordinal variable is
+specified in \code{ordered}.}
 
 \item{std.lv}{Logical.
 Sets the \code{std.lv} parameter, as per lavaan (see \link[lavaan:lavOptions]{lavaan::lavOptions}).
@@ -200,7 +207,7 @@ For most applications, the checking feature can be safely ignored by not
 saving outputs (i.e., \code{fit_save = FALSE}) and not checking for past saves
 (i.e., \code{check = FALSE}, both default).
 However, the functionality may be beneficial in cases with lots of models or
-very slow models.
+very slow models, especially in \link{r2.change} and \link{sem.cor}.
 }
 \examples{
 # Create CFA keys
@@ -222,7 +229,7 @@ cfa_fit <- sem.check(mods, BFIGritHope, keys, name = "cfa", check = FALSE)
 }
 \seealso{
 \link{cfa.from.keys} \link{efa.from.keys} \link{bifactor.from.keys} \link{esem.from.mods}
-\link{esem.from.keys} \link{sem.cor} \link{sem.path} \link{cache.setup} \link[lavaan:sem]{lavaan::sem}
+\link{esem.from.keys} \link{sem.cor} \link{sem.path} \link{r2.change} \link{cache.setup} \link[lavaan:sem]{lavaan::sem}
 \link[lavaan:sam]{lavaan::sam} \link[lavaan:efa]{lavaan::efa} \link[lavaan:parameterEstimates]{lavaan::parameterEstimates}
 \link[lavaan:standardizedSolution]{lavaan::standardizedSolution} \link[lavaan:fitMeasures]{lavaan::fitMeasures} \link[openssl:md5]{openssl::md5}
 \link[lavaan:lavOptions]{lavaan::lavOptions}
