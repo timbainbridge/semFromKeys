@@ -1,4 +1,4 @@
-#' Runs ESEM based on CFA and EFA model outputs.
+#' Runs an SEM path model based on CFA model outputs
 #'
 #' `sem.path` runs latent variable structural equation models in lavaan.
 #' The function takes lists of fitted CFA lavaan model objects
