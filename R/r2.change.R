@@ -687,7 +687,8 @@ r2.change <- function(
         )
       }
     )
-    message("Running bootstrap structural models")
+
+    ##### Copied from sem.check #####
     if (!is.null(miss)) {
       if (miss == "default") {
         if (is.null(ordered)) {
@@ -697,9 +698,36 @@ r2.change <- function(
         }
       }
     }
-    # Bootstrap models run with sem rather than sem.check because I do not want to
-    # clog up people's cache with 1000s of models when save_out = TRUE and this
-    # way is quicker, given there's no need to return actual models.
+    if (length(est) == 1) {
+      est_c <- est
+      est_o <- est
+      if (!is.null(ordered) & est != "default") {
+        ord_warn <- TRUE
+        ord_warn_txt <- paste(
+          "Ordered variables were specified with a non-default, length 1",
+          "option for 'est', but one of the models being run does not include",
+          "any ordinal variables.\n ",
+          "This may mean you have an inappropriate estimator for this model,",
+          "which could cause an error or other issues.\n ",
+          "If you need to specify a separate estimator for models with an",
+          "without ordinal variables, specify 'est' with values for",
+          "'continuous' and 'ordered'.\n ",
+          "See 'est' in the 'Arguments' section of the help for details."
+        )
+      } else {
+        ord_warn <- FALSE
+      }
+    } else {
+      est_c <- est[grep("con", names(est))]
+      est_o <- est[grep("ord", names(est))]
+      ord_warn <- FALSE
+    }
+    ##### Copied from sem.check #####
+
+    message("Running bootstrap structural models")
+    # Bootstrap models run with sem rather than sem.check because I do not want
+    # to clog up people's cache or RAM with 1000s of models when save_out = TRUE
+    # and this way is quicker, given there's no need to return actual models.
     boot_dr2 <- mapply(
       m = boot_m, s = as.data.frame(boot_samples), b = 1:boot,
       FUN = function(m, s, b) {
@@ -711,8 +739,8 @@ r2.change <- function(
           }
 
           ##### Adapted from sem.check #####
-          m1 <- if (est == "default") {
-            if (is.null(ordered)) {
+          m1 <- if (is.null(ordered)) {
+            if (est_c == "default") {
               sem(
                 model   = m,
                 data    = data1[s, ],
@@ -720,6 +748,16 @@ r2.change <- function(
                 std.lv  = TRUE
               )
             } else {
+              sem(
+                model   = m,
+                data    = data1[s, ],
+                missing = miss,
+                estimator = est_c,
+                std.lv  = TRUE
+              )
+            }
+          } else {
+            if (est_o == "default") {
               sem(
                 model   = m,
                 data    = data1[s, ],
@@ -727,22 +765,12 @@ r2.change <- function(
                 std.lv  = TRUE,
                 ordered = ordered
               )
-            }
-          } else {
-            if (is.null(ordered)) {
-              sem(
-                model   = m,
-                data    = data1[s, ],
-                missing = miss,
-                estimator = est,
-                std.lv  = TRUE
-              )
             } else {
               sem(
                 model   = m,
                 data    = data1[s, ],
                 missing = miss,
-                estimator = est,
+                estimator = est_o,
                 std.lv  = TRUE,
                 ordered = ordered
               )

@@ -112,7 +112,7 @@ test_that(
   }
 )
 test_that(
-  "Works with ordered and non-default est",
+  "Works with ordered, non-default est, and bootstraps",
   {
     # Does not find a solution if just using bfi_c2_2 as is
     data <- BFIGritHope
@@ -120,7 +120,7 @@ test_that(
     r2d <- r2.change(
       data, X = "grit_c", Z = "grit_p", Y = "bfi_c2_21",
       keys = keys, fit_save = FALSE, ordered = "bfi_c2_21",
-      est = c(ordered = "WLSMV", contin = "ML")
+      est = c(ordered = "WLSMV", contin = "ML"), boot = 20
     )
     expect_equal(length(r2d), 4)
     expect_equal(length(r2d$dr2), 2)
