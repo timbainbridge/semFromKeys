@@ -1,6 +1,7 @@
 # semFromKeys (development version)
 
 * Fixed an major issue in `r2.change()` whereby items were included as single items and were uncorrelated with everything. The model would work but produce inaccurate results.
+* Added optional length 2 `est`, principally for `r2.change()`, for when some models include ordinal variables and some models do not.
 * Fixed an issue in `cfa.from.keys()` whereby named 'extra' code could cause the function to fail with an obtuse error.
 * Fixed an issue in `r2.change()` that caused extra code longer than one line to be incorrectly added to model code or cause an obtuse error.
 * Unknown code in 'extra' in `r2.change` is now excluded with a warning instead of causing an error.
