@@ -455,17 +455,34 @@ sem.check <- function(
       miss <- "pairwise"
     }
   }
+  if (length(est) == 1) {
+    est_c <- est
+    est_o <- est
+    if (!is.null(ordered) & est != "default") {
+      ord_warn <- TRUE
+      ord_warn_txt <- paste(
+        "Ordered variables were specified with a non-default, length 1 option",
+        "for 'est', but one of the models being run does not include any",
+        "ordinal variables (most likely from 'r2.change').",
+        "This may mean you have an inappropriate estimator for this model,",
+        "which could cause an error or other issues.",
+        "If you need to specify a separate estimator for models with an",
+        "without ordinal variables, specify 'est' with values for 'continuous'",
+        "and 'ordered'.",
+        "See 'est' in the 'Arguments' section of the help for details."
+      )
+    } else {
+      ord_warn <- FALSE
+    }
+  } else {
+    est_c <- est[grep("con", names(est))]
+    est_o <- est[grep("ord", names(est))]
+    ord_warn <- FALSE
+  }
   # Run
   # Warnings required to be printed immediately so people know which model
   # caused the issue -> use with_options.
   message("Fitting models")
-  if (length(est) == 1) {
-    est_c <- est
-    est_o <- est
-  } else {
-    est_c <- est[grep("con", names(est))]
-    est_o <- est[grep("ord", names(est))]
-  }
   fit <- with_options(
     list(warn = 1),
     mapply(
@@ -498,6 +515,7 @@ sem.check <- function(
                         orthogonal = orthogonal
                       )
                     } else {
+                      if (ord_warn) warning(ord_warn_txt)
                       sem(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -539,6 +557,7 @@ sem.check <- function(
                         std.lv  = std.lv
                       )
                     } else {
+                      if (ord_warn) warning(ord_warn_txt)
                       sam(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -587,6 +606,7 @@ sem.check <- function(
                         )
                       )
                     } else {
+                      if (ord_warn) warning(ord_warn_txt)
                       sem(
                         model   = mods1,
                         data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
@@ -664,6 +684,7 @@ sem.check <- function(
                       )
                     )
                   } else {
+                    if (ord_warn) warning(ord_warn_txt)
                     sam(
                       model   = mods1,
                       data    = data[c(keys_s[[n_mod]], unlist(keys_e))],
