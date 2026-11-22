@@ -7,6 +7,7 @@
 * Code in 'extra' in `r2.change` including variables that are not in the model is now excluded with a warning instead of issuing an error.
 * Correlated residuals are now excluded from structural output for `r2.change()`.
 * Fixed a minor issue where legacy saved parameter estimate objects would be found by `check.cache()` but not by `sem.check()`, causing an error.
+* Incorrect title for `sem.path()` fixed.
 
 # semFromKeys 0.6.0
 
