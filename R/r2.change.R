@@ -309,15 +309,17 @@ r2.change <- function(
                    !names(keys) %in% c(names(keys_g), names(keys_b))]
   items <- c(X, Y, Z)[c(X, Y, Z) %in% names(data)]
   items_o <- items[items %in% ordered]
-  if (items_o %in% c(X, Z)) {
-    stop(
-      paste(
-        "Ordinal single-item indicator variables are currently only supported",
-        "for Y variables."
+  if (length(items_o) > 0) {
+    if (items_o %in% c(X, Z)) {
+      stop(
+        paste(
+          "Ordinal single-item indicator variables are currently only",
+          "supported for Y variables."
+        )
       )
-    )
+    }
+    items <- items[!items %in% items_o]
   }
-  items <- items[!items %in% items_o]
   keys_s <- c(unlist(keys_g), unlist(keys_c), items, items_o)
   if (X %in% items) {
     X <- paste0(X, "_l")
